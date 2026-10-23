@@ -25,7 +25,7 @@ function weekLabel(r: WeeklyReport): string {
 export default async function WeeklyReportsPage() {
   const { startupId } = await requireFounder();
   const startup = await getOwnStartup(startupId);
-  const reports = await getOwnWeeklyReports(startupId, startup?.name);
+  const reports = await getOwnWeeklyReports(startupId);
 
   const latest = reports[0];
   const earlier = reports.slice(1);

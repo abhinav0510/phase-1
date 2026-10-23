@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "provision:founders": "node --env-file=.env.local scripts/provision-founders.mjs",
     "provision:admins": "node --env-file=.env.local scripts/provision-admins.mjs",
-    "backfill:weekly": "node --env-file=.env.local scripts/backfill-weekly-reports.mjs"
+    "backfill:weekly": "node --env-file=.env.local scripts/backfill-weekly-reports.mjs",
+    "migrate:mustreset": "node --env-file=.env.local scripts/migrate-mustreset.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.6",

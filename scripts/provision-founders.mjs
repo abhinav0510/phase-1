@@ -72,7 +72,10 @@ async function main() {
       email,
       password,
       email_confirm: true,
-      user_metadata: { role: "founder", startup_id: s.id, must_reset: true },
+      user_metadata: { role: "founder", startup_id: s.id },
+      // must_reset lives in app_metadata (service-role only) so the founder
+      // cannot clear it client-side to keep the one-time activation password.
+      app_metadata: { must_reset: true },
     });
     if (aErr) {
       console.error(`startup ${s.id}: auth create failed — ${aErr.message}`);

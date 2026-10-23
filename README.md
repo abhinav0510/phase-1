@@ -40,10 +40,14 @@ Matches, Meetings, My Profile, Settings (self-serve password change).
 - `app_users.id` (uuid) = the Supabase Auth user id; `role` + `startup_id`/`investor_id` drive access.
 - **Founders** sign in with a **Login ID** (their startup id) → mapped to a synthetic
   email `s<id>@founders.sidana.local`. Initial password is a one-time activation
-  code (`SID-<id>-<NAME4>`). The account carries a `must_reset` flag; `requireFounder`
+  code (`SID-<id>-<NAME4>`). The account carries a `must_reset` flag (stored in
+  **`app_metadata`**, writable only by the service role); `requireFounder`
   redirects any such founder to **`/force-reset`** and blocks the whole portal until
-  they set their own password (which clears the flag). Admins are not gated this way.
-- **Team/admins** sign in with email + password; Phase-1 bootstrap password `Sidana2026`.
+  they set their own password, which clears the flag **server-side**. Admins are
+  gated the same way via `requireAdmin`.
+- **Team/admins** sign in with email + password; the Phase-1 bootstrap password is
+  read from the `ADMIN_BOOTSTRAP_PASSWORD` env var (in git-ignored `.env.local`,
+  never committed) and should be rotated after admins reset.
 - Authorization is enforced **server-side** (role checks + startup_id filtering).
   Database-level RLS is provided as a reviewed, **not-yet-applied** migration
   (`MIGRATIONS/PROPOSED-rls.sql`) for defense-in-depth.
@@ -84,11 +88,16 @@ These write ONLY to Supabase **Auth** + add rows to `app_users`. They never
 modify or delete existing startups/investors/meetings/matches.
 ```bash
 npm run provision:admins            # dry run: report admin auth status
-npm run provision:admins -- --apply # set Sidana2026 on the 3 existing owners
+npm run provision:admins -- --apply # set ADMIN_BOOTSTRAP_PASSWORD on the 3 existing owners
 npm run provision:founders -- --dry-run  # preview founder accounts to create
 npm run provision:founders          # create 1 Auth user + app_users row per startup
+npm run migrate:mustreset -- --apply # move must_reset flags into app_metadata (one-time)
 ```
 `provision:founders` writes credentials to `founder-credentials.local.csv` (git-ignored).
+
+> Security note: activation passwords are deterministic and **guessable** by design
+> (one-time codes). Treat Login IDs + activation codes as non-secret and rely on the
+> forced reset; for a hardened rollout, generate random activation passwords instead.
 
 ## n8n
 157 existing workflows inventoried (read webhooks, guarded per-mailbox send

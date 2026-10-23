@@ -71,35 +71,25 @@ export async function getOwnDocs(startupId: number): Promise<any[]> {
   return data ?? [];
 }
 
-// Normalised startup key — must match the key the n8n write branch stores
-// (lowercase, alphanumerics only). Used as a fallback join when a report row
-// could not be resolved to a startup_id by name.
-function startupKey(name: string | null | undefined): string {
-  return String(name ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-}
-
 /**
- * Weekly fundraising reports for this startup, newest first. Scoped by the
- * verified `startupId` (service-role read, same as every other founder query);
- * `startupName` enables a key fallback for rows the workflow wrote before an id
- * could be resolved. Returns [] when the table is empty or absent, so the page
- * degrades gracefully before the first report lands.
+ * Weekly fundraising reports for this startup, newest first. Scoped STRICTLY by
+ * the verified `startupId` (service-role read, same as every other founder
+ * query). We deliberately do NOT fall back to matching on a normalized name
+ * key: an `.or(startup_key.eq.…)` could return another startup's row whenever
+ * two names normalize alike (e.g. "Orbis Lives" / "OrbisLives"), which would be
+ * a cross-tenant leak. The n8n write branch resolves startup_id for every row;
+ * any row that somehow lacks one is hidden here rather than matched by name.
+ * Returns [] when the table is empty or absent, so the page degrades gracefully
+ * before the first report lands.
  */
 export async function getOwnWeeklyReports(
   startupId: number,
-  startupName?: string | null,
 ): Promise<WeeklyReport[]> {
   const admin = createAdminClient();
-  const key = startupKey(startupName);
-  const filter = key
-    ? `startup_id.eq.${startupId},startup_key.eq.${key}`
-    : `startup_id.eq.${startupId}`;
   const { data, error } = await admin
     .from("weekly_reports")
     .select("*")
-    .or(filter)
+    .eq("startup_id", startupId)
     .order("week_start", { ascending: false })
     .limit(52);
   // Table may not exist yet (migration pending) — treat as "no reports".

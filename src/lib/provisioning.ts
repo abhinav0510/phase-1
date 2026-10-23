@@ -32,4 +32,9 @@ export function activationPassword(startupId: number, startupName: string | null
   return `SID-${startupId}-${slug}`;
 }
 
-export const ADMIN_BOOTSTRAP_PASSWORD = "Sidana2026";
+/**
+ * Phase-1 admin bootstrap password. Read from the environment so it is NEVER
+ * committed to source. Set ADMIN_BOOTSTRAP_PASSWORD in `.env.local` (git-ignored).
+ * Treated as a temporary bootstrap: admins are forced to change it on first login.
+ */
+export const ADMIN_BOOTSTRAP_PASSWORD = process.env.ADMIN_BOOTSTRAP_PASSWORD ?? "";

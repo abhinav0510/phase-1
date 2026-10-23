@@ -37,7 +37,10 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     authId: user.id,
     email: user.email ?? null,
     appUser: (appUser as AppUser | null) ?? null,
-    mustReset: user.user_metadata?.must_reset === true,
+    // Read from app_metadata, which only the service role can write — a user
+    // cannot clear this flag client-side to skip the forced password change.
+    // (Legacy user_metadata copies are migrated by scripts/migrate-mustreset.mjs.)
+    mustReset: user.app_metadata?.must_reset === true,
   };
 }
 

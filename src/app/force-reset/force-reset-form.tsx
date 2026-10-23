@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Lock } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { completeForcedReset } from "./actions";
 import { AuthError, AuthField } from "@/components/site/auth-shell";
 
 export function ForceResetForm({ redirectTo }: { redirectTo: string }) {
@@ -25,15 +25,12 @@ export function ForceResetForm({ redirectTo }: { redirectTo: string }) {
       return;
     }
     setBusy(true);
-    const supabase = createClient();
-    // Set the new password AND clear the must_reset flag in one call.
-    const { error: err } = await supabase.auth.updateUser({
-      password,
-      data: { must_reset: false },
-    });
-    if (err) {
+    // Set the new password AND clear must_reset server-side (service role);
+    // the flag lives in app_metadata, which the browser cannot write.
+    const result = await completeForcedReset(password);
+    if (!result.ok) {
       setBusy(false);
-      setError(err.message);
+      setError(result.error);
       return;
     }
     // Navigate past the gate; server now sees must_reset = false.
