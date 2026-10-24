@@ -1,6 +1,6 @@
 # Porting the homepage mockup (v3) into the live Next.js site
 
-Status: plan only. Nothing under `src/` has been changed yet.
+Status: executed on branch `feat/homepage-v3` (commit "Homepage: port the approved v3 design into the Next.js site"). Kept as the record of how the port was done.
 
 ## 1. What we are replacing
 
