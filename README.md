@@ -38,9 +38,12 @@ Matches, Meetings, My Profile, Settings (self-serve password change).
 
 ## Auth & access model
 - `app_users.id` (uuid) = the Supabase Auth user id; `role` + `startup_id`/`investor_id` drive access.
-- **Founders** sign in with a **Login ID** (their startup id) → mapped to a synthetic
-  email `s<id>@founders.sidana.local`. Initial password is a one-time activation
-  code (`SID-<id>-<NAME4>`). The account carries a `must_reset` flag (stored in
+- **Founders** sign in at `/login` with **any email on file** for their startup
+  (the Founders Info sheet, mirrored into `startup_contacts`) **or their Login ID**
+  (startup id). Both map to a synthetic Auth email `s<id>@founders.sidana.local`;
+  unknown emails and wrong passwords return the same error. Initial passwords are
+  issued by `npm run reset:founders` and listed in the git-ignored
+  `founder-credentials.local.csv`. The account carries a `must_reset` flag (stored in
   **`app_metadata`**, writable only by the service role); `requireFounder`
   redirects any such founder to **`/force-reset`** and blocks the whole portal until
   they set their own password, which clears the flag **server-side**. Admins are
@@ -128,15 +131,19 @@ modify or delete existing startups/investors/meetings/matches.
 ```bash
 npm run provision:admins            # dry run: report admin auth status
 npm run provision:admins -- --apply # set ADMIN_BOOTSTRAP_PASSWORD on the 3 existing owners
-npm run provision:founders -- --dry-run  # preview founder accounts to create
-npm run provision:founders          # create 1 Auth user + app_users row per startup
+npm run reset:founders              # dry run: preview founder password resets
+npm run reset:founders -- --apply   # reset every founder login + create missing ones
+npm run provision:founders -- --dry-run  # (new startups only) preview accounts to create
+npm run provision:founders          # (new startups only) create missing founder logins
 npm run migrate:mustreset -- --apply # move must_reset flags into app_metadata (one-time)
 ```
-`provision:founders` writes credentials to `founder-credentials.local.csv` (git-ignored).
+`reset:founders` writes the complete list (login ID, sign-in emails, initial
+password) to `founder-credentials.local.csv`; admin credentials live in
+`admin-credentials.local.csv`. Both are git-ignored — share them privately.
 
-> Security note: activation passwords are deterministic and **guessable** by design
-> (one-time codes). Treat Login IDs + activation codes as non-secret and rely on the
-> forced reset; for a hardened rollout, generate random activation passwords instead.
+> Security note: initial founder passwords follow a predictable pattern. They are
+> one-time passwords — the founder must set their own on first sign-in — so
+> distribute them promptly and keep this repository private.
 
 ## n8n
 157 existing workflows inventoried (read webhooks, guarded per-mailbox send

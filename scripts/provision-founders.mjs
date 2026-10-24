@@ -7,12 +7,18 @@
 // It is ADDITIVE and IDEMPOTENT: existing startups/investors/rows are never
 // modified or deleted, and startups that already have an account are skipped.
 //
-// The initial password is a GUESSABLE one-time activation code; founders are
-// expected to change it on first login. Credentials are written to a local,
-// git-ignored CSV so Sidana can distribute them — they are not printed in full.
+// The initial password is a one-time password; founders must change it on
+// first login. Credentials are written to a local, git-ignored CSV so Sidana
+// can distribute them — they are not printed in full.
+// To reset ALL founder logins (and create missing ones) in one go, use
+// `npm run reset:founders` instead, which writes the complete CSV.
 
 import { createClient } from "@supabase/supabase-js";
 import { writeFileSync } from "node:fs";
+import {
+  founderAuthEmail as founderEmail,
+  initialFounderPassword as activationPassword,
+} from "./lib/founder-credentials.mjs";
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -20,17 +26,6 @@ if (!URL || !KEY) {
   console.error("Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY");
   process.exit(1);
 }
-
-const FOUNDER_EMAIL_DOMAIN = "founders.sidana.local";
-const founderEmail = (id) => `s${id}@${FOUNDER_EMAIL_DOMAIN}`;
-const activationPassword = (id, name) => {
-  const slug = (name ?? "")
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 4)
-    .padEnd(4, "X");
-  return `SID-${id}-${slug}`;
-};
 
 const DRY_RUN = process.argv.includes("--dry-run");
 
@@ -90,7 +85,15 @@ async function main() {
       active: true,
     });
     if (insErr) {
-      console.error(`startup ${s.id}: app_users insert failed — ${insErr.message}`);
+      // Roll back the new Auth user so a later run can create this login again
+      // (its synthetic email would otherwise already be taken).
+      const { error: delErr } = await admin.auth.admin.deleteUser(authUser.user.id);
+      console.error(
+        `startup ${s.id}: app_users insert failed — ${insErr.message}` +
+          (delErr
+            ? ` (removing the new Auth user ${authUser.user.id} also failed: ${delErr.message} — delete it manually)`
+            : " (new Auth user removed; safe to re-run)"),
+      );
       continue;
     }
     created.push({ startup_id: s.id, name: s.name, email, password });

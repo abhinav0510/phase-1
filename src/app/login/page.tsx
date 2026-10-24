@@ -33,16 +33,16 @@ export default function LoginPage() {
           Welcome back
         </motion.h1>
         <motion.p variants={authItem} className="mt-3 text-[15px] text-ink-muted">
-          Use the Login ID provided to you by Sidana.
+          Sign in with your email on file with Sidana, or your Login ID.
         </motion.p>
 
         <form action={action} className="mt-9 space-y-5">
           <motion.div variants={authItem}>
             <AuthField
-              label="Login ID"
+              label="Email or Login ID"
               name="loginId"
               icon={User}
-              placeholder="e.g. 42"
+              placeholder="you@startup.com or 42"
               autoComplete="username"
               autoFocus
             />
