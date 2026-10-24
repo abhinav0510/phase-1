@@ -73,6 +73,44 @@ scale live in `TOWERS` / `SKYLINE_SCALE` in `src/components/site/hero-scene.tsx`
 - Fonts: Cormorant Garamond (editorial serif) + Inter (sans) via `next/font`.
 - Theme: the whole public experience is **light mode** — near-white / cool-mist surfaces (`paper` tokens), navy `ink` text and primary buttons, gold reduced to a bronze accent (`gold-dim`) for eyebrows, rules and icons, navy hairlines and a navy footer. The 3D skyline sits inside a **navy stage panel** in the hero so its glass/gold materials read on the light page. The sign-in pages (`/login`, `/teamonly`, `/force-reset`) share the same palette via the cool-light "atrium" `auth-shell` (stone-grey slabs, gold light-slit accent, white card with bronze hairline, navy buttons).
 
+## Notifications
+
+Tables: `MIGRATIONS/notifications.sql` (six new tables, service-role only, no
+changes to existing tables). Two **new** n8n workflows do the I/O; no existing
+workflow was modified.
+
+### 1. Email startups (`/admin/notifications`)
+- **Recipients** come from the *Founders Info* tab of the book, mirrored into
+  `startup_contacts` by n8n **SYNC-CONTACTS** (`oTKgX3jG0Jbt7kzZ`) hourly at :20 and
+  on demand via the page's *Sync now*. Sheet names are matched to platform
+  startups the same way the weekly report does (exact → unique prefix → unique
+  1-edit); unknown or ambiguous names are reported, never guessed. A sync aborts
+  without writing if the sheet or startup read comes back empty.
+- **Audience:** all platform startups with an email, or hand-picked startups,
+  plus optional extra addresses. One email per startup, to every address on file.
+- **Compose:** plain text with `{{founder_name}}` / `{{startup_name}}` merge
+  fields; everything is HTML-escaped and wrapped in the Sidana signature
+  (`src/lib/email/render.ts`, shared by the live preview and the sender).
+- **Safety:** *Send test to me* sends one copy to the signed-in admin only. A real
+  send needs the exact recipient count typed into a confirmation dialog; the
+  server re-derives every recipient from the database (the browser never
+  supplies a startup's address), rejects a repeat of the same subject within
+  2 minutes, and caps a broadcast at 300 messages.
+- **Sending:** n8n **ADMIN-BROADCAST** (`LAXfAiTAFAVb4V5D`) — shared-secret guarded,
+  validates every message, dry-run unless `dry:false`, sends from
+  *Sidana Ventures &lt;investors@sidanaventures.com&gt;* (Gmail account 3) ~1 per
+  1.2 s with no auto-retry (so a timeout can't duplicate an email), and writes
+  per-startup delivery status back. History + live status:
+  `/admin/notifications/[id]`.
+
+### 2. Announcements (`/admin/announcements`)
+- Admins publish an announcement (software update / change / maintenance / info)
+  to everyone, founders only, or the team only, optionally hidden after a date.
+- Every dashboard (founder + admin) shows it **once** as a popup after load and
+  keeps it in the top-bar **bell** until it expires or is deactivated.
+  "Got it" records a per-user dismissal (`announcement_dismissals`), keyed to the
+  verified session user. The admin list shows how many users have seen each one.
+
 ## Run it
 ```bash
 npm install
@@ -80,6 +118,7 @@ npm run dev        # http://localhost:3000
 npm run build      # production build (passes)
 npm run typecheck  # tsc --noEmit (passes)
 ```
+Copy `.env.example` to `.env.local` and fill it in.
 `.env.local` holds the Supabase URL, anon key, and service-role key (git-ignored;
 service-role is server-only, never shipped to the browser).
 
@@ -101,9 +140,16 @@ npm run migrate:mustreset -- --apply # move must_reset flags into app_metadata (
 
 ## n8n
 157 existing workflows inventoried (read webhooks, guarded per-mailbox send
-webhooks, deal-agent tools, scheduled engines). None were modified. Server-side
-integration points for notifications/sends (e.g. `DB-READ`, `REPLY-SEND-*`) are
-identified in `INVENTORY-AND-MAPPING.md` and can be wired as a follow-up.
+webhooks, deal-agent tools, scheduled engines). Changes made by this project:
+
+| Workflow | Change |
+|---|---|
+| Weekly Founder Update (`2MG95rlJDoFNz8tJ`) | **Additive** non-blocking branch (`WR:` nodes) that saves each live/resend report to `weekly_reports`. The email path is untouched. |
+| SYNC-CONTACTS (`oTKgX3jG0Jbt7kzZ`) | **New** — Founders Info → `startup_contacts`, hourly + guarded webhook. |
+| ADMIN-BROADCAST (`LAXfAiTAFAVb4V5D`) | **New** — guarded sender for admin-panel emails from investors@. |
+
+No other workflow was modified. Further integration points (e.g. `DB-READ`,
+`REPLY-SEND-*`) are identified in `INVENTORY-AND-MAPPING.md`.
 
 ## Verified
 - ✅ `npm run build` — all 21 routes compile, lint + types clean.

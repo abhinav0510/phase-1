@@ -216,3 +216,77 @@ export interface WeeklyReport {
   created_at: string;
   updated_at: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Notifications (MIGRATIONS/notifications.sql)
+// ---------------------------------------------------------------------------
+
+// Founder email mirrored from the "Founders Info" sheet by n8n SYNC-CONTACTS.
+export interface StartupContact {
+  id: number;
+  startup_id: number;
+  email: string;
+  founder_name: string | null;
+  sheet_name: string | null;
+  source: string;
+  synced_at: string;
+  created_at: string;
+}
+
+export interface ContactSyncRun {
+  id: number;
+  ran_at: string;
+  trigger: string | null;
+  rows_read: number;
+  matched_startups: number;
+  emails: number;
+  unmatched: { name: string; emails: number }[];
+}
+
+export type BroadcastAudience = "all" | "selected" | "custom" | "test";
+export type BroadcastStatus = "queued" | "sending" | "sent" | "partial" | "failed";
+
+export interface EmailBroadcast {
+  id: number;
+  subject: string;
+  body: string;
+  audience: BroadcastAudience;
+  recipient_count: number;
+  sent_count: number;
+  failed_count: number;
+  status: BroadcastStatus;
+  sent_by: string | null;
+  sent_by_email: string | null;
+  error: string | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface EmailBroadcastRecipient {
+  id: number;
+  broadcast_id: number;
+  startup_id: number | null;
+  startup_name: string | null;
+  emails: string;
+  status: "pending" | "sent" | "failed";
+  error: string | null;
+  gmail_id: string | null;
+  sent_at: string | null;
+}
+
+export type AnnouncementKind = "update" | "change" | "maintenance" | "info";
+export type AnnouncementAudience = "all" | "founders" | "team";
+
+export interface Announcement {
+  id: number;
+  title: string;
+  body: string;
+  kind: AnnouncementKind;
+  audience: AnnouncementAudience;
+  is_active: boolean;
+  publish_at: string;
+  expires_at: string | null;
+  created_by: string | null;
+  created_by_email: string | null;
+  created_at: string;
+}

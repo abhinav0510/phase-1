@@ -6,11 +6,14 @@ export function TopBar({
   subtitle,
   userName,
   userEmail,
+  actions,
 }: {
   title: string;
   subtitle?: string;
   userName: string | null;
   userEmail: string | null;
+  /** Extra controls shown before the user block (e.g. the announcements bell). */
+  actions?: React.ReactNode;
 }) {
   return (
     <header className="flex h-16 items-center justify-between border-b border-navy-100 bg-white px-6">
@@ -21,6 +24,7 @@ export function TopBar({
         ) : null}
       </div>
       <div className="flex items-center gap-3">
+        {actions}
         <div className="hidden text-right sm:block">
           <p className="text-sm font-medium text-navy-800">
             {userName ?? userEmail ?? "User"}

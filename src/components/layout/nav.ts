@@ -16,7 +16,9 @@ export type NavIcon =
   | "settings"
   | "profile"
   | "matches"
-  | "weekly";
+  | "weekly"
+  | "mail"
+  | "announce";
 
 export interface NavItem {
   label: string;
@@ -43,6 +45,8 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Meetings", href: "/admin/meetings", icon: "meetings" },
   { label: "Documents", href: "/admin/documents", icon: "documents" },
   { label: "Users & Access", href: "/admin/users", icon: "users" },
+  { label: "Email Startups", href: "/admin/notifications", icon: "mail" },
+  { label: "Announcements", href: "/admin/announcements", icon: "announce" },
   { label: "Reports", href: "/admin/reports", icon: "reports" },
   { label: "Settings", href: "/admin/settings", icon: "settings" },
 ];

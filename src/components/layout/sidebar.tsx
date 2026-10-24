@@ -16,6 +16,8 @@ import {
   Handshake,
   ClipboardList,
   FileBarChart,
+  Mail,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,6 +37,8 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   profile: UserCircle,
   matches: Handshake,
   weekly: FileBarChart,
+  mail: Mail,
+  announce: Megaphone,
 };
 
 export function Sidebar({
