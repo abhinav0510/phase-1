@@ -1,4 +1,5 @@
 import { requireFounder } from "@/lib/auth";
+import { getOwnSignInEmails } from "@/lib/data/founder";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { ChangePassword } from "./change-password";
 
@@ -6,13 +7,17 @@ export const dynamic = "force-dynamic";
 
 export default async function FounderSettings() {
   const session = await requireFounder();
+  const emails = await getOwnSignInEmails(session.startupId);
 
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader title="Account" />
+        <CardHeader title="Account" subtitle="You can sign in with any of these" />
         <CardBody className="space-y-2 text-sm">
-          <Row label="Login email" value={session.email ?? "—"} />
+          <Row
+            label={emails.length === 1 ? "Email" : "Emails"}
+            value={emails.length ? emails.join(", ") : "None on file — ask Sidana to add one"}
+          />
           <Row label="Login ID" value={`#${session.startupId}`} />
         </CardBody>
       </Card>

@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sidana Labs — Homepage mockup v3</title>
+  <meta name="description" content="Design mockup (not live). Fundraising advisory and investor relations for startups." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#work">Skip to content</a>
+
+  <!-- ============================== HEADER ============================== -->
+  <header class="site-header">
+    <a href="#top" class="wordmark" aria-label="Sidana Labs — home">
+      <span class="line-mask"><span class="line">Sidana</span></span>
+      <span class="line-mask"><span class="line">Labs</span></span>
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- Full-screen menu -->
+  <nav class="menu" id="menu" aria-hidden="true">
+    <div class="menu-inner">
+      <p class="eyebrow">Explore</p>
+      <ul class="menu-links">
+        <li><a href="#work" data-wipe><span class="line-mask"><span class="line">Selected mandates</span></span></a></li>
+        <li><a href="#services" data-wipe><span class="line-mask"><span class="line">How we help</span></span></a></li>
+        <li><a href="#desk" data-wipe><span class="line-mask"><span class="line">From the deal desk</span></span></a></li>
+        <li><a href="#contact" data-wipe><span class="line-mask"><span class="line">Start your raise</span></span></a></li>
+      </ul>
+      <div class="menu-foot">
+        <a href="/login" class="btn btn-accent menu-login"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M13 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"/></svg>Founder login <span aria-hidden="true">→</span></a>
+        <a href="mailto:investors@sidanaventures.com" class="menu-sub">investors@sidanaventures.com</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wipe" aria-hidden="true"></div>
+
+  <main id="top">
+    <!-- ============================== HERO (pinned runway) ============================== -->
+    <section class="hero-runway" aria-label="Introduction">
+      <div class="hero-sticky">
+        <canvas class="grain" aria-hidden="true"></canvas>
+
+        <svg class="lines" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g class="lines-base">
+            <path d="M160 240 L420 300 L720 262 L1040 330 L1290 250" pathLength="1"/>
+            <path d="M120 690 L430 600 L720 640 L1030 560 L1320 650" pathLength="1"/>
+            <path d="M420 300 L430 600" pathLength="1"/>
+            <path d="M1040 330 L1030 560" pathLength="1"/>
+            <path d="M720 262 L720 640" pathLength="1"/>
+            <path d="M160 240 L120 690" pathLength="1"/>
+            <path d="M1290 250 L1320 650" pathLength="1"/>
+          </g>
+          <g class="lines-comet">
+            <path d="M160 240 L420 300 L720 262 L1040 330 L1290 250" pathLength="1" style="--dur:9s;--delay:0s"/>
+            <path d="M120 690 L430 600 L720 640 L1030 560 L1320 650" pathLength="1" style="--dur:11s;--delay:-4s"/>
+            <path d="M420 300 L430 600" pathLength="1" style="--dur:6s;--delay:-2s"/>
+            <path d="M1040 330 L1030 560" pathLength="1" style="--dur:7s;--delay:-5s"/>
+            <path d="M720 262 L720 640" pathLength="1" style="--dur:8s;--delay:-1s"/>
+            <path d="M160 240 L120 690" pathLength="1" style="--dur:10s;--delay:-7s"/>
+            <path d="M1290 250 L1320 650" pathLength="1" style="--dur:9.5s;--delay:-3s"/>
+          </g>
+          <g class="lines-nodes">
+            <circle cx="160" cy="240" r="4"/><circle cx="420" cy="300" r="4"/><circle cx="720" cy="262" r="4"/>
+            <circle cx="1040" cy="330" r="4"/><circle cx="1290" cy="250" r="4"/><circle cx="120" cy="690" r="4"/>
+            <circle cx="430" cy="600" r="4"/><circle cx="720" cy="640" r="4"/><circle cx="1030" cy="560" r="4"/><circle cx="1320" cy="650" r="4"/>
+          </g>
+        </svg>
+
+        <!-- Hero grid: deal artifacts live in the side columns, copy in the middle, so they can never overlap -->
+        <div class="hero-grid">
+          <div class="art art-match" data-depth="0.35" data-x="-1" aria-hidden="true">
+            <p class="art-k">Investor match</p>
+            <p class="art-v">92<span>/100</span></p>
+            <div class="art-bars"><i style="--w:96%"></i><i style="--w:88%"></i><i style="--w:81%"></i></div>
+            <p class="art-f">Sector · Stage · Cheque size</p>
+          </div>
+          <div class="art art-meet" data-depth="0.6" data-x="1" aria-hidden="true">
+            <p class="art-k">Meeting confirmed</p>
+            <p class="art-t">Thu · 11:30 IST</p>
+            <p class="art-f">Seed fund, Bengaluru · 45 min</p>
+            <span class="art-dot"></span>
+          </div>
+          <div class="art art-report" data-depth="0.45" data-x="-1" aria-hidden="true">
+            <p class="art-k">Weekly report</p>
+            <div class="art-chart"><i style="--h:40%"></i><i style="--h:55%"></i><i style="--h:48%"></i><i style="--h:70%"></i><i style="--h:64%"></i><i style="--h:92%"></i></div>
+            <p class="art-f"><b>+38%</b> investors reached</p>
+          </div>
+          <div class="art art-term" data-depth="0.8" data-x="1" aria-hidden="true">
+            <p class="art-k">Term sheet</p>
+            <div class="art-doc"><i></i><i></i><i style="width:60%"></i><i></i><i style="width:45%"></i></div>
+            <span class="art-stamp">Signed</span>
+          </div>
+
+        <div class="hero-copy">
+          <h1>
+            <span class="line-mask"><span class="line">We&rsquo;re the advisors</span></span>
+            <span class="line-mask"><span class="line accent">you want in the room.</span></span>
+          </h1>
+          <p class="hero-sub">
+            Sidana Labs is a fundraising advisory and investor-relations firm for startups.
+            We build your investment memo, match you to the investors who actually fit,
+            run the outreach and the meetings, and stay with you through to the term sheet.
+          </p>
+          <a href="/login" class="frosted" id="heroPrompt">
+            <span class="frosted-glow"></span>
+            <span class="frosted-label">Founder login</span>
+            <span class="frosted-arrow" aria-hidden="true">→</span>
+          </a>
+          <div class="swipe" aria-hidden="true">
+            <div class="swipe-inner">
+              <span class="swipe-label"><b class="lbl-scroll">Scroll down</b><b class="lbl-swipe">Swipe down</b></span>
+              <span class="swipe-chevrons"><i></i><i></i></span>
+            </div>
+          </div>
+        </div>
+        </div><!-- /hero-grid -->
+
+      </div>
+    </section>
+
+    <!-- ============================== ASK SIDANA ============================== -->
+    <section class="ask" id="ask">
+      <div class="ask-card reveal">
+        <p class="eyebrow">Ask Sidana</p>
+        <div class="chips">
+          <button type="button" class="chip" data-q="How does investor matching work?">How does investor matching work?</button>
+          <button type="button" class="chip" data-q="What stages and sectors do you work with?">What stages and sectors do you work with?</button>
+          <button type="button" class="chip" data-q="Show me startups you've worked with">Show me startups you&rsquo;ve worked with</button>
+          <button type="button" class="chip" data-q="How is Sidana different from a broker?">How is Sidana different from a broker?</button>
+        </div>
+        <form class="ask-form" id="askForm">
+          <label class="sr-only" for="askInput">Your question</label>
+          <input id="askInput" type="text" placeholder="Ask us anything about your raise…" autocomplete="off" />
+          <button type="submit" aria-label="Send">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
+        </form>
+        <p class="ask-note">Goes straight to the Sidana team — we reply within one working day.</p>
+      </div>
+    </section>
+
+    <!-- ============================== SELECTED MANDATES ============================== -->
+    <section class="work" id="work">
+      <div class="wrap">
+        <p class="eyebrow reveal">Selected mandates</p>
+        <h2 class="display reveal-lines">
+          <span class="line-mask"><span class="line">We raise the rounds</span></span>
+          <span class="line-mask"><span class="line">worth raising.</span></span>
+        </h2>
+        <p class="intro reveal">
+          We don&rsquo;t start with a list of investors. We start with your business — what&rsquo;s
+          working, what isn&rsquo;t yet, and who is actually writing cheques for it right now.
+        </p>
+      </div>
+
+      <div class="marquee reveal" aria-label="Sectors we work in">
+        <p class="marquee-label">Working with founders in</p>
+        <div class="marquee-track">
+          <span>IoT</span><span>Mobility</span><span>HealthTech</span><span>EdTech</span><span>HR Tech</span><span>FoodTech</span><span>Consumer</span><span>AI &amp; Deep Tech</span><span>Cybersecurity</span><span>SaaS</span><span>Wellness</span>
+          <span aria-hidden="true">IoT</span><span aria-hidden="true">Mobility</span><span aria-hidden="true">HealthTech</span><span aria-hidden="true">EdTech</span><span aria-hidden="true">HR Tech</span><span aria-hidden="true">FoodTech</span><span aria-hidden="true">Consumer</span><span aria-hidden="true">AI &amp; Deep Tech</span><span aria-hidden="true">Cybersecurity</span><span aria-hidden="true">SaaS</span><span aria-hidden="true">Wellness</span>
+        </div>
+      </div>
+
+      <div class="wrap mandates">
+        <!-- Mandate 1 -->
+        <article class="mandate reveal">
+          <div class="mandate-copy">
+            <h3 class="display-sm">Smart-building access</h3>
+            <p class="lede">An IoT company selling wireless access control to commercial buildings. Sidana built the investment memo, ran the investor outreach, and managed <b>25 investor meetings</b> for the round.</p>
+            <a href="#contact" class="arrow-link">How we&rsquo;d run yours <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="mandate-visual tilt">
+            <div class="ui ui-pipeline">
+              <div class="ui-title">
+                <span class="ui-ico ico-blue"><svg viewBox="0 0 24 24"><path d="M4 17l5-6 4 4 7-8"/><path d="M15 7h5v5"/></svg></span>
+                <div><b>Investor pipeline</b><small>Track and manage your investor outreach</small></div>
+                <span class="ui-live"><i></i>Live</span>
+              </div>
+              <div class="ui-row">
+                <span class="ui-ico ico-blue"><svg viewBox="0 0 24 24"><path d="M12 21v-8"/><path d="M12 13c0-4-3-7-7-7 0 4 3 7 7 7z"/><path d="M12 13c0-4 3-7 7-7 0 4-3 7-7 7z"/></svg></span>
+                <span class="ui-name"><b>Seed fund</b><small>Bengaluru</small></span>
+                <span class="ui-st st-meet"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Meeting</span>
+                <span class="ui-chev"></span>
+              </div>
+              <div class="ui-row">
+                <span class="ui-ico ico-violet"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 2.5-5 6-5s6 2 6 5"/><path d="M15 15c3 0 5 1.5 5 4"/></svg></span>
+                <span class="ui-name"><b>Family office</b><small>Mumbai</small></span>
+                <span class="ui-st st-sent"><svg viewBox="0 0 24 24"><path d="M21 3 10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg>Sent</span>
+                <span class="ui-chev"></span>
+              </div>
+              <div class="ui-row">
+                <span class="ui-ico ico-green"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6"/><path d="M5 10v9M10 10v9M14 10v9M19 10v9"/><path d="M3 20h18"/></svg></span>
+                <span class="ui-name"><b>Institutional VC</b><small>Delhi</small></span>
+                <span class="ui-st st-meet"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Meeting</span>
+                <span class="ui-chev"></span>
+              </div>
+              <div class="ui-row">
+                <span class="ui-ico ico-red"><svg viewBox="0 0 24 24"><path d="M21 6c-5 0-9 2-12 6-2 3-3 6-3 8 3 0 6-1 9-3 4-3 6-7 6-11z"/><path d="M6 20c3-4 7-7 12-9"/></svg></span>
+                <span class="ui-name"><b>Angel network</b><small>Pune</small></span>
+                <span class="ui-st st-pass"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/></svg>Passed</span>
+                <span class="ui-chev"></span>
+              </div>
+              <div class="ui-row">
+                <span class="ui-ico ico-blue"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span>
+                <span class="ui-name"><b>Micro VC</b><small>Singapore</small></span>
+                <span class="ui-st st-sent"><svg viewBox="0 0 24 24"><path d="M21 3 10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg>Sent</span>
+                <span class="ui-chev"></span>
+              </div>
+              <div class="ui-stats">
+                <div><span class="ui-ico ico-blue"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span><b>25</b><small>Meetings</small></span></div>
+                <div><span class="ui-ico ico-green"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 2.5-5 6-5s6 2 6 5"/><path d="M15 15c3 0 5 1.5 5 4"/></svg></span><span><b>62</b><small>Reached</small></span></div>
+                <div><span class="ui-ico ico-violet"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/></svg></span><span><b>4</b><small>Passes</small></span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Mandate 2 -->
+        <article class="mandate reveal">
+          <div class="mandate-copy">
+            <h3 class="display-sm">Doorstep vehicle care</h3>
+            <p class="lede">A mobility platform bringing vehicle care and ownership to the customer&rsquo;s door. We ran a structured process — memo, matching, outreach and follow-ups — and <b>28 investor meetings</b>, each prepped and debriefed.</p>
+            <a href="#contact" class="arrow-link">How we&rsquo;d run yours <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="mandate-visual tilt">
+            <div class="ui ui-cal">
+              <div class="ui-title">
+                <span class="ui-ico ico-blue"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+                <div><b>Investor meetings</b><small>This week · 4 meetings booked</small></div>
+                <span class="ui-live"><i></i>4 booked</span>
+              </div>
+              <div class="cal-grid">
+                <div class="cal-day"><b>Mon</b><small>Oct 20</small></div>
+                <div class="cal-day"><b>Tue</b><small>Oct 21</small>
+                  <div class="cal-ev ev-gold" style="--t:.12"><time>11:00 AM</time><b>Seed fund</b><span><svg viewBox="0 0 24 24"><path d="M12 21v-8"/><path d="M12 13c0-4-3-7-7-7 0 4 3 7 7 7z"/><path d="M12 13c0-4 3-7 7-7 0 4-3 7-7 7z"/></svg>Bengaluru</span></div>
+                </div>
+                <div class="cal-day"><b>Wed</b><small>Oct 22</small>
+                  <div class="cal-ev ev-blue" style="--t:.5"><time>3:00 PM</time><b>Family office</b><span><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 2.5-5 6-5s6 2 6 5"/><path d="M15 15c3 0 5 1.5 5 4"/></svg>Mumbai</span></div>
+                </div>
+                <div class="cal-day"><b>Thu</b><small>Oct 23</small>
+                  <div class="cal-ev ev-green" style="--t:0"><time>10:30 AM</time><b>Institutional VC</b><span><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6"/><path d="M5 10v9M10 10v9M14 10v9M19 10v9"/><path d="M3 20h18"/></svg>Delhi</span></div>
+                  <div class="cal-ev ev-red" style="--t:.62"><time>4:00 PM</time><b>Angel network</b><span><svg viewBox="0 0 24 24"><path d="M21 6c-5 0-9 2-12 6-2 3-3 6-3 8 3 0 6-1 9-3 4-3 6-7 6-11z"/><path d="M6 20c3-4 7-7 12-9"/></svg>Pune</span></div>
+                </div>
+                <div class="cal-day"><b>Fri</b><small>Oct 24</small><span class="cal-add" aria-hidden="true">+</span></div>
+              </div>
+              <div class="ui-stats cal-foot">
+                <div><span class="ui-ico ico-violet"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span><span><b>Prep notes sent</b><small>For all upcoming meetings</small></span></div>
+                <div><span class="ui-ico ico-blue"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span><b>Debrief in 24h</b><small>Notes and next steps</small></span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Mandate 3 -->
+        <article class="mandate reveal">
+          <div class="mandate-copy">
+            <h3 class="display-sm">AI diagnostics</h3>
+            <p class="lede">A healthtech company building diagnostic intelligence for clinicians. We rebuilt the story as an investment memo an analyst could defend internally, then took it to market: <b>22 investor meetings</b> and a live weekly report to the founders.</p>
+            <a href="#contact" class="arrow-link">How we&rsquo;d run yours <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="mandate-visual tilt">
+            <div class="ui ui-memo">
+              <div class="ui-title">
+                <span class="ui-ico ico-gold"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg></span>
+                <div><small class="memo-eyebrow">Investment memo</small><b>Market opportunity</b></div>
+                <span class="memo-pill">v3 · Approved<i></i></span>
+              </div>
+              <p class="memo-sum">Large and growing market with strong tailwinds across key segments.</p>
+              <div class="ui-lines"><i></i><i style="width:80%"></i><i style="width:62%"></i></div>
+              <div class="memo-sub"><span>Key investment highlights</span><small>Based on latest analysis</small></div>
+              <div class="memo-kpi">
+                <div class="kpi kpi-gold">
+                  <span class="ui-ico ico-gold"><svg viewBox="0 0 24 24"><path d="M5 20V13M12 20V7M19 20v-4"/></svg></span>
+                  <div><b>3.4×</b><span>YoY revenue</span><em><svg viewBox="0 0 24 24"><path d="M6 18 18 6M9 6h9v9"/></svg>+42% <u>vs last year</u></em></div>
+                  <svg class="kpi-wave" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M0 30 C 40 10, 70 40, 110 22 S 170 10, 200 24 V40 H0 Z"/><path class="kpi-wave-line" d="M0 30 C 40 10, 70 40, 110 22 S 170 10, 200 24"/></svg>
+                </div>
+                <div class="kpi kpi-blue">
+                  <span class="ui-ico ico-blue"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg></span>
+                  <div><b>61%</b><span>gross margin</span><em><svg viewBox="0 0 24 24"><path d="M6 18 18 6M9 6h9v9"/></svg>+8% <u>vs industry</u></em></div>
+                  <svg class="kpi-wave" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M0 26 C 40 36, 70 8, 110 20 S 170 34, 200 18 V40 H0 Z"/><path class="kpi-wave-line" d="M0 26 C 40 36, 70 8, 110 20 S 170 34, 200 18"/></svg>
+                </div>
+                <div class="kpi kpi-violet">
+                  <span class="ui-ico ico-violet"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 2.5-5 6-5s6 2 6 5"/><path d="M15 15c3 0 5 1.5 5 4"/></svg></span>
+                  <div><b>14</b><span>enterprise clients</span><em><svg viewBox="0 0 24 24"><path d="M6 18 18 6M9 6h9v9"/></svg>+40% <u>in 12 months</u></em></div>
+                  <svg class="kpi-wave" viewBox="0 0 200 40" preserveAspectRatio="none"><path d="M0 24 C 40 14, 70 34, 110 26 S 170 12, 200 28 V40 H0 Z"/><path class="kpi-wave-line" d="M0 24 C 40 14, 70 34, 110 26 S 170 12, 200 28"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <a href="#contact" class="btn btn-navy reveal">Talk to us about your round <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <!-- ============================== HOW WE HELP ============================== -->
+    <section class="help" id="services">
+      <div class="wrap">
+        <p class="eyebrow reveal">How we help</p>
+        <h2 class="display accent reveal-lines">
+          <span class="line-mask"><span class="line">You&rsquo;re raising</span></span>
+          <span class="line-mask"><span class="line">in a hard market.</span></span>
+        </h2>
+        <p class="intro reveal">We&rsquo;ve run this process many times. The problems usually sound something like this.</p>
+
+        <div class="help-rows" id="helpRows">
+          <div class="help-row">
+            <p class="serif quote">&ldquo;We&rsquo;ve emailed two hundred investors and heard back from four.&rdquo;</p>
+            <div class="help-answer"><p>We match you only to investors whose thesis actually fits — then follow up until they answer.</p><span class="service">Investor matching &amp; outreach</span></div>
+            <a href="#contact" class="sq-btn" aria-label="Talk to us about investor matching"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div class="help-row">
+            <p class="serif quote">&ldquo;Our deck is fine. Investors just don&rsquo;t seem to get it.&rdquo;</p>
+            <div class="help-answer"><p>We rebuild the story as an investment memo an analyst can defend inside their own fund.</p><span class="service">Investment memo &amp; deck</span></div>
+            <a href="#contact" class="sq-btn" aria-label="Talk to us about your memo"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div class="help-row">
+            <p class="serif quote">&ldquo;We don&rsquo;t know what to ask for — or at what valuation.&rdquo;</p>
+            <div class="help-answer"><p>We size the round and frame the terms on what investors are writing cheques for right now.</p><span class="service">Fundraising strategy</span></div>
+            <a href="#contact" class="sq-btn" aria-label="Talk to us about round strategy"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div class="help-row">
+            <p class="serif quote">&ldquo;Meetings happen. Then everything goes quiet.&rdquo;</p>
+            <div class="help-answer"><p>We run the process end to end: prep, debrief, follow-up, and the push to a signed term sheet.</p><span class="service">Deal execution</span></div>
+            <a href="#contact" class="sq-btn" aria-label="Talk to us about deal execution"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div class="help-row">
+            <p class="serif quote">&ldquo;Our existing investors ask how the raise is going. We never have a good answer.&rdquo;</p>
+            <div class="help-answer"><p>Every founder gets a live dashboard and a Saturday report: investors reached, meetings, passes and feedback.</p><span class="service">Investor relations &amp; reporting</span></div>
+            <a href="#contact" class="sq-btn" aria-label="Talk to us about investor relations"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+        </div>
+      </div>
+      <div class="dots" aria-hidden="true"></div>
+    </section>
+
+    <!-- ============================== FROM THE DEAL DESK ============================== -->
+    <section class="desk" id="desk">
+      <div class="wrap center">
+        <p class="eyebrow reveal">From the deal desk</p>
+        <h2 class="display reveal-lines">
+          <span class="line-mask"><span class="line">What we&rsquo;re seeing</span></span>
+          <span class="line-mask"><span class="line">right now.</span></span>
+        </h2>
+        <a href="#contact" class="btn btn-navy reveal">Read the desk notes <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div class="wrap desk-grid">
+        <article class="dcard dcard-note reveal" tabindex="0">
+          <div class="dart da-steps" aria-hidden="true"><span class="track"></span><i></i><i></i><i></i><i></i><i></i><i></i><b class="runner"></b></div>
+          <p class="dtag">Note</p>
+          <h3 class="serif">&ldquo;The best fundraising process is boring: predictable, measured, relentless.&rdquo;</h3>
+          <div class="dreveal"><div><p>Why the founders who close fastest are rarely the ones with the flashiest decks.</p><span class="arrow-link">Read <span aria-hidden="true">→</span></span></div></div>
+        </article>
+        <article class="dcard dcard-article reveal" tabindex="0">
+          <div class="dmedia dm-a" aria-hidden="true"><div class="da-report"><span class="cal"><b>Sat</b><i>weekly report</i></span><div class="bars"><i style="--h:74%"></i><i style="--h:46%"></i><i style="--h:26%"></i><i style="--h:60%"></i></div><div class="lbls"><span>Reach</span><span>Meetings</span><span>Passes</span><span>Feedback</span></div></div></div>
+          <p class="dtag">Thinking</p>
+          <h3>Why we send every founder a report on Saturday</h3>
+          <div class="dreveal"><div><p>Reach, meetings, passes, feedback — the same four numbers every week, so nobody has to guess how the raise is going.</p><span class="arrow-link">Read <span aria-hidden="true">→</span></span></div></div>
+        </article>
+        <article class="dcard dcard-stat reveal" tabindex="0">
+          <div class="dart da-radar" aria-hidden="true"><span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span><span class="beam"></span><i style="--x:62%;--y:30%;--d:.2s"></i><i style="--x:40%;--y:52%;--d:1.1s"></i><i style="--x:74%;--y:58%;--d:1.9s"></i><i style="--x:52%;--y:22%;--d:2.6s"></i><i style="--x:30%;--y:34%;--d:3.2s"></i><i style="--x:66%;--y:76%;--d:.7s"></i><i style="--x:48%;--y:70%;--d:2.2s"></i></div>
+          <p class="dtag">Network</p>
+          <p class="dnum" data-count="311">0</p>
+          <h3>active investors, tagged by sector, stage and cheque size.</h3>
+          <div class="dreveal"><div><p>Angels, angel networks, syndicates, micro VCs, seed funds, institutional VCs and family offices.</p><span class="arrow-link">How matching works <span aria-hidden="true">→</span></span></div></div>
+        </article>
+        <article class="dcard dcard-article reveal" tabindex="0">
+          <div class="dmedia dm-b" aria-hidden="true"><div class="da-letter"><span class="from"><i></i><em></em></span><span class="l"></span><span class="l hl"></span><span class="l short"></span><span class="l"></span><b class="stamp">Pass</b></div></div>
+          <p class="dtag">Thinking</p>
+          <h3>Reading an investor pass: what &ldquo;too early&rdquo; actually means</h3>
+          <div class="dreveal"><div><p>Most passes are about fit, not quality. Here&rsquo;s how we read them — and what we change next.</p><span class="arrow-link">Read <span aria-hidden="true">→</span></span></div></div>
+        </article>
+        <article class="dcard dcard-note reveal" tabindex="0">
+          <div class="dart da-memo" aria-hidden="true"><div class="page"><span class="h"></span><i style="--w:88%;--d:0s"></i><i style="--w:70%;--d:.5s"></i><i style="--w:80%;--d:1s"></i><i style="--w:56%;--d:1.5s"></i><i style="--w:74%;--d:2s"></i><b class="q">?</b><b class="ok">✓</b></div></div>
+          <p class="dtag">Note</p>
+          <h3 class="serif">&ldquo;A good memo answers the question the investor hasn&rsquo;t asked yet.&rdquo;</h3>
+          <div class="dreveal"><div><p>The five sections every Sidana investment memo has, and why the order matters.</p><span class="arrow-link">Read <span aria-hidden="true">→</span></span></div></div>
+        </article>
+        <article class="dcard dcard-event reveal" tabindex="0">
+          <div class="dart da-event" aria-hidden="true"><span class="ping"></span><span class="ping p2"></span><div class="tile"><b>Thu</b><span>14</span><i>Fortnightly</i></div><div class="clock"><i class="hour"></i><i class="min"></i><u></u></div></div>
+          <p class="dtag">Event</p>
+          <h3>Founder office hours</h3>
+          <div class="dreveal"><div><p>Fortnightly, online. Thirty minutes on your raise with a Sidana deal owner — no pitch required.</p><span class="arrow-link">Book a slot <span aria-hidden="true">→</span></span></div></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================== CTA ============================== -->
+    <section class="cta" id="contact">
+      <div class="wrap center">
+        <h2 class="display reveal-lines">
+          <span class="line-mask"><span class="line">You&rsquo;ve got a round to raise.</span></span>
+          <span class="line-mask"><span class="line">We&rsquo;re listening.</span></span>
+        </h2>
+        <p class="intro reveal">Tell us where you are and we&rsquo;ll take it from there.</p>
+        <a href="mailto:investors@sidanaventures.com?subject=Starting%20a%20raise" class="btn btn-accent reveal">Start your raise <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <!-- ============================== FOOTER ============================== -->
+    <footer class="footer">
+      <div class="band" id="band" aria-hidden="true"></div>
+      <div class="wrap footer-inner">
+        <p class="giant">Sidana<br />Labs</p>
+        <div class="footer-cols">
+          <div>
+            <p class="eyebrow">Explore</p>
+            <ul>
+              <li><a href="#work" data-wipe>Selected mandates</a></li>
+              <li><a href="#services" data-wipe>How we help</a></li>
+              <li><a href="#desk" data-wipe>Deal desk</a></li>
+              <li><a href="#contact" data-wipe>Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="eyebrow">Founders</p>
+            <ul>
+              <li><a href="/login">Founder login</a></li>
+              <li><a href="#services">Weekly reports</a></li>
+              <li><a href="mailto:investors@sidanaventures.com">investors@sidanaventures.com</a></li>
+            </ul>
+          </div>
+          <div class="footer-ask">
+            <p class="eyebrow">Ask Sidana</p>
+            <form class="ask-form ask-form--light" data-ask>
+              <label class="sr-only" for="askInput3">Your question</label>
+              <input id="askInput3" type="text" placeholder="Ask us anything…" autocomplete="off" />
+              <button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+            </form>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <small>© 2026 Sidana Ventures LLP. All rights reserved.</small>
+          <div class="socials">
+            <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M6 9v9M6 5v.5M10 18v-5a3 3 0 0 1 6 0v5M10 9v9"/></svg></a>
+            <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></svg></a>
+            <a href="mailto:investors@sidanaventures.com" aria-label="Email"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></a>
+          </div>
+          <div class="legal"><a href="#">Privacy</a><a href="#">Disclosures</a></div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="mock-badge" title="This page is a design mockup, not the live site">Design mockup v3 · not live</div>
+  <script src="script.js" defer></script>
+</body>
+</html>

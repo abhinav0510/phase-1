@@ -11,11 +11,10 @@
     "provision:founders": "node --env-file=.env.local scripts/provision-founders.mjs",
     "provision:admins": "node --env-file=.env.local scripts/provision-admins.mjs",
     "backfill:weekly": "node --env-file=.env.local scripts/backfill-weekly-reports.mjs",
-    "migrate:mustreset": "node --env-file=.env.local scripts/migrate-mustreset.mjs"
+    "migrate:mustreset": "node --env-file=.env.local scripts/migrate-mustreset.mjs",
+    "reset:founders": "node --env-file=.env.local scripts/reset-founder-passwords.mjs"
   },
   "dependencies": {
-    "@react-three/drei": "^10.0.6",
-    "@react-three/fiber": "^9.0.4",
     "@supabase/ssr": "0.5.2",
     "@supabase/supabase-js": "2.48.1",
     "clsx": "2.1.1",
@@ -26,14 +25,12 @@
     "react-dom": "19.0.0",
     "recharts": "2.15.0",
     "tailwind-merge": "2.6.0",
-    "three": "^0.172.0",
     "zod": "3.24.1"
   },
   "devDependencies": {
     "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
-    "@types/three": "^0.172.0",
     "autoprefixer": "10.4.20",
     "eslint": "8.57.1",
     "eslint-config-next": "15.1.6",

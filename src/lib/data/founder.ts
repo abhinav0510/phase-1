@@ -61,6 +61,17 @@ export async function getOwnFunding(startupId: number): Promise<any[]> {
   return data ?? [];
 }
 
+/** Emails on file for this startup (from Founders Info) — any of them can sign in. */
+export async function getOwnSignInEmails(startupId: number): Promise<string[]> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("startup_contacts")
+    .select("email")
+    .eq("startup_id", startupId)
+    .order("id");
+  return (data ?? []).map((r) => r.email as string);
+}
+
 export async function getOwnDocs(startupId: number): Promise<any[]> {
   const admin = createAdminClient();
   const { data } = await admin
