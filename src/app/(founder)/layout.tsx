@@ -23,6 +23,19 @@ export default async function FounderLayout({
       userName={startup?.name ?? "My Startup"}
       userEmail={`Login ID ${session.startupId}`}
       announcements={announcements}
+      sidebarExtras={{
+        quickLinks: [
+          { label: "Update my startup", href: "/business-details", icon: "startup" },
+          { label: "Update financials", href: "/financials", icon: "financials" },
+          { label: "Investor matches", href: "/funding", icon: "funding" },
+          { label: "Weekly reports", href: "/weekly-reports", icon: "weekly" },
+        ],
+        contact: {
+          label: "Your Sidana contact",
+          name: startup?.owner_name ?? "Sidana deal desk",
+          note: "Reply to any weekly report email to reach them.",
+        },
+      }}
     >
       {children}
     </Shell>
