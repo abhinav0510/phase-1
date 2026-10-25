@@ -1,0 +1,147 @@
+/* =====================================================================
+   Sign-in pages (founder portal, team access, password recovery).
+   Same palette, type and motion language as the homepage (home.css),
+   scoped under .auth-v3 so nothing reaches the dashboard.
+   ===================================================================== */
+.auth-v3 {
+  --navy: #031b36;
+  --navy-deep: #020f21;
+  --navy-mid: #0b2c52;
+  --ink: #1a2233;
+  --cream: #fdffee;
+  --accent: #e2b35b;
+  --accent-deep: #b8852e;
+  --accent-ink: #1a1206;
+  --mute: rgba(3, 27, 54, 0.62);
+  --mute-cream: rgba(253, 255, 238, 0.62);
+  --line: rgba(3, 27, 54, 0.14);
+  --display: var(--font-display), "Helvetica Neue", Arial, sans-serif;
+  --body: var(--font-body), "Helvetica Neue", Arial, sans-serif;
+  --mono: var(--font-mono), ui-monospace, monospace;
+  --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  color: var(--cream);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  background: radial-gradient(120% 90% at 72% 18%, var(--navy-mid) 0%, var(--navy) 42%, var(--navy-deep) 100%);
+}
+
+/* ---------- backdrop: the homepage's connection lines with travelling comets ---------- */
+.auth-v3 .auth-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.auth-v3 .auth-lines .base path { fill: none; stroke: rgba(253, 255, 238, 0.12); stroke-width: 1; }
+.auth-v3 .auth-lines .comet path {
+  fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round;
+  stroke-dasharray: 0.07 0.93; stroke-dashoffset: 1;
+  animation: auth-comet var(--dur, 9s) linear var(--delay, 0s) infinite;
+  filter: drop-shadow(0 0 6px rgba(226, 179, 91, 0.7));
+}
+.auth-v3 .auth-lines circle { fill: var(--cream); opacity: 0.4; }
+@keyframes auth-comet { to { stroke-dashoffset: -1; } }
+
+/* ---------- chrome ---------- */
+.auth-v3 .auth-top { position: absolute; inset: 0 0 auto 0; z-index: 20; display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem clamp(1.25rem, 4vw, 3.5rem); }
+.auth-v3 .auth-wordmark { font: 700 1.55rem/0.95 var(--display); letter-spacing: -0.03em; color: var(--cream); }
+.auth-v3 .auth-wordmark span { display: block; }
+.auth-v3 .auth-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.9rem; padding-top: 0.35rem; }
+.auth-v3 .auth-portal { display: flex; align-items: center; gap: 0.75rem; font: 400 0.68rem/1 var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute-cream); }
+.auth-v3 .auth-portal::before { content: ""; width: 2.5rem; height: 1px; background: var(--accent); }
+.auth-v3 .auth-back { font-size: 0.85rem; font-weight: 500; color: var(--mute-cream); transition: color 0.3s; }
+.auth-v3 .auth-back:hover { color: var(--cream); }
+.auth-v3 .auth-tagline { position: absolute; left: clamp(1.25rem, 4vw, 3.5rem); bottom: 2.25rem; z-index: 20; display: flex; gap: 1rem; font: 400 0.66rem/2 var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute-cream); }
+.auth-v3 .auth-tagline::before { content: ""; width: 1px; background: var(--accent); }
+.auth-v3 .auth-tagline span { display: block; }
+
+/* ---------- card ---------- */
+.auth-v3 .auth-stage { position: relative; z-index: 10; display: flex; min-height: 100vh; min-height: 100svh; align-items: center; justify-content: center; padding: 7rem 1rem 6rem; }
+.auth-v3 .auth-card {
+  position: relative; width: 100%; max-width: 470px; padding: clamp(1.75rem, 4vw, 2.75rem);
+  border-radius: 22px; background: var(--cream); color: var(--ink);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.38), 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+}
+.auth-v3 .auth-card::before { /* thin gold edge at the top, echoing the frosted pill's glow */
+  content: ""; position: absolute; left: 2rem; right: 2rem; top: 0; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.auth-v3 .auth-eyebrow { font: 400 0.68rem/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-deep); }
+.auth-v3 .auth-title { margin-top: 1rem; font: 800 clamp(2rem, 3.6vw, 2.6rem)/1.05 var(--display); letter-spacing: -0.03em; color: var(--navy); }
+.auth-v3 .auth-sub { margin-top: 0.75rem; font-size: 0.98rem; line-height: 1.55; color: rgba(26, 34, 51, 0.78); }
+.auth-v3 .auth-form { margin-top: 2rem; display: grid; gap: 1.15rem; }
+
+/* fields */
+.auth-v3 .auth-label { display: block; margin-bottom: 0.45rem; font-size: 0.82rem; font-weight: 600; color: var(--navy); }
+.auth-v3 .auth-input-wrap { position: relative; }
+.auth-v3 .auth-input-icon { position: absolute; left: 1rem; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: var(--mute); pointer-events: none; }
+.auth-v3 .auth-input {
+  width: 100%; height: 50px; padding: 0 2.9rem; border-radius: 12px; border: 1px solid var(--line);
+  background: #fff; font: 500 0.98rem var(--body); color: var(--navy); outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.auth-v3 .auth-input::placeholder { color: rgba(3, 27, 54, 0.4); }
+.auth-v3 .auth-input:focus { border-color: var(--accent-deep); box-shadow: 0 0 0 4px rgba(226, 179, 91, 0.25); }
+.auth-v3 .auth-eye { position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: var(--mute); cursor: pointer; transition: color 0.2s, background 0.2s; }
+.auth-v3 .auth-eye:hover { color: var(--navy); background: rgba(3, 27, 54, 0.05); }
+.auth-v3 .auth-eye:focus-visible, .auth-v3 .auth-submit:focus-visible, .auth-v3 .auth-link:focus-visible, .auth-v3 .auth-back:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* primary button: the homepage's gold pill */
+.auth-v3 .auth-submit {
+  display: flex; width: 100%; height: 52px; align-items: center; justify-content: center; gap: 0.6rem;
+  border: 0; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+  font: 600 1rem/1 var(--body); cursor: pointer;
+  box-shadow: 0 14px 30px rgba(184, 133, 46, 0.28);
+  transition: transform 0.35s var(--ease-out), background 0.3s, box-shadow 0.35s;
+}
+.auth-v3 .auth-submit:hover { background: #ebc06c; transform: translateY(-2px); box-shadow: 0 18px 36px rgba(184, 133, 46, 0.34); }
+.auth-v3 .auth-submit:active { transform: translateY(0); }
+.auth-v3 .auth-submit:disabled { opacity: 0.6; cursor: progress; transform: none; }
+.auth-v3 .auth-submit svg { width: 16px; height: 16px; transition: transform 0.35s var(--ease-out); }
+.auth-v3 .auth-submit:hover svg { transform: translateX(4px); }
+
+/* links and notes */
+.auth-v3 .auth-link { color: var(--navy); font-weight: 600; text-decoration: underline; text-decoration-color: rgba(184, 133, 46, 0.55); text-underline-offset: 3px; transition: text-decoration-color 0.25s; }
+.auth-v3 .auth-link:hover { text-decoration-color: var(--accent-deep); }
+.auth-v3 .auth-row-end { display: flex; justify-content: flex-end; font-size: 0.85rem; }
+.auth-v3 .auth-foot { padding-top: 0.25rem; text-align: center; font-size: 0.88rem; color: rgba(26, 34, 51, 0.72); }
+.auth-v3 .auth-foot p + p { margin-top: 0.35rem; }
+.auth-v3 .auth-notice { margin-top: 1.25rem; padding: 0.8rem 1rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.5; }
+.auth-v3 .auth-notice.ok { background: rgba(47, 191, 113, 0.1); border: 1px solid rgba(47, 191, 113, 0.35); color: #14532d; }
+.auth-v3 .auth-notice.err { background: rgba(178, 58, 46, 0.07); border: 1px solid rgba(178, 58, 46, 0.3); color: #8a2a20; }
+.auth-v3 .auth-form .auth-notice { margin-top: 0; }
+
+/* ---------- side artifacts (wide screens only), like the homepage hero ---------- */
+.auth-v3 .auth-art {
+  position: absolute; z-index: 5; width: 215px; padding: 0.9rem 1rem 1rem; border-radius: 14px;
+  background: rgba(253, 255, 238, 0.97); color: var(--navy); pointer-events: none;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+}
+.auth-v3 .auth-art.a1 { left: clamp(2rem, 7vw, 8rem); top: 28%; transform: rotate(-3deg); }
+.auth-v3 .auth-art.a2 { right: clamp(2rem, 7vw, 8rem); bottom: 22%; transform: rotate(3deg); }
+.auth-v3 .art-k { font: 400 0.62rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--mute); }
+.auth-v3 .art-v { margin-top: 0.5rem; font: 700 1.8rem/1 var(--display); letter-spacing: -0.03em; }
+.auth-v3 .art-v small { font-size: 0.85rem; font-weight: 500; color: var(--mute); }
+.auth-v3 .art-f { margin-top: 0.5rem; font-size: 0.74rem; color: var(--mute); }
+.auth-v3 .art-f b { color: var(--navy); }
+.auth-v3 .art-bars { display: grid; gap: 5px; margin-top: 0.7rem; }
+.auth-v3 .art-bars i { display: block; height: 5px; border-radius: 3px; background: rgba(3, 27, 54, 0.1); position: relative; overflow: hidden; }
+.auth-v3 .art-bars i::after { content: ""; position: absolute; inset: 0; width: var(--w); border-radius: inherit; background: var(--accent-deep); }
+.auth-v3 .art-chart { display: flex; align-items: flex-end; gap: 4px; height: 42px; margin-top: 0.7rem; }
+.auth-v3 .art-chart i { flex: 1; height: var(--h); border-radius: 2px 2px 0 0; background: rgba(3, 27, 54, 0.14); }
+.auth-v3 .art-chart i:last-child { background: var(--accent-deep); }
+.auth-v3 .art-dot { position: absolute; top: 1rem; right: 1rem; width: 8px; height: 8px; border-radius: 50%; background: #2fbf71; box-shadow: 0 0 0 4px rgba(47, 191, 113, 0.18); }
+.auth-v3 .art-rows { margin-top: 0.65rem; display: grid; gap: 0.4rem; font-size: 0.78rem; color: var(--ink); }
+.auth-v3 .art-rows span { display: flex; justify-content: space-between; gap: 0.5rem; }
+.auth-v3 .art-rows b { font-family: var(--display); color: var(--navy); }
+
+@media (max-width: 1100px) { .auth-v3 .auth-art { display: none; } }
+@media (max-width: 720px) {
+  .auth-v3 .auth-tagline, .auth-v3 .auth-portal { display: none; }
+  .auth-v3 .auth-stage { padding-top: 6rem; align-items: flex-start; }
+  .auth-v3 .auth-wordmark { font-size: 1.35rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-v3 .auth-lines .comet path { animation: none; opacity: 0; }
+  .auth-v3 *, .auth-v3 *::before, .auth-v3 *::after { transition-duration: 0.001ms !important; }
+}
