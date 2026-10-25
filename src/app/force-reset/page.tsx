@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireUser, landingPathFor, isAdmin } from "@/lib/auth";
-import { AuthShell } from "@/components/site/auth-shell";
+import { AuthHeading, AuthShell } from "@/components/site/auth-shell";
 import { ForceResetForm } from "./force-reset-form";
 
 export const dynamic = "force-dynamic";
@@ -19,18 +19,14 @@ export default async function ForceResetPage() {
   return (
     <AuthShell
       portalLabel={admin ? "Team Access" : "Founder Portal"}
+      variant={admin ? "team" : "founder"}
       tagline={admin ? ["Sidana", "operations", "desk"] : undefined}
     >
-      <p className="mb-5 text-[11px] uppercase tracking-[0.35em] text-gold-dim">
-        One-time step
-      </p>
-      <h1 className="site-serif text-[44px] leading-none text-ink md:text-[54px]">
-        Set your password
-      </h1>
-      <p className="mt-3 text-[15px] text-ink-muted">
-        You signed in with a temporary activation password. Choose your own to
-        secure your account.
-      </p>
+      <AuthHeading
+        eyebrow="One-time step"
+        title="Set your password."
+        sub="You signed in with a temporary activation password. Choose your own to secure your account."
+      />
       <ForceResetForm redirectTo={redirectTo} />
     </AuthShell>
   );

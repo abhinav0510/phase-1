@@ -3,24 +3,23 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowRight, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   AuthError,
   AuthField,
+  AuthHeading,
+  AuthItem,
+  AuthNotice,
   AuthShell,
-  authItem,
-  authStagger,
+  AuthSubmit,
 } from "@/components/site/auth-shell";
 
 // Landing page for the password-reset email link. Supabase sets a short-lived
 // recovery session from the link; we then let the user choose a new password.
 export default function ResetPassword() {
   const router = useRouter();
-  const [status, setStatus] = useState<"checking" | "ready" | "invalid" | "done">(
-    "checking",
-  );
+  const [status, setStatus] = useState<"checking" | "ready" | "invalid" | "done">("checking");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -81,86 +80,52 @@ export default function ResetPassword() {
 
   return (
     <AuthShell portalLabel="Account recovery">
-      <motion.div variants={authStagger} initial="hidden" animate="show">
-        <motion.p
-          variants={authItem}
-          className="mb-5 text-[11px] uppercase tracking-[0.35em] text-gold-dim"
-        >
-          Account recovery
-        </motion.p>
-        <motion.h1
-          variants={authItem}
-          className="site-serif text-[44px] leading-none text-ink md:text-[54px]"
-        >
-          Choose a new password
-        </motion.h1>
+      <AuthHeading
+        eyebrow="Account recovery"
+        title="Choose a new password."
+        sub={status === "checking" ? "Verifying your reset link…" : undefined}
+      />
 
-        {status === "checking" ? (
-          <motion.p variants={authItem} className="mt-4 text-[15px] text-ink-muted">
-            Verifying your reset link…
-          </motion.p>
-        ) : null}
-
-        {status === "invalid" ? (
-          <motion.div variants={authItem} className="mt-4 space-y-4">
-            <p className="rounded-lg border border-red-500/20 bg-red-50 px-4 py-3 text-sm text-red-700">
-              This reset link is invalid or has expired. Request a new one.
+      {status === "invalid" ? (
+        <>
+          <AuthNotice tone="err">This reset link is invalid or has expired. Request a new one.</AuthNotice>
+          <AuthItem className="auth-foot">
+            <p style={{ marginTop: "1.25rem" }}>
+              <Link href="/forgot-password" className="auth-link">
+                Request a new link
+              </Link>
             </p>
-            <Link
-              href="/forgot-password"
-              className="inline-flex items-center gap-2 text-sm text-gold-dim hover:underline"
-            >
-              Request a new link <ArrowRight className="h-4 w-4" />
-            </Link>
-          </motion.div>
-        ) : null}
+          </AuthItem>
+        </>
+      ) : null}
 
-        {status === "done" ? (
-          <motion.p
-            variants={authItem}
-            className="mt-4 rounded-lg border border-emerald-600/20 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-          >
-            Password updated. Taking you to your dashboard…
-          </motion.p>
-        ) : null}
+      {status === "done" ? <AuthNotice tone="ok">Password updated. Taking you to your dashboard…</AuthNotice> : null}
 
-        {status === "ready" ? (
-          <form onSubmit={submit} className="mt-9 space-y-5">
-            <AuthField
-              label="New password"
-              icon={Lock}
-              password
-              placeholder="At least 8 characters"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-            />
-            <AuthField
-              label="Confirm new password"
-              icon={Lock}
-              password
-              placeholder="Repeat your password"
-              autoComplete="new-password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-            />
-            {error ? <AuthError text={error} /> : null}
-            <div className="pt-1">
-              <button
-                type="submit"
-                disabled={busy}
-                className="group flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-ink text-[16px] font-semibold text-paper shadow-[0_10px_30px_rgba(11,23,40,0.2)] transition hover:brightness-110 active:scale-[0.99] disabled:opacity-60"
-              >
-                {busy ? "Saving…" : "Update password"}
-                {!busy ? (
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                ) : null}
-              </button>
-            </div>
-          </form>
-        ) : null}
-      </motion.div>
+      {status === "ready" ? (
+        <form onSubmit={submit} className="auth-form">
+          <AuthField
+            label="New password"
+            icon={Lock}
+            password
+            placeholder="At least 8 characters"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoFocus
+          />
+          <AuthField
+            label="Confirm new password"
+            icon={Lock}
+            password
+            placeholder="Repeat your password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+          {error ? <AuthError text={error} /> : null}
+          <AuthSubmit pending={busy} label="Update password" pendingLabel="Saving…" />
+        </form>
+      ) : null}
     </AuthShell>
   );
 }
