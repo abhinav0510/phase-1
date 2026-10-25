@@ -6,6 +6,7 @@ import type {
   Meeting,
   Startup,
   Investor,
+  StartupDeck,
   WeeklyReport,
 } from "@/lib/types/db";
 
@@ -106,6 +107,22 @@ export async function getOwnWeeklyReports(
   // Table may not exist yet (migration pending) — treat as "no reports".
   if (error) return [];
   return (data ?? []) as WeeklyReport[];
+}
+
+/**
+ * The deck Sidana sends to investors for this startup (mirrored hourly from the
+ * Pilot sheet by n8n SYNC-DECKS). Scoped strictly by the verified startupId.
+ * Returns null when there is no deck on file or the table is not created yet.
+ */
+export async function getOwnDeck(startupId: number): Promise<StartupDeck | null> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("startup_decks")
+    .select("*")
+    .eq("startup_id", startupId)
+    .maybeSingle();
+  if (error) return null;
+  return (data as StartupDeck | null) ?? null;
 }
 
 export interface FounderOverview {

@@ -29,6 +29,7 @@ export interface NavItem {
 export const FOUNDER_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
   { label: "My Startup", href: "/business-details", icon: "startup" },
+  { label: "Pitch Deck", href: "/pitch-deck", icon: "documents" },
   { label: "Financials", href: "/financials", icon: "financials" },
   { label: "Investors & Matches", href: "/funding", icon: "funding" },
   { label: "Meetings", href: "/meetings", icon: "meetings" },

@@ -217,6 +217,19 @@ export interface WeeklyReport {
   updated_at: string | null;
 }
 
+// Investor-facing pitch deck, mirrored from the Pilot sheet STARTUPS tab
+// (deck_link) by the n8n "SYNC-DECKS" workflow (MIGRATIONS/startup-decks.sql).
+export interface StartupDeck {
+  startup_id: number;
+  sheet_name: string | null;
+  deck_link: string; // exactly what goes into investor emails (often bit.ly)
+  resolved_url: string | null; // where deck_link lands
+  drive_file_id: string | null; // Google Drive / Slides file id, if any
+  link_kind: "google" | "external";
+  synced_at: string;
+  created_at: string;
+}
+
 // ---------------------------------------------------------------------------
 // Notifications (MIGRATIONS/notifications.sql)
 // ---------------------------------------------------------------------------
