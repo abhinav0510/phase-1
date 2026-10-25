@@ -18,6 +18,7 @@ import {
   FileBarChart,
   Mail,
   Megaphone,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,12 +42,20 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   announce: Megaphone,
 };
 
+/** Optional extras under the nav: a quick-links box and a contact card. */
+export interface SidebarExtras {
+  quickLinks?: NavItem[];
+  contact?: { label: string; name: string; note?: string };
+}
+
 export function Sidebar({
   items,
   tag,
+  extras,
 }: {
   items: NavItem[];
   tag: string;
+  extras?: SidebarExtras;
 }) {
   const pathname = usePathname();
 
@@ -63,7 +72,7 @@ export function Sidebar({
           </p>
         </div>
       </div>
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="space-y-1 px-3 py-4">
         {items.map((item) => {
           const active =
             pathname === item.href ||
@@ -88,6 +97,48 @@ export function Sidebar({
           );
         })}
       </nav>
+
+      {extras?.quickLinks?.length ? (
+        <div className="mx-3 rounded-xl border border-white/10 bg-white/[0.04] p-3">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <p className="text-xs font-semibold text-white">Quick actions</p>
+            <Zap className="h-3.5 w-3.5 text-gold" />
+          </div>
+          <ul className="space-y-0.5">
+            {extras.quickLinks.map((q) => {
+              const Icon = ICONS[q.icon];
+              return (
+                <li key={q.href}>
+                  <Link
+                    href={q.href}
+                    className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-xs text-navy-200 transition hover:bg-white/5 hover:text-white"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {q.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="flex-1" />
+
+      {extras?.contact ? (
+        <div className="mx-3 mb-3 rounded-xl bg-gradient-to-br from-navy-700 to-navy-800 p-4 text-white">
+          <p className="text-[10px] uppercase tracking-wider text-navy-300">
+            {extras.contact.label}
+          </p>
+          <p className="mt-1 text-sm font-semibold">{extras.contact.name}</p>
+          {extras.contact.note ? (
+            <p className="mt-1 text-[11px] leading-snug text-navy-200">
+              {extras.contact.note}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="border-t border-white/10 px-5 py-3 text-[10px] text-navy-400">
         Phase 1 · {new Date().getFullYear()}
       </div>

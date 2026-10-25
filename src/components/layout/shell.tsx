@@ -1,4 +1,4 @@
-import { Sidebar } from "./sidebar";
+import { Sidebar, type SidebarExtras } from "./sidebar";
 import { TopBar } from "./topbar";
 import type { NavItem } from "./nav";
 import {
@@ -14,6 +14,7 @@ export function Shell({
   userName,
   userEmail,
   announcements,
+  sidebarExtras,
   children,
 }: {
   nav: NavItem[];
@@ -23,11 +24,12 @@ export function Shell({
   userName: string | null;
   userEmail: string | null;
   announcements?: { items: AnnouncementItem[]; unreadIds: number[] };
+  sidebarExtras?: SidebarExtras;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-screen">
-      <Sidebar items={nav} tag={tag} />
+      <Sidebar items={nav} tag={tag} extras={sidebarExtras} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar
           title={title}
