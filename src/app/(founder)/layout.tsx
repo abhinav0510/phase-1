@@ -26,6 +26,7 @@ export default async function FounderLayout({
       sidebarExtras={{
         quickLinks: [
           { label: "Complete my profile", href: "/complete-profile", icon: "users" },
+          { label: "View pitch deck", href: "/pitch-deck", icon: "documents" },
           { label: "Update financials", href: "/complete-profile#section-traction", icon: "financials" },
           { label: "Investor matches", href: "/funding", icon: "funding" },
           { label: "Weekly reports", href: "/weekly-reports", icon: "weekly" },

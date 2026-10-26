@@ -44,7 +44,9 @@ async function main() {
   const items = await res.json();
   if (!Array.isArray(items)) throw new Error("Preview did not return an array");
 
-  const reports = items.filter((r) => r && r.kind === "report");
+  // "report" = emailed to the founder; "record" = quiet week, saved for the
+  // dashboard only (the workflow never emails these).
+  const reports = items.filter((r) => r && (r.kind === "report" || r.kind === "record"));
   const summary = items.find((r) => r && r.kind === "summary");
 
   // 2. Reporting window — prefer the summary's exact window, else compute Mon–Fri
@@ -106,8 +108,8 @@ async function main() {
       feedback_list: arr(r.feedback_list),
       subject: r.subject || null,
       report_html: null, // preview carries no HTML; live runs fill this going forward
-      sent_to: r.to || null,
-      source: "backfill-preview",
+      sent_to: r.kind === "record" ? null : r.to || null,
+      source: r.kind === "record" ? "backfill-dashboard-only" : "backfill-preview",
     });
   }
 
