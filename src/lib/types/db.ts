@@ -217,6 +217,26 @@ export interface WeeklyReport {
   updated_at: string | null;
 }
 
+// Founder-submitted profile for matchmaking (MIGRATIONS/startup-profiles.sql).
+// Answers are keyed by src/lib/profile/fields.ts; the team reviews them before
+// they are used. Never written into public.startups.
+export type ProfileStatus = "draft" | "submitted" | "approved" | "changes_requested";
+
+export interface StartupProfile {
+  startup_id: number;
+  answers: Record<string, string | string[]>;
+  approved_answers: Record<string, string | string[]> | null;
+  status: ProfileStatus;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  reviewed_by_email: string | null;
+  review_note: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ---------------------------------------------------------------------------
 // Notifications (MIGRATIONS/notifications.sql)
 // ---------------------------------------------------------------------------

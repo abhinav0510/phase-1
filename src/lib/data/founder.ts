@@ -6,6 +6,7 @@ import type {
   Meeting,
   Startup,
   Investor,
+  StartupProfile,
   WeeklyReport,
 } from "@/lib/types/db";
 
@@ -106,6 +107,22 @@ export async function getOwnWeeklyReports(
   // Table may not exist yet (migration pending) — treat as "no reports".
   if (error) return [];
   return (data ?? []) as WeeklyReport[];
+}
+
+/**
+ * The founder's own profile submission (answers + review status), or null when
+ * they have not started one or the table is not created yet. Scoped strictly
+ * by the verified startupId.
+ */
+export async function getOwnProfile(startupId: number): Promise<StartupProfile | null> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("startup_profiles")
+    .select("*")
+    .eq("startup_id", startupId)
+    .maybeSingle();
+  if (error) return null;
+  return (data as StartupProfile | null) ?? null;
 }
 
 export interface FounderOverview {

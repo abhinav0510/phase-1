@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireFounder } from "@/lib/auth";
 import { getOwnStartup } from "@/lib/data/founder";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
@@ -41,9 +42,11 @@ export default async function BusinessDetails() {
         </CardBody>
       </Card>
       <p className="rounded-lg bg-navy-50 px-4 py-3 text-xs text-navy-500">
-        To request an update to these details, contact your Sidana point of
-        contact. In-portal editing is a planned Phase-1 follow-up and is disabled
-        here so existing records are never changed without review.
+        Something missing or out of date?{" "}
+        <Link href="/complete-profile" className="font-semibold text-navy-800 underline underline-offset-2">
+          Complete your profile
+        </Link>
+        . The Sidana team reviews every update before it is used for matching.
       </p>
     </div>
   );

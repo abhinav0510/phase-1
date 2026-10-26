@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireFounder } from "@/lib/auth";
 import { getOwnStartup, getOwnFunding } from "@/lib/data/founder";
 import { StatCard, Card, CardHeader, CardBody } from "@/components/ui/card";
@@ -97,9 +98,15 @@ export default async function Financials() {
         </CardBody>
       </Card>
       <p className="rounded-lg bg-navy-50 px-4 py-3 text-xs text-navy-500">
-        Figures shown are the latest on record with Sidana. Document upload and
-        in-portal financial updates are a planned follow-up, kept disabled here so
-        existing records are never changed without review.
+        Figures shown are the latest on record with Sidana. To update revenue, burn,
+        runway or your round,{" "}
+        <Link
+          href="/complete-profile#section-traction"
+          className="font-semibold text-navy-800 underline underline-offset-2"
+        >
+          complete your profile
+        </Link>
+        . The Sidana team reviews every update before it is used for matching.
       </p>
     </div>
   );
