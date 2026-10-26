@@ -1,5 +1,5 @@
 /* =====================================================================
-   Sidana Labs — public homepage styles.
+   Sidana Ventures — public homepage styles.
    Generated from mockups/homepage-v2/styles.css by scope_css.py: every selector
    is scoped under .home-v3 so nothing here reaches the dashboard or auth pages.
    Edit the mockup and re-run the script, or edit here and keep them in sync.
@@ -85,7 +85,8 @@
 /* ----------------------------- Header & menu ----------------------------- */
 .home-v3 .site-header { position: fixed; inset: 0 0 auto 0; z-index: 950; display: flex; justify-content: space-between; align-items: flex-start; padding: 1.35rem var(--gutter); pointer-events: none; }
 .home-v3 .site-header > * { pointer-events: auto; }
-.home-v3 .wordmark { font: 700 1.55rem/.95 var(--display); letter-spacing: -.03em; color: var(--cream); transition: opacity .5s, transform .5s var(--ease-out); }
+.home-v3 .wordmark { font: 700 1.55rem/.95 var(--display); letter-spacing: -.03em; color: var(--cream); transition: opacity .5s, transform .5s var(--ease-out); display: flex; align-items: center; gap: .5rem; }
+.home-v3 .header-logo-icon { filter: brightness(0) invert(1); }
 .home-v3 .site-header.past-hero .wordmark { opacity: 0; transform: translateY(-10px); pointer-events: none; }
 .home-v3 .menu-btn { position: relative; z-index: 960; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--accent); cursor: pointer; display: grid; place-items: center; transition: transform .35s var(--ease-out), background .3s; }
 .home-v3 .menu-btn:hover { transform: scale(1.06); }
@@ -505,6 +506,8 @@
 .home-v3 .band.in-view i { transform: scaleY(1); }
 .home-v3 .footer-inner { padding: clamp(3rem, 6vw, 5rem) var(--gutter) 2rem; }
 .home-v3 .giant { font: 800 clamp(3.2rem, 10.5vw, 9.4rem)/.9 var(--display); letter-spacing: -.04em; color: var(--accent); }
+.home-v3 .footer-brand { margin-bottom: .5rem; }
+.home-v3 .footer-logo { width: clamp(120px, 14vw, 180px); height: auto; filter: brightness(0) invert(1); opacity: .9; }
 .home-v3 .footer-cols { display: grid; grid-template-columns: 1fr 1fr 1.6fr; gap: 2.5rem; margin-top: clamp(2.5rem, 5vw, 4rem); }
 .home-v3 .footer .eyebrow { color: var(--mute-cream); margin-bottom: 1rem; }
 .home-v3 .footer-cols li a { display: inline-block; padding: .3rem 0; font-weight: 500; color: rgba(253, 255, 238, .9); transition: color .3s, transform .3s var(--ease-out); }

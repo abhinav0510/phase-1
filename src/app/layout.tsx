@@ -18,9 +18,10 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Sidana Labs — Capital · Strategy · Venture",
+  title: "Sidana Ventures — Capital · Strategy · Venture",
   description:
     "Strategic capital, institutional thinking, and hands-on execution for ambitious companies.",
+  icons: { icon: "/images/favicon.png" },
 };
 
 export default function RootLayout({

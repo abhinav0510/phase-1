@@ -11,7 +11,7 @@ export const HOME_NAV = [
 export const HERO = {
   headline: ["We’re the advisors", "you want in the room."] as const,
   sub:
-    "Sidana Labs is a fundraising advisory and investor-relations firm for startups. " +
+    "Sidana Ventures is a fundraising advisory and investor-relations firm for startups. " +
     "We build your investment memo, match you to the investors who actually fit, " +
     "run the outreach and the meetings, and stay with you through to the term sheet.",
 };

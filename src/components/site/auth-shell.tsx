@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { MotionConfig, motion, type Variants } from "framer-motion";
@@ -147,9 +148,10 @@ export function AuthShell({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease, delay: 0.1 }}
         >
-          <Link href="/" className="auth-wordmark" aria-label="Sidana Labs — home">
+          <Link href="/" className="auth-wordmark" aria-label="Sidana Ventures — home">
+            <Image src="/images/logo-icon.png" alt="" width={32} height={32} className="auth-logo-icon" />
             <span>Sidana</span>
-            <span>Labs</span>
+            <span>Ventures</span>
           </Link>
           <div className="auth-right">
             <span className="auth-portal">{portalLabel}</span>

@@ -1,6 +1,6 @@
 // Public-site configuration. Edit here, not inside components.
 export const SITE = {
-  name: "Sidana Labs",
+  name: "Sidana Ventures",
   tagline: "Capital · Strategy · Venture",
   // Public contact address used by the Contact buttons (mailto:).
   contactEmail: "investors@sidanaventures.com",

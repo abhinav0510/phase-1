@@ -44,8 +44,9 @@
 
 /* ---------- chrome ---------- */
 .auth-v3 .auth-top { position: absolute; inset: 0 0 auto 0; z-index: 20; display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5rem clamp(1.25rem, 4vw, 3.5rem); }
-.auth-v3 .auth-wordmark { font: 700 1.55rem/0.95 var(--display); letter-spacing: -0.03em; color: var(--cream); }
+.auth-v3 .auth-wordmark { font: 700 1.55rem/0.95 var(--display); letter-spacing: -0.03em; color: var(--cream); display: flex; align-items: center; gap: .45rem; }
 .auth-v3 .auth-wordmark span { display: block; }
+.auth-v3 .auth-logo-icon { filter: brightness(0) invert(1); }
 .auth-v3 .auth-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.9rem; padding-top: 0.35rem; }
 .auth-v3 .auth-portal { display: flex; align-items: center; gap: 0.75rem; font: 400 0.68rem/1 var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute-cream); }
 .auth-v3 .auth-portal::before { content: ""; width: 2.5rem; height: 1px; background: var(--accent); }
