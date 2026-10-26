@@ -7,6 +7,7 @@ import type {
   Match,
   Meeting,
   Startup,
+  StartupProfile,
 } from "@/lib/types/db";
 
 /**
@@ -328,4 +329,50 @@ export async function listPendingDocs(): Promise<any[]> {
     .order("requested_at", { ascending: true })
     .limit(100);
   return data ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Founder profile submissions (MIGRATIONS/startup-profiles.sql)
+// ---------------------------------------------------------------------------
+
+export type ProfileQueueRow = StartupProfile & { startup_name: string | null };
+
+/** Every founder profile that has been started, submissions waiting for review first. */
+export async function listProfileSubmissions(): Promise<ProfileQueueRow[]> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("startup_profiles")
+    .select("*")
+    .order("updated_at", { ascending: false })
+    .limit(500);
+  if (error || !data) return [];
+  const rows = data as StartupProfile[];
+  const ids = rows.map((r) => r.startup_id);
+  const names = new Map<number, string | null>();
+  if (ids.length) {
+    const { data: st } = await admin.from("startups").select("id,name").in("id", ids);
+    for (const s of (st ?? []) as { id: number; name: string | null }[]) names.set(s.id, s.name);
+  }
+  const rank: Record<string, number> = { submitted: 0, changes_requested: 1, draft: 2, approved: 3 };
+  return rows
+    .map((r) => ({ ...r, startup_name: names.get(r.startup_id) ?? null }))
+    .sort((a, b) => (rank[a.status] ?? 9) - (rank[b.status] ?? 9));
+}
+
+export async function getProfileForReview(
+  startupId: number,
+): Promise<{ startup: Startup | null; profile: StartupProfile | null }> {
+  const admin = createAdminClient();
+  const [s, p] = await Promise.all([
+    admin.from("startups").select("*").eq("id", startupId).maybeSingle(),
+    admin.from("startup_profiles").select("*").eq("startup_id", startupId).maybeSingle(),
+  ]);
+  return {
+    startup: (s.data as Startup | null) ?? null,
+    profile: p.error ? null : ((p.data as StartupProfile | null) ?? null),
+  };
+}
+
+export async function countProfilesAwaitingReview(): Promise<number> {
+  return count("startup_profiles", (q) => q.eq("status", "submitted"));
 }

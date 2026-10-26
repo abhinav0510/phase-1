@@ -17,8 +17,11 @@ import {
   getFounderOverview,
   getOwnMeetings,
   getOwnMatches,
+  getOwnProfile,
   getOwnWeeklyReports,
 } from "@/lib/data/founder";
+import { profileProgress } from "@/lib/profile/fields";
+import { ProfileNudge } from "./_components/profile-nudge";
 import { JoinLink } from "@/components/ui/join-link";
 import { cn, formatCr, formatLakh, formatDate } from "@/lib/utils";
 import { ActivityBars, Donut } from "./_components/charts";
@@ -52,13 +55,15 @@ const ACTIVITY_META: Record<
 
 export default async function FounderDashboard() {
   const { startupId } = await requireFounder();
-  const [overview, meetings, matches, weeklyReports] = await Promise.all([
+  const [overview, meetings, matches, weeklyReports, profile] = await Promise.all([
     getFounderOverview(startupId),
     getOwnMeetings(startupId),
     getOwnMatches(startupId),
     getOwnWeeklyReports(startupId),
+    getOwnProfile(startupId),
   ]);
   const s = overview.startup;
+  const progress = profileProgress(s, profile?.answers ?? null);
   const now = new Date();
   const latestReport = weeklyReports[0] ?? null;
   const upcoming = meetings
@@ -114,6 +119,13 @@ export default async function FounderDashboard() {
           </span>
         </div>
       </div>
+
+      <ProfileNudge
+        pct={progress.pct}
+        missing={progress.missing.map((f) => ({ label: f.label, matching: !!f.matching }))}
+        status={profile?.status ?? null}
+        reviewNote={profile?.review_note ?? null}
+      />
 
       {/* KPI tiles */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -213,10 +225,15 @@ export default async function FounderDashboard() {
           <CardHeader
             title="Profile completeness"
             subtitle="Fields Sidana uses to match you"
-            action={<ViewAll href="/business-details" label="Complete" />}
+            action={
+              <ViewAll href="/complete-profile" label={progress.pct < 100 ? "Complete" : "Review"} />
+            }
           />
           <CardBody>
-            <Gauge pct={overview.profileCompletion} label="of profile complete" />
+            <Gauge pct={progress.pct} label="of profile complete" />
+            <p className="mt-3 text-center text-xs text-navy-500">
+              {progress.done} of {progress.total} details on file
+            </p>
             <div className="mt-6 border-t border-navy-100 pt-4">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-navy-400">
                 Investor mix
