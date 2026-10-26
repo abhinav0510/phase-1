@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type {
   Match,
@@ -19,7 +20,7 @@ import type {
  * the database level (see MIGRATIONS/PROPOSED-rls.sql — not auto-applied).
  */
 
-export async function getOwnStartup(startupId: number): Promise<Startup | null> {
+export const getOwnStartup = cache(async function getOwnStartup(startupId: number): Promise<Startup | null> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("startups")
@@ -27,9 +28,9 @@ export async function getOwnStartup(startupId: number): Promise<Startup | null> 
     .eq("id", startupId)
     .maybeSingle();
   return (data as Startup | null) ?? null;
-}
+});
 
-export async function getOwnMatches(
+export const getOwnMatches = cache(async function getOwnMatches(
   startupId: number,
 ): Promise<(Match & { investor: Pick<Investor, "id" | "name" | "type" | "status"> | null })[]> {
   const admin = createAdminClient();
@@ -40,9 +41,9 @@ export async function getOwnMatches(
     .order("priority", { ascending: true, nullsFirst: false })
     .limit(200);
   return (data ?? []) as any[];
-}
+});
 
-export async function getOwnMeetings(startupId: number): Promise<Meeting[]> {
+export const getOwnMeetings = cache(async function getOwnMeetings(startupId: number): Promise<Meeting[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("meetings")
@@ -51,7 +52,7 @@ export async function getOwnMeetings(startupId: number): Promise<Meeting[]> {
     .order("scheduled_at", { ascending: false, nullsFirst: false })
     .limit(100);
   return (data ?? []) as Meeting[];
-}
+});
 
 export async function getOwnFunding(startupId: number): Promise<any[]> {
   const admin = createAdminClient();
@@ -95,7 +96,7 @@ export async function getOwnDocs(startupId: number): Promise<any[]> {
  * Returns [] when the table is empty or absent, so the page degrades gracefully
  * before the first report lands.
  */
-export async function getOwnWeeklyReports(
+export const getOwnWeeklyReports = cache(async function getOwnWeeklyReports(
   startupId: number,
 ): Promise<WeeklyReport[]> {
   const admin = createAdminClient();
@@ -108,14 +109,14 @@ export async function getOwnWeeklyReports(
   // Table may not exist yet (migration pending) — treat as "no reports".
   if (error) return [];
   return (data ?? []) as WeeklyReport[];
-}
+});
 
 /**
  * The founder's own profile submission (answers + review status), or null when
  * they have not started one or the table is not created yet. Scoped strictly
  * by the verified startupId.
  */
-export async function getOwnProfile(startupId: number): Promise<StartupProfile | null> {
+export const getOwnProfile = cache(async function getOwnProfile(startupId: number): Promise<StartupProfile | null> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("startup_profiles")
@@ -124,14 +125,14 @@ export async function getOwnProfile(startupId: number): Promise<StartupProfile |
     .maybeSingle();
   if (error) return null;
   return (data as StartupProfile | null) ?? null;
-}
+});
 
 /**
  * The deck Sidana sends to investors for this startup (mirrored hourly from the
  * Pilot sheet by n8n SYNC-DECKS). Scoped strictly by the verified startupId.
  * Returns null when there is no deck on file or the table is not created yet.
  */
-export async function getOwnDeck(startupId: number): Promise<StartupDeck | null> {
+export const getOwnDeck = cache(async function getOwnDeck(startupId: number): Promise<StartupDeck | null> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("startup_decks")
@@ -140,7 +141,7 @@ export async function getOwnDeck(startupId: number): Promise<StartupDeck | null>
     .maybeSingle();
   if (error) return null;
   return (data as StartupDeck | null) ?? null;
-}
+});
 
 export interface FounderOverview {
   startup: Startup | null;

@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -15,11 +16,9 @@ export interface SessionUser {
 
 /**
  * Resolve the authenticated user and their app_users profile.
- * The auth user is verified server-side via Supabase; the profile is read with
- * the service-role client FILTERED BY the verified auth id (never by client input),
- * so it does not depend on app_users RLS being configured for self-reads.
+ * Wrapped in React.cache so layout + page share one call per request.
  */
-export async function getSessionUser(): Promise<SessionUser | null> {
+export const getSessionUser = cache(async function getSessionUser(): Promise<SessionUser | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -37,12 +36,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     authId: user.id,
     email: user.email ?? null,
     appUser: (appUser as AppUser | null) ?? null,
-    // Read from app_metadata, which only the service role can write — a user
-    // cannot clear this flag client-side to skip the forced password change.
-    // (Legacy user_metadata copies are migrated by scripts/migrate-mustreset.mjs.)
     mustReset: user.app_metadata?.must_reset === true,
   };
-}
+});
 
 export function isAdmin(role: UserRole | undefined | null): boolean {
   return !!role && ADMIN_ROLES.includes(role);
