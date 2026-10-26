@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Building2,
@@ -20,6 +21,7 @@ import {
   Mail,
   Megaphone,
   Zap,
+  Loader2,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,6 +61,11 @@ export function Sidebar({
   extras?: SidebarExtras;
 }) {
   const pathname = usePathname();
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    setNavigatingTo(null);
+  }, [pathname]);
 
   return (
     <aside className="hidden w-60 shrink-0 flex-col bg-navy-900 text-navy-100 md:flex">
@@ -78,19 +85,29 @@ export function Sidebar({
             (item.href !== "/admin" &&
               item.href !== "/dashboard" &&
               pathname.startsWith(item.href));
+          const loading = navigatingTo === item.href;
           const Icon = ICONS[item.icon];
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => {
+                if (!active) setNavigatingTo(item.href);
+              }}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium",
+                "transition-all duration-150 active:scale-[0.97]",
                 active
-                  ? "bg-white/10 text-white"
+                  ? "bg-white/10 text-white shadow-sm shadow-white/5"
                   : "text-navy-200 hover:bg-white/5 hover:text-white",
+                loading && "bg-white/[0.07] text-white",
               )}
             >
-              <Icon className="h-4 w-4" />
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Icon className="h-4 w-4" />
+              )}
               {item.label}
             </Link>
           );
@@ -110,9 +127,14 @@ export function Sidebar({
                 <li key={q.href}>
                   <Link
                     href={q.href}
-                    className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-xs text-navy-200 transition hover:bg-white/5 hover:text-white"
+                    onClick={() => setNavigatingTo(q.href)}
+                    className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-xs text-navy-200 transition-all duration-150 hover:bg-white/5 hover:text-white active:scale-[0.97]"
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    {navigatingTo === q.href ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5" />
+                    )}
                     {q.label}
                   </Link>
                 </li>

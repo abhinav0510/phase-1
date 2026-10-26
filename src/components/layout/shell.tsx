@@ -1,5 +1,6 @@
 import { Sidebar, type SidebarExtras } from "./sidebar";
 import { TopBar } from "./topbar";
+import { PageTransition } from "./page-transition";
 import type { NavItem } from "./nav";
 import {
   AnnouncementCenter,
@@ -45,7 +46,9 @@ export function Shell({
             ) : null
           }
         />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
     </div>
   );
