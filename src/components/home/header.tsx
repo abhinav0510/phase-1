@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { SITE } from "@/components/site/site-config";
 import { HOME_NAV } from "./content";
@@ -16,12 +17,13 @@ export function HomeHeader({
   return (
     <>
       <header className={`site-header${pastHero ? " past-hero" : ""}`}>
-        <a href="#top" className="wordmark" aria-label="Sidana Labs — home">
+        <a href="#top" className="wordmark" aria-label="Sidana Ventures — home">
+          <Image src="/images/logo-icon.png" alt="" width={36} height={36} className="header-logo-icon" />
           <span className="line-mask">
             <span className="line">Sidana</span>
           </span>
           <span className="line-mask">
-            <span className="line">Labs</span>
+            <span className="line">Ventures</span>
           </span>
         </a>
         <button

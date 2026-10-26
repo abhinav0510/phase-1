@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { SITE } from "@/components/site/site-config";
@@ -32,11 +33,9 @@ export function HomeFooter() {
         ))}
       </div>
       <div className="wrap footer-inner">
-        <p className="giant">
-          Sidana
-          <br />
-          Labs
-        </p>
+        <div className="footer-brand">
+          <Image src="/images/logo-full.png" alt="Sidana Ventures" width={160} height={138} className="footer-logo" />
+        </div>
         <div className="footer-cols">
           <div>
             <p className="eyebrow">Explore</p>
