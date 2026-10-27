@@ -1,8 +1,6 @@
-import Link from "next/link";
 import {
-  ArrowUpRight,
+  ArrowRight,
   CalendarClock,
-  CalendarDays,
   CheckCircle2,
   FileBarChart,
   Handshake,
@@ -10,9 +8,22 @@ import {
   Wallet,
 } from "lucide-react";
 import { requireFounder } from "@/lib/auth";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
-import { StatusBadge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/table";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  KpiCard,
+  Chip,
+  ButtonLink,
+  EmptyState,
+  ViewAll,
+  Avatar,
+  STARTUP_STATUS_TONE,
+  label,
+} from "@/components/founder/ui";
+import { Stagger, Item, Reveal, ProgressBar } from "@/components/founder/motion";
+import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
+import { JoinLink } from "@/components/ui/join-link";
 import {
   getFounderOverview,
   getOwnMeetings,
@@ -22,14 +33,12 @@ import {
 } from "@/lib/data/founder";
 import { profileProgress } from "@/lib/profile/fields";
 import { ProfileNudge } from "./_components/profile-nudge";
-import { JoinLink } from "@/components/ui/join-link";
 import { cn, formatCr, formatLakh, formatDate } from "@/lib/utils";
 import { ActivityBars, Donut } from "./_components/charts";
 import { SERIES } from "./_components/palette";
 import { Gauge, IconDisc, MeterRow, Ring } from "./_components/visuals";
 import {
   activityFeed,
-  initialsOf,
   investorMix,
   matchStateSlices,
   pipelineStages,
@@ -40,9 +49,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-// Ordinal navy ramp for the pipeline chevrons (validated light→dark).
-const STAGE_RAMP = ["#98afd0", "#6887b8", "#476aa0", "#2d436c", "#141f35"];
-
 const ACTIVITY_META: Record<
   ActivityKind,
   { tone: "navy" | "teal" | "coral" | "gold"; Icon: typeof Handshake }
@@ -51,6 +57,14 @@ const ACTIVITY_META: Record<
   meeting: { tone: "teal", Icon: CalendarClock },
   held: { tone: "coral", Icon: CheckCircle2 },
   report: { tone: "gold", Icon: FileBarChart },
+};
+
+const STAGE_BLURB: Record<string, string> = {
+  matched: "Investors our engine fit to you",
+  queued: "Lined up for outreach",
+  sent: "Introduced by Sidana",
+  meetings: "Calls on the calendar",
+  held: "Conversations completed",
 };
 
 export default async function FounderDashboard() {
@@ -78,45 +92,66 @@ export default async function FounderDashboard() {
   const weeks = weekPoints(weeklyReports);
   const feed = activityFeed(matches, meetings, weeklyReports, 5, now);
   const reachedPct =
-    overview.matchCount > 0
-      ? Math.round((overview.matchSent / overview.matchCount) * 100)
-      : 0;
+    overview.matchCount > 0 ? Math.round((overview.matchSent / overview.matchCount) * 100) : 0;
 
   const askValue = s?.ask_as_written ?? formatCr(s?.ask_amount ?? s?.ask_current_cr);
   const allocValue = s?.allocation_left_as_written ?? formatCr(s?.allocation_left_amount);
   const todayLabel = now.toLocaleDateString("en-IN", {
-    weekday: "short",
+    weekday: "long",
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 
+  const pipelineItems: ListItem[] = stages.map((st) => ({
+    id: st.key,
+    title: st.label,
+    subtitle: STAGE_BLURB[st.key],
+    avatar: st.label,
+    value: String(st.count),
+  }));
+  const pipelineDetails: Record<string, DetailSpec> = Object.fromEntries(
+    stages.map((st) => [
+      st.key,
+      {
+        eyebrow: "Pipeline stage",
+        heading: st.label,
+        aside: { label: st.count === 1 ? "Investor" : "Investors", value: String(st.count) },
+        stats: [
+          { label: "Of all matches", value: matches.length ? `${Math.round((st.count / matches.length) * 100)}%` : "—" },
+          { label: "Named here", value: String(st.names.length) },
+          { label: "Total matches", value: String(matches.length) },
+        ],
+        lists: [{ title: "Investors", items: st.names.slice(0, 12), empty: "No investors at this stage yet." }],
+        action: { label: st.key === "meetings" || st.key === "held" ? "See meetings" : "See all matches", href: st.key === "meetings" || st.key === "held" ? "/meetings" : "/funding" },
+      } satisfies DetailSpec,
+    ]),
+  );
+
   return (
     <div className="space-y-5">
-      {/* Greeting row */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-navy-900">
+      <div className="flex flex-wrap items-end justify-between gap-4 pt-1">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-iris">{todayLabel}</p>
+          <h1 className="mt-1 text-[26px] font-bold leading-tight tracking-tight text-obsidian md:text-[30px]">
             Welcome back, {s?.name ?? "founder"}
-          </h2>
+          </h1>
           <p className="mt-1 text-sm text-navy-500">
             Here&apos;s where your raise stands today
-            {s?.sector || s?.stage ? (
-              <>
-                {" · "}
-                {[s?.sector, s?.stage].filter(Boolean).join(" · ")}
-              </>
-            ) : null}
-            .
+            {s?.sector || s?.stage ? <> · {[s?.sector, s?.stage].filter(Boolean).join(" · ")}</> : null}.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge value={s?.bucket} kind="bucket" />
-          <StatusBadge value={s?.status} kind="startup" />
-          <span className="inline-flex items-center gap-2 rounded-lg border border-navy-100 bg-white px-3 py-2 text-xs font-medium text-navy-700 shadow-card">
-            <CalendarDays className="h-4 w-4 text-navy-400" />
-            {todayLabel}
-          </span>
+          {s?.status ? <Chip tone={STARTUP_STATUS_TONE[s.status] ?? "neutral"}>{label(s.status)}</Chip> : null}
+          {progress.pct < 100 ? (
+            <ButtonLink href="/complete-profile">
+              Complete profile <ArrowRight className="h-4 w-4" />
+            </ButtonLink>
+          ) : (
+            <ButtonLink href="/funding">
+              View matches <ArrowRight className="h-4 w-4" />
+            </ButtonLink>
+          )}
         </div>
       </div>
 
@@ -127,352 +162,267 @@ export default async function FounderDashboard() {
         reviewNote={profile?.review_note ?? null}
       />
 
-      {/* KPI tiles */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi
-          tone="gold"
-          icon={<Target className="h-5 w-5" />}
-          label="Current ask"
-          value={askValue}
-          hint={s?.ask_updated_on ? `Updated ${formatDate(s.ask_updated_on)}` : "As recorded with Sidana"}
-        />
-        <Kpi
-          tone="navy"
-          icon={<Wallet className="h-5 w-5" />}
-          label="Allocation left"
-          value={allocValue}
-          hint={
-            s?.allocation_updated_on
-              ? `Updated ${formatDate(s.allocation_updated_on)}`
-              : "Of the current round"
-          }
-        />
-        <Kpi
-          tone="teal"
-          icon={<Handshake className="h-5 w-5" />}
-          label="Investor matches"
-          value={overview.matchCount}
-          hint={`${overview.matchSent} reached out`}
-          aside={<Ring pct={reachedPct} color={SERIES.teal} />}
-          asideLabel={`${reachedPct}% contacted`}
-        />
-        <Kpi
-          tone="coral"
-          icon={<CalendarClock className="h-5 w-5" />}
-          label="Meetings"
-          value={meetings.length}
-          hint={`${overview.meetingsUpcoming} upcoming · ${overview.meetingsHeld} held`}
-        />
-      </div>
-
-      {/* Pipeline + profile gauge */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader
-            title="Outreach pipeline"
-            subtitle="Investors Sidana has matched, contacted and met for you"
-            action={<ViewAll href="/funding" />}
+      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Item>
+          <KpiCard
+            label="Current ask"
+            value={askValue}
+            icon={<Target className="h-4 w-4" />}
+            hint={s?.ask_updated_on ? `Updated ${formatDate(s.ask_updated_on)}` : "As recorded with Sidana"}
           />
-          <CardBody>
-            <div className="scroll-thin -mx-1 overflow-x-auto px-1 pb-1">
-              <div className="grid min-w-[640px] grid-cols-5 gap-1">
-                {stages.map((st, i) => (
-                  <div key={st.key} className="min-w-0">
-                    <div
-                      className="relative h-12 text-white"
-                      style={{
-                        background: STAGE_RAMP[i],
-                        clipPath:
-                          i === 0
-                            ? "polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)"
-                            : "polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)",
-                      }}
-                    >
-                      <div className={cn("flex h-full flex-col justify-center pr-4", i === 0 ? "pl-3" : "pl-5")}>
-                        <span className="truncate text-xs font-semibold">{st.label}</span>
-                        <span className="text-[11px] text-white/75">
-                          {st.count} {st.count === 1 ? "investor" : "investors"}
-                        </span>
-                      </div>
-                    </div>
-                    <ul className="mt-3 space-y-2 pl-1 pr-2">
-                      {st.names.slice(0, 4).map((n, j) => (
-                        <li key={`${st.key}-${j}`} className="flex items-center gap-2 text-xs text-navy-700">
-                          <span
-                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                            style={{ background: STAGE_RAMP[i] }}
-                          >
-                            {initialsOf(n)}
-                          </span>
-                          <span className="truncate">{n}</span>
-                        </li>
-                      ))}
-                      {st.names.length === 0 ? (
-                        <li className="text-xs text-navy-300">—</li>
-                      ) : null}
-                      {st.names.length > 4 ? (
-                        <li className="text-[11px] text-navy-400">+{st.names.length - 4} more</li>
-                      ) : null}
-                    </ul>
-                  </div>
-                ))}
+        </Item>
+        <Item>
+          <KpiCard
+            label="Allocation left"
+            value={allocValue}
+            icon={<Wallet className="h-4 w-4" />}
+            hint={s?.allocation_updated_on ? `Updated ${formatDate(s.allocation_updated_on)}` : "Of the current round"}
+          />
+        </Item>
+        <Item>
+          <KpiCard
+            label="Investor matches"
+            value={overview.matchCount}
+            icon={<Handshake className="h-4 w-4" />}
+            delta={{ text: `${overview.matchSent} reached out`, tone: overview.matchSent ? "good" : "neutral", arrow: overview.matchSent ? "up" : "flat", hint: `${reachedPct}% contacted` }}
+            visual={
+              <div className="flex items-center gap-3">
+                <Ring pct={reachedPct} color={SERIES.navy} size={44} />
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-100">
+                  <ProgressBar pct={reachedPct} className="h-1.5 w-full" barClassName="h-full rounded-full bg-iris" />
+                </div>
               </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader
-            title="Profile completeness"
-            subtitle="Fields Sidana uses to match you"
-            action={
-              <ViewAll href="/complete-profile" label={progress.pct < 100 ? "Complete" : "Review"} />
             }
           />
-          <CardBody>
-            <Gauge pct={progress.pct} label="of profile complete" />
-            <p className="mt-3 text-center text-xs text-navy-500">
-              {progress.done} of {progress.total} details on file
-            </p>
-            <div className="mt-6 border-t border-navy-100 pt-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-navy-400">
-                Investor mix
-              </p>
-              {mix.length === 0 ? (
-                <p className="text-sm text-navy-400">No matches yet.</p>
+        </Item>
+        <Item>
+          <KpiCard
+            tone="dark"
+            label="Meetings"
+            value={meetings.length}
+            icon={<CalendarClock className="h-4 w-4" />}
+            delta={{ text: `${overview.meetingsUpcoming} upcoming`, tone: overview.meetingsUpcoming ? "good" : "neutral", arrow: overview.meetingsUpcoming ? "up" : "flat", hint: `${overview.meetingsHeld} held` }}
+            visual={
+              upcoming[0] ? (
+                <p className="truncate text-xs text-white/60">
+                  Next: <span className="font-semibold text-white">{upcoming[0].investor_name ?? "Investor"}</span>{" "}
+                  · {relativeTime(new Date(upcoming[0].scheduled_at!), now)}
+                </p>
               ) : (
-                <div className="space-y-2.5">
-                  {mix.map((m) => (
-                    <MeterRow key={m.label} label={m.label} value={m.value} max={mixMax} color={SERIES.navy} />
-                  ))}
+                <p className="text-xs text-white/50">No meeting on the calendar yet.</p>
+              )
+            }
+          />
+        </Item>
+      </Stagger>
+
+      <Reveal>
+        <ListDetail
+          title="Outreach pipeline"
+          subtitle="Investors Sidana has matched, contacted and met for you"
+          listLabel="Stages"
+          items={pipelineItems}
+          details={pipelineDetails}
+          emptyTitle="No pipeline yet"
+        />
+      </Reveal>
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <Reveal>
+          <Card className="h-full">
+            <CardHeader title="Matches by state" action={<ViewAll href="/funding" />} />
+            <CardBody>
+              {matches.length === 0 ? (
+                <EmptyState title="No matches yet" message="As Sidana's match engine finds fits, they'll appear here." />
+              ) : (
+                <div className="flex flex-col items-center gap-4">
+                  <Donut slices={slices} total={matches.length} centerLabel="matches" />
+                  <ul className="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-1">
+                    {slices.map((sl) => (
+                      <li key={sl.key} className="flex items-center gap-2 text-sm">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: sl.color }} />
+                        <span className="flex-1 text-navy-700">{sl.label}</span>
+                        <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-obsidian">
+                          {sl.value}
+                          <span className="font-normal text-navy-400">
+                            {" "}
+                            ({matches.length ? Math.round((sl.value / matches.length) * 100) : 0}%)
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
-            </div>
-          </CardBody>
-        </Card>
-      </div>
+            </CardBody>
+          </Card>
+        </Reveal>
 
-      {/* Matches donut + weekly activity + upcoming meetings */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card>
-          <CardHeader title="Matches by state" action={<ViewAll href="/funding" />} />
-          <CardBody>
-            {matches.length === 0 ? (
-              <EmptyState title="No matches yet" message="As Sidana's match engine finds fits, they'll appear here." />
-            ) : (
-              <div className="flex flex-col items-center gap-4">
-                <Donut slices={slices} total={matches.length} centerLabel="matches" />
-                <ul className="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-1">
-                  {slices.map((sl) => (
-                    <li key={sl.key} className="flex items-center gap-2 text-sm">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: sl.color }} />
-                      <span className="flex-1 text-navy-700">{sl.label}</span>
-                      <span className="whitespace-nowrap text-xs font-medium tabular-nums text-navy-800">
-                        {sl.value}
-                        <span className="text-navy-400">
-                          {" "}
-                          ({matches.length ? Math.round((sl.value / matches.length) * 100) : 0}%)
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </CardBody>
-        </Card>
+        <Reveal delay={0.08}>
+          <Card className="h-full">
+            <CardHeader
+              title="Weekly activity"
+              subtitle={latestReport ? `Latest week ${formatDate(latestReport.week_start)}` : "From your Saturday reports"}
+              action={<ViewAll href="/weekly-reports" />}
+            />
+            <CardBody className="pb-3">
+              {weeks.length === 0 ? (
+                <EmptyState title="No weekly reports yet" message="Your first report lands after the next Saturday run." />
+              ) : (
+                <ActivityBars data={weeks} />
+              )}
+            </CardBody>
+          </Card>
+        </Reveal>
 
-        <Card>
-          <CardHeader
-            title="Weekly activity"
-            subtitle={latestReport ? `Latest week ${formatDate(latestReport.week_start)}` : "From your Saturday reports"}
-            action={<ViewAll href="/weekly-reports" />}
-          />
-          <CardBody className="pb-3">
-            {weeks.length === 0 ? (
-              <EmptyState
-                title="No weekly reports yet"
-                message="Your first report lands after the next Saturday run."
-              />
-            ) : (
-              <ActivityBars data={weeks} />
-            )}
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader title="Upcoming meetings" action={<ViewAll href="/meetings" />} />
-          <CardBody className="p-0">
-            {upcoming.length === 0 ? (
-              <div className="p-5">
-                <EmptyState title="No upcoming meetings" />
-              </div>
-            ) : (
-              <ul className="divide-y divide-navy-50">
-                {upcoming.map((m) => {
-                  const d = new Date(m.scheduled_at!);
-                  return (
-                    <li key={m.id} className="flex items-center gap-3 px-5 py-3">
-                      <div className="w-16 shrink-0 text-xs font-semibold text-navy-800">
-                        {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-                        <div className="text-[10px] font-normal text-navy-400">
-                          {d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+        <Reveal delay={0.16}>
+          <Card className="h-full">
+            <CardHeader title="Upcoming meetings" action={<ViewAll href="/meetings" />} />
+            <CardBody className="p-2 pt-3">
+              {upcoming.length === 0 ? (
+                <div className="p-3">
+                  <EmptyState title="No upcoming meetings" />
+                </div>
+              ) : (
+                <ul className="space-y-1">
+                  {upcoming.map((m) => {
+                    const d = new Date(m.scheduled_at!);
+                    return (
+                      <li key={m.id} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-canvas">
+                        <div className="w-14 shrink-0 text-xs font-semibold text-obsidian">
+                          {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                          <div className="text-[10px] font-normal text-navy-400">
+                            {d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+                          </div>
                         </div>
-                      </div>
-                      <div
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-                        style={{ background: SERIES.navy }}
-                      >
-                        {initialsOf(m.investor_name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-navy-800">
-                          {m.investor_name ?? "Investor"}
-                        </p>
-                        <p className="text-[11px] text-navy-400">
-                          {m.is_second ? "Second meeting" : "Investor meeting"}
-                          {m.source ? ` · ${m.source}` : ""}
-                        </p>
-                      </div>
-                      <JoinLink href={m.meet_link} />
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardBody>
-        </Card>
+                        <Avatar name={m.investor_name} size="sm" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-obsidian">{m.investor_name ?? "Investor"}</p>
+                          <p className="text-[11px] text-navy-400">
+                            {m.is_second ? "Second meeting" : "Investor meeting"}
+                            {m.source ? ` · ${m.source}` : ""}
+                          </p>
+                        </div>
+                        <JoinLink href={m.meet_link} />
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </CardBody>
+          </Card>
+        </Reveal>
       </div>
 
-      {/* Activity timeline + snapshot */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-          <CardHeader title="Recent activity" subtitle="Matches, meetings and reports as they happen" />
-          <CardBody>
-            {feed.length === 0 ? (
-              <EmptyState title="Nothing yet" message="Activity shows up here as Sidana works your raise." />
-            ) : (
-              <ol className="relative grid grid-cols-1 gap-5 sm:grid-cols-5 sm:gap-3">
-                <span
-                  className="absolute left-[18px] top-2 h-[calc(100%-1rem)] w-px bg-navy-100 sm:left-[10%] sm:right-[10%] sm:top-[18px] sm:h-px sm:w-auto"
-                  aria-hidden="true"
-                />
-                {feed.map((e) => {
-                  const meta = ACTIVITY_META[e.kind];
-                  return (
-                    <li key={e.id} className="relative flex items-start gap-3 sm:flex-col sm:items-center sm:text-center">
-                      <IconDisc tone={meta.tone} size="sm">
-                        <meta.Icon className="h-4 w-4" />
-                      </IconDisc>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-navy-800">{e.detail}</p>
-                        <p className="truncate text-xs text-navy-500">{e.title}</p>
-                        <p className="mt-0.5 text-[11px] text-navy-400">{relativeTime(e.at, now)}</p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </CardBody>
-        </Card>
+        <Reveal>
+          <Card className="h-full">
+            <CardHeader title="Recent activity" subtitle="Matches, meetings and reports as they happen" />
+            <CardBody className="pt-3">
+              {feed.length === 0 ? (
+                <EmptyState title="Nothing yet" message="Activity shows up here as Sidana works your raise." />
+              ) : (
+                <ol className="relative space-y-4">
+                  <span className="absolute left-[17px] top-3 h-[calc(100%-1.5rem)] w-px bg-navy-100" aria-hidden="true" />
+                  {feed.map((e) => {
+                    const meta = ACTIVITY_META[e.kind];
+                    return (
+                      <li key={e.id} className="relative flex items-start gap-3">
+                        <IconDisc tone={meta.tone} size="sm">
+                          <meta.Icon className="h-4 w-4" />
+                        </IconDisc>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-obsidian">{e.detail}</p>
+                          <p className="truncate text-xs text-navy-500">{e.title}</p>
+                          <p className="mt-0.5 text-[11px] text-navy-400">{relativeTime(e.at, now)}</p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </CardBody>
+          </Card>
+        </Reveal>
 
-        <Card>
-          <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/financials" />} />
-          <CardBody className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Metric label="Revenue" value={formatLakh(s?.revenue_inr_l)} />
-              <Metric label="Burn" value={formatLakh(s?.burn_inr_l)} />
-              <Metric label="Score" value={s?.score?.toString() ?? "—"} />
-              <Metric label="Rule tier" value={s?.rule_tier ?? "—"} />
-            </div>
-            <div>
-              <div className="flex items-baseline justify-between">
-                <p className="text-xs text-navy-400">Runway</p>
-                <p className="text-sm font-semibold text-navy-800">
-                  {s?.runway_months ? `${s.runway_months} months` : "—"}
-                </p>
+        <Reveal delay={0.08}>
+          <Card className="h-full">
+            <CardHeader
+              title="Profile completeness"
+              subtitle="Fields Sidana uses to match you"
+              action={<ViewAll href="/complete-profile" label={progress.pct < 100 ? "Complete" : "Review"} />}
+            />
+            <CardBody>
+              <Gauge pct={progress.pct} color={SERIES.navy} label="of profile complete" />
+              <p className="mt-3 text-center text-xs text-navy-500">
+                {progress.done} of {progress.total} details on file
+              </p>
+              <div className="mt-5 border-t border-navy-50 pt-4">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-navy-400">Investor mix</p>
+                {mix.length === 0 ? (
+                  <p className="text-sm text-navy-400">No matches yet.</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    {mix.map((m) => (
+                      <MeterRow key={m.label} label={m.label} value={m.value} max={mixMax} color={SERIES.navy} />
+                    ))}
+                  </div>
+                )}
               </div>
-              <RunwayMeter months={s?.runway_months ?? null} />
-            </div>
-            <div className="rounded-lg bg-navy-50 px-4 py-3">
-              <p className="text-xs text-navy-400">Your Sidana contact</p>
-              <p className="mt-0.5 text-sm font-medium text-navy-800">{s?.owner_name ?? "Sidana deal desk"}</p>
-            </div>
-            {latestReport ? (
-              <div className="border-t border-navy-100 pt-4">
-                <p className="text-xs text-navy-400">
-                  Latest report · week of {formatDate(latestReport.week_start)}
-                </p>
-                <div className="mt-2 grid grid-cols-4 gap-2 text-center">
-                  <Mini label="Reached" value={latestReport.reached} />
-                  <Mini label="Follow-ups" value={latestReport.followups} />
-                  <Mini label="Meetings" value={latestReport.meetings} />
-                  <Mini label="Passed" value={latestReport.passed} />
+            </CardBody>
+          </Card>
+        </Reveal>
+
+        <Reveal delay={0.16}>
+          <Card className="h-full">
+            <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/financials" />} />
+            <CardBody className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <Metric label="Revenue" value={formatLakh(s?.revenue_inr_l)} />
+                <Metric label="Burn" value={formatLakh(s?.burn_inr_l)} />
+                <Metric label="Score" value={s?.score?.toString() ?? "—"} />
+                <Metric label="Rule tier" value={s?.rule_tier ?? "—"} />
+              </div>
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-xs text-navy-400">Runway</p>
+                  <p className="text-sm font-semibold text-obsidian">
+                    {s?.runway_months ? `${s.runway_months} months` : "—"}
+                  </p>
+                </div>
+                <RunwayMeter months={s?.runway_months ?? null} />
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl bg-obsidian px-4 py-3 text-white">
+                <Avatar name={s?.owner_name ?? "Sidana"} size="sm" tone="white" />
+                <div className="min-w-0">
+                  <p className="text-[11px] text-white/60">Your Sidana contact</p>
+                  <p className="truncate text-sm font-semibold">{s?.owner_name ?? "Sidana deal desk"}</p>
                 </div>
               </div>
-            ) : null}
-          </CardBody>
-        </Card>
+              {latestReport ? (
+                <div className="border-t border-navy-50 pt-4">
+                  <p className="text-xs text-navy-400">Latest report · week of {formatDate(latestReport.week_start)}</p>
+                  <div className="mt-2 grid grid-cols-4 gap-2 text-center">
+                    <Mini label="Reached" value={latestReport.reached} />
+                    <Mini label="Follow-ups" value={latestReport.followups} />
+                    <Mini label="Meetings" value={latestReport.meetings} />
+                    <Mini label="Passed" value={latestReport.passed} />
+                  </div>
+                </div>
+              ) : null}
+            </CardBody>
+          </Card>
+        </Reveal>
       </div>
     </div>
   );
 }
 
-function Kpi({
-  tone,
-  icon,
-  label,
-  value,
-  hint,
-  aside,
-  asideLabel,
-}: {
-  tone: "gold" | "navy" | "teal" | "coral";
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-  hint?: string;
-  aside?: React.ReactNode;
-  asideLabel?: string;
-}) {
-  return (
-    <Card>
-      <CardBody className="flex items-center gap-4">
-        <IconDisc tone={tone}>{icon}</IconDisc>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-navy-500">{label}</p>
-          <p className="mt-0.5 truncate text-2xl font-semibold tracking-tight text-navy-900">{value}</p>
-          {hint ? <p className="mt-0.5 text-[11px] text-navy-400">{hint}</p> : null}
-        </div>
-        {aside ? (
-          <div className="flex shrink-0 flex-col items-center">
-            {aside}
-            {asideLabel ? <span className="mt-1 text-[10px] text-navy-400">{asideLabel}</span> : null}
-          </div>
-        ) : null}
-      </CardBody>
-    </Card>
-  );
-}
-
-function ViewAll({ href, label = "View all" }: { href: string; label?: string }) {
-  return (
-    <Link
-      href={href}
-      className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-navy-600 hover:text-navy-900"
-    >
-      {label}
-      <ArrowUpRight className="h-3.5 w-3.5" />
-    </Link>
-  );
-}
-
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-navy-100 px-3 py-2.5">
+    <div className="rounded-2xl bg-canvas px-3 py-2.5">
       <p className="text-[11px] text-navy-400">{label}</p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-navy-800">{value}</p>
+      <p className="mt-0.5 truncate text-sm font-semibold text-obsidian">{value}</p>
     </div>
   );
 }
@@ -480,7 +430,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Mini({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <p className="text-lg font-semibold leading-tight text-navy-900">{value}</p>
+      <p className="text-lg font-bold leading-tight text-obsidian">{value}</p>
       <p className="text-[10px] text-navy-400">{label}</p>
     </div>
   );
@@ -494,8 +444,10 @@ function RunwayMeter({ months }: { months: number | null }) {
   const pct = Math.max(4, Math.min(100, Math.round((months / 24) * 100)));
   const tone = months >= 12 ? "bg-emerald-500" : months >= 6 ? "bg-amber-500" : "bg-red-500";
   return (
-    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-navy-100">
-      <div className={cn("h-full rounded-full", tone)} style={{ width: `${pct}%` }} />
-    </div>
+    <ProgressBar
+      pct={pct}
+      className="mt-2 h-2 w-full overflow-hidden rounded-full bg-navy-100"
+      barClassName={cn("h-full rounded-full", tone)}
+    />
   );
 }

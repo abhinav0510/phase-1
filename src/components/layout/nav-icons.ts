@@ -1,0 +1,37 @@
+import {
+  LayoutDashboard,
+  Building2,
+  Wallet,
+  Users,
+  HandCoins,
+  CalendarClock,
+  FileText,
+  BarChart3,
+  Settings,
+  UserCircle,
+  Handshake,
+  ClipboardList,
+  FileBarChart,
+  Mail,
+  Megaphone,
+  type LucideIcon,
+} from "lucide-react";
+import type { NavIcon } from "./nav";
+
+export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  startup: Building2,
+  financials: Wallet,
+  investors: Users,
+  funding: HandCoins,
+  meetings: CalendarClock,
+  documents: FileText,
+  users: ClipboardList,
+  reports: BarChart3,
+  settings: Settings,
+  profile: UserCircle,
+  matches: Handshake,
+  weekly: FileBarChart,
+  mail: Mail,
+  announce: Megaphone,
+};

@@ -1,5 +1,5 @@
 import { requireFounder } from "@/lib/auth";
-import { Shell } from "@/components/layout/shell";
+import { FounderShell } from "@/components/founder/shell";
 import { FOUNDER_NAV } from "@/components/layout/nav";
 import { getOwnStartup } from "@/lib/data/founder";
 import { getAnnouncementsForUser } from "@/lib/data/notifications";
@@ -15,30 +15,13 @@ export default async function FounderLayout({
     getAnnouncementsForUser(session.authId, "founders"),
   ]);
   return (
-    <Shell
+    <FounderShell
       nav={FOUNDER_NAV}
-      tag="Founder"
-      title={startup?.name ?? "My Startup"}
-      subtitle="Sidana Founder Portal"
-      userName={startup?.name ?? "My Startup"}
-      userEmail={`Login ID ${session.startupId}`}
+      startupName={startup?.name ?? "My Startup"}
+      loginId={session.startupId}
       announcements={announcements}
-      sidebarExtras={{
-        quickLinks: [
-          { label: "Complete my profile", href: "/complete-profile", icon: "users" },
-          { label: "View pitch deck", href: "/pitch-deck", icon: "documents" },
-          { label: "Update financials", href: "/complete-profile#section-traction", icon: "financials" },
-          { label: "Investor matches", href: "/funding", icon: "funding" },
-          { label: "Weekly reports", href: "/weekly-reports", icon: "weekly" },
-        ],
-        contact: {
-          label: "Your Sidana contact",
-          name: startup?.owner_name ?? "Sidana deal desk",
-          note: "Reply to any weekly report email to reach them.",
-        },
-      }}
     >
       {children}
-    </Shell>
+    </FounderShell>
   );
 }

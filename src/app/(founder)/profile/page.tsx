@@ -1,6 +1,8 @@
+import { Settings } from "lucide-react";
 import { requireFounder } from "@/lib/auth";
 import { getOwnStartup } from "@/lib/data/founder";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { PageHeader, Card, CardBody, FieldRow, Note, Avatar, ButtonLink } from "@/components/founder/ui";
+import { Reveal } from "@/components/founder/motion";
 
 export const dynamic = "force-dynamic";
 
@@ -9,39 +11,43 @@ export default async function FounderProfile() {
   const s = await getOwnStartup(session.startupId);
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader
-          title="My profile"
-          subtitle="Your representative details"
-        />
-        <CardBody className="grid grid-cols-1 gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-          <Row label="Startup" value={s?.name} />
-          <Row label="Sector" value={s?.sector} />
-          <Row label="Login ID" value={`#${session.startupId}`} />
-          <Row label="Role" value="Founder" />
-          <Row label="Sidana contact" value={s?.owner_name} />
-        </CardBody>
-      </Card>
-      <p className="rounded-lg bg-navy-50 px-4 py-3 text-xs text-navy-500">
-        Your Sidana contact is the team member who manages your relationship. To
-        update your details, use Settings or contact Sidana.
-      </p>
-    </div>
-  );
-}
+    <div className="space-y-5">
+      <PageHeader
+        eyebrow="Account"
+        title="My Profile"
+        subtitle="Your representative details on the Sidana platform."
+        actions={
+          <ButtonLink href="/settings" variant="ghost">
+            <Settings className="h-4 w-4" /> Settings
+          </ButtonLink>
+        }
+      />
 
-function Row({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p className="text-xs text-navy-400">{label}</p>
-      <p className="mt-0.5 font-medium text-navy-800">{value || "—"}</p>
+      <Reveal>
+        <Card>
+          <CardBody className="space-y-5">
+            <div className="flex items-center gap-4">
+              <Avatar name={s?.name} size="lg" />
+              <div className="min-w-0">
+                <h2 className="truncate text-lg font-bold tracking-tight text-obsidian">{s?.name ?? "Your startup"}</h2>
+                <p className="text-sm text-navy-500">Founder · Login ID #{session.startupId}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <FieldRow label="Startup" value={s?.name} />
+              <FieldRow label="Sector" value={s?.sector} />
+              <FieldRow label="Login ID" value={`#${session.startupId}`} />
+              <FieldRow label="Role" value="Founder" />
+              <FieldRow label="Sidana contact" value={s?.owner_name} />
+            </div>
+          </CardBody>
+        </Card>
+      </Reveal>
+
+      <Note>
+        Your Sidana contact is the team member who manages your relationship. To update your details, use Settings or
+        contact Sidana.
+      </Note>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
 import type { ProfileStatus } from "@/lib/types/db";
+import { ProgressBar } from "@/components/founder/motion";
 
 /**
  * Dashboard call-to-action asking the founder to complete their profile for
@@ -19,7 +20,7 @@ export function ProfileNudge({
 }) {
   if (status === "submitted" && pct >= 100) {
     return (
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#ead9b8] bg-[#fbf3e3] px-5 py-3 text-sm text-[#7a5620]">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
         <Clock className="h-4 w-4 shrink-0" />
         Your profile is with the Sidana team for review. We&apos;ll use it to sharpen your investor matches.
       </div>
@@ -32,10 +33,14 @@ export function ProfileNudge({
   const matchingGaps = missing.filter((m) => m.matching).length;
 
   return (
-    <div className="overflow-hidden rounded-xl bg-navy-900 text-white shadow-card">
-      <div className="flex flex-col gap-5 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6">
+    <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-iris to-iris-deep text-white shadow-lg shadow-iris/30">
+      <div
+        className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-white/10 blur-2xl"
+        aria-hidden="true"
+      />
+      <div className="relative flex flex-col gap-5 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6">
         <div className="min-w-0 max-w-2xl">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#E8CFA0]">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70">
             <Sparkles className="h-3.5 w-3.5" />
             {status === "changes_requested" ? "Changes requested" : "Complete your profile for the best matches"}
           </p>
@@ -44,7 +49,7 @@ export function ProfileNudge({
               ? "The Sidana team asked for a few updates"
               : `Your profile is ${pct}% complete`}
           </h3>
-          <p className="mt-1 text-sm text-navy-200">
+          <p className="mt-1 text-sm text-white/75">
             {status === "changes_requested" && reviewNote
               ? `“${reviewNote}”`
               : matchingGaps > 0
@@ -54,29 +59,26 @@ export function ProfileNudge({
           {shown.length ? (
             <ul className="mt-3 flex flex-wrap gap-2">
               {shown.map((m) => (
-                <li
-                  key={m.label}
-                  className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-navy-100"
-                >
+                <li key={m.label} className="rounded-full bg-white/15 px-2.5 py-1 text-xs text-white">
                   {m.label}
                 </li>
               ))}
-              {more > 0 ? (
-                <li className="rounded-full px-1 py-1 text-xs text-navy-300">+{more} more</li>
-              ) : null}
+              {more > 0 ? <li className="rounded-full px-1 py-1 text-xs text-white/60">+{more} more</li> : null}
             </ul>
           ) : null}
         </div>
         <div className="flex shrink-0 flex-col items-start gap-3 md:items-end">
           <div className="flex w-48 items-center gap-2">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/15">
-              <div className="h-full rounded-full bg-[#D8B078]" style={{ width: `${pct}%` }} />
-            </div>
-            <span className="text-xs tabular-nums text-navy-200">{pct}%</span>
+            <ProgressBar
+              pct={pct}
+              className="h-2 flex-1 overflow-hidden rounded-full bg-white/20"
+              barClassName="h-full rounded-full bg-white"
+            />
+            <span className="text-xs tabular-nums text-white/80">{pct}%</span>
           </div>
           <Link
             href="/complete-profile"
-            className="inline-flex items-center gap-2 rounded-full bg-[#D8B078] px-5 py-2.5 text-sm font-semibold text-navy-950 transition hover:bg-[#E8CFA0]"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-obsidian shadow transition hover:bg-white/90 active:scale-[0.98]"
           >
             {status === "changes_requested" ? "Update profile" : "Complete profile"}
             <ArrowRight className="h-4 w-4" />

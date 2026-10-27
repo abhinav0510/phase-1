@@ -17,11 +17,11 @@ import {
 import { INK, SERIES } from "./palette";
 
 const tooltipStyle = {
-  borderRadius: 10,
-  border: "1px solid #dde4ef",
-  boxShadow: "0 8px 24px rgba(16,24,40,0.08)",
+  borderRadius: 12,
+  border: "none",
+  boxShadow: "0 12px 32px -8px rgba(16,24,40,0.25)",
   fontSize: 12,
-  padding: "8px 10px",
+  padding: "8px 12px",
 };
 
 export interface DonutSlice {
@@ -55,8 +55,11 @@ export function Donut({
             startAngle={90}
             endAngle={-270}
             stroke="#ffffff"
-            strokeWidth={2}
-            isAnimationActive={false}
+            strokeWidth={3}
+            cornerRadius={4}
+            paddingAngle={2}
+            animationDuration={900}
+            animationEasing="ease-out"
           >
             {data.map((s) => (
               <Cell key={s.key} fill={s.color} />
@@ -107,9 +110,9 @@ export function ActivityBars({ data }: { data: WeekPoint[] }) {
           iconSize={8}
           wrapperStyle={{ fontSize: 11, color: INK.muted, paddingTop: 8 }}
         />
-        <Bar dataKey="reached" name="Reached" fill={SERIES.navy} radius={[4, 4, 0, 0]} maxBarSize={14} />
-        <Bar dataKey="followups" name="Follow-ups" fill={SERIES.gold} radius={[4, 4, 0, 0]} maxBarSize={14} />
-        <Bar dataKey="meetings" name="Meetings" fill={SERIES.teal} radius={[4, 4, 0, 0]} maxBarSize={14} />
+        <Bar dataKey="reached" name="Reached" fill={SERIES.navy} radius={[6, 6, 6, 6]} maxBarSize={14} animationDuration={900} />
+        <Bar dataKey="followups" name="Follow-ups" fill={SERIES.gold} radius={[6, 6, 6, 6]} maxBarSize={14} animationDuration={900} />
+        <Bar dataKey="meetings" name="Meetings" fill={SERIES.teal} radius={[6, 6, 6, 6]} maxBarSize={14} animationDuration={900} />
       </BarChart>
     </ResponsiveContainer>
   );

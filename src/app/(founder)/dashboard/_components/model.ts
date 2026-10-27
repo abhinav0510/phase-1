@@ -36,7 +36,7 @@ export function matchStateSlices(matches: MatchRow[]): DonutSlice[] {
     }));
 }
 
-const TYPE_LABEL: Record<string, string> = {
+export const TYPE_LABEL: Record<string, string> = {
   angel: "Angels",
   angel_network: "Angel networks",
   syndicate: "Syndicates",

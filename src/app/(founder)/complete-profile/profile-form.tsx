@@ -2,8 +2,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { CheckCircle2, Save, Send, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buttonClass, inputClass } from "@/components/founder/ui";
 import {
   PROFILE_FIELDS,
   SECTIONS,
@@ -14,8 +16,7 @@ import {
 } from "@/lib/profile/fields";
 import { saveProfile } from "./actions";
 
-const inputCls =
-  "w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm text-navy-900 outline-none transition placeholder:text-navy-300 focus:border-navy-500 focus:ring-2 focus:ring-navy-100";
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function ProfileForm({
   initial,
@@ -76,7 +77,7 @@ export function ProfileForm({
   }
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="space-y-5 pb-28">
       {/* Section jump list with per-section progress */}
       <nav aria-label="Profile sections" className="flex flex-wrap gap-2">
         {SECTIONS.map((s) => {
@@ -87,10 +88,10 @@ export function ProfileForm({
               key={s.key}
               href={`#section-${s.key}`}
               className={cn(
-                "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                "inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
                 complete
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-navy-200 bg-white text-navy-700 hover:border-navy-400",
+                  : "border-navy-200 bg-white text-navy-700 hover:border-iris hover:text-iris",
               )}
             >
               {complete ? <CheckCircle2 className="h-3.5 w-3.5" /> : null}
@@ -103,48 +104,41 @@ export function ProfileForm({
         })}
       </nav>
 
-      {SECTIONS.map((s) => (
-        <section
+      {SECTIONS.map((s, i) => (
+        <motion.section
           key={s.key}
           id={`section-${s.key}`}
-          className="scroll-mt-24 rounded-xl border border-navy-100 bg-white shadow-card"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.45, ease: EASE, delay: Math.min(i * 0.05, 0.2) }}
+          className="scroll-mt-28 rounded-[20px] border border-navy-100/70 bg-white shadow-soft"
         >
-          <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-navy-100 px-5 py-4">
+          <header className="flex flex-wrap items-baseline justify-between gap-2 px-5 pb-1 pt-5">
             <div>
-              <h3 className="text-sm font-semibold text-navy-900">{s.title}</h3>
+              <h3 className="text-[15px] font-semibold tracking-tight text-obsidian">{s.title}</h3>
               <p className="mt-0.5 text-xs text-navy-500">{s.blurb}</p>
             </div>
-            <span className="text-xs tabular-nums text-navy-400">
+            <span className="rounded-full bg-canvas px-2.5 py-1 text-xs tabular-nums text-navy-500">
               {progress.by[s.key].done} of {progress.by[s.key].total} complete
             </span>
           </header>
           <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-5 py-5 md:grid-cols-2">
             {PROFILE_FIELDS.filter((f) => f.section === s.key).map((f) => (
-              <Field
-                key={f.key}
-                field={f}
-                value={values[f.key]}
-                record={record[f.key]}
-                onChange={(v) => set(f.key, v)}
-              />
+              <Field key={f.key} field={f} value={values[f.key]} record={record[f.key]} onChange={(v) => set(f.key, v)} />
             ))}
           </div>
-        </section>
+        </motion.section>
       ))}
 
       {/* Sticky action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-navy-100 bg-white/95 backdrop-blur md:left-60">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <div className="fixed inset-x-0 bottom-0 z-30 px-3 pb-3 md:px-6">
+        <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-100 bg-white/95 px-4 py-3 shadow-[0_-10px_40px_-20px_rgba(21,22,31,0.35)] backdrop-blur sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <div className="h-2 w-28 overflow-hidden rounded-full bg-navy-100 sm:w-40">
-              <div
-                className="h-full rounded-full bg-[#B8893E] transition-all"
-                style={{ width: `${progress.pct}%` }}
-              />
+              <div className="h-full rounded-full bg-iris transition-all duration-500" style={{ width: `${progress.pct}%` }} />
             </div>
-            <span className="text-xs font-medium text-navy-700">
-              {progress.pct}% complete
-            </span>
+            <span className="text-xs font-semibold text-obsidian">{progress.pct}% complete</span>
             {msg ? (
               <span
                 role="status"
@@ -157,12 +151,7 @@ export function ProfileForm({
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => save(false)}
-              disabled={pending}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm font-medium text-navy-700 transition hover:border-navy-400 disabled:opacity-50"
-            >
+            <button type="button" onClick={() => save(false)} disabled={pending} className={buttonClass("ghost", "sm")}>
               <Save className="h-4 w-4" />
               Save draft
             </button>
@@ -170,22 +159,19 @@ export function ProfileForm({
               type="button"
               onClick={() => save(true)}
               disabled={pending || (!canSubmit && !dirty)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-navy-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-50"
+              className={buttonClass("primary", "sm")}
             >
               <Send className="h-4 w-4" />
               {pending ? "Saving…" : "Submit for review"}
             </button>
           </div>
+          {msg ? (
+            // Visual copy for small screens; the role="status" span above is announced once.
+            <p aria-hidden="true" className={cn("w-full text-xs lg:hidden", msg.ok ? "text-emerald-700" : "text-red-600")}>
+              {msg.text}
+            </p>
+          ) : null}
         </div>
-        {msg ? (
-          // Visual copy for small screens; the role="status" span above is announced once.
-          <p
-            aria-hidden="true"
-            className={cn("px-4 pb-3 text-xs lg:hidden", msg.ok ? "text-emerald-700" : "text-red-600")}
-          >
-            {msg.text}
-          </p>
-        ) : null}
       </div>
     </div>
   );
@@ -211,11 +197,11 @@ function Field({
   return (
     <div className={cn(wide && "md:col-span-2")}>
       <div className="mb-1.5 flex flex-wrap items-center gap-2">
-        <label htmlFor={id} className="text-sm font-medium text-navy-800">
+        <label htmlFor={id} className="text-sm font-medium text-obsidian">
           {f.label}
         </label>
         {f.matching ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#fbf3e3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#9a6f2a]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-iris-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-iris-ink">
             <Sparkles className="h-3 w-3" />
             Used for matching
           </span>
@@ -230,10 +216,10 @@ function Field({
           placeholder={f.placeholder}
           maxLength={2000}
           onChange={(e) => onChange(e.target.value)}
-          className={inputCls}
+          className={inputClass}
         />
       ) : f.type === "select" ? (
-        <select id={id} value={str} onChange={(e) => onChange(e.target.value)} className={inputCls}>
+        <select id={id} value={str} onChange={(e) => onChange(e.target.value)} className={inputClass}>
           <option value="">Select…</option>
           {(f.options ?? []).map((o) => (
             <option key={o} value={o}>
@@ -253,10 +239,10 @@ function Field({
                 aria-pressed={on}
                 onClick={() => onChange(on ? list.filter((x) => x !== o) : [...list, o])}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                  "rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-[0.97]",
                   on
-                    ? "border-navy-900 bg-navy-900 text-white"
-                    : "border-navy-200 bg-white text-navy-700 hover:border-navy-400",
+                    ? "border-iris bg-iris text-white shadow-sm shadow-iris/30"
+                    : "border-navy-200 bg-white text-navy-700 hover:border-iris hover:text-iris",
                 )}
               >
                 {o}
@@ -273,7 +259,7 @@ function Field({
           placeholder={f.placeholder}
           maxLength={f.type === "url" ? 300 : 200}
           onChange={(e) => onChange(e.target.value)}
-          className={inputCls}
+          className={inputClass}
         />
       )}
 
