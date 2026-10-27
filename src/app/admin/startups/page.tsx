@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardBody } from "@/components/admin/ui/card";
 import { StatusBadge } from "@/components/ui/badge";
 import {
   Table,
@@ -9,7 +9,7 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/ui/table";
+} from "@/components/admin/ui/table";
 import { listStartups } from "@/lib/data/admin";
 import { formatCr, formatDate } from "@/lib/utils";
 

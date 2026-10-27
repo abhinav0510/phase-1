@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Card, CardHeader, CardBody, StatCard } from "@/components/ui/card";
-import { SimpleBarChart } from "@/components/ui/bar-chart";
+import { Card, CardHeader, CardBody, StatCard } from "@/components/admin/ui/card";
+import { SimpleBarChart } from "@/components/admin/ui/bar-chart";
 import { getMatchStateDistribution } from "@/lib/data/admin";
 
 export const dynamic = "force-dynamic";

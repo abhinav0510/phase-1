@@ -1,5 +1,5 @@
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
-import { SimpleBarChart } from "@/components/ui/bar-chart";
+import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
+import { SimpleBarChart } from "@/components/admin/ui/bar-chart";
 import {
   getStartupStatusDistribution,
   getBucketDistribution,

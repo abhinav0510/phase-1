@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, THead, TH, TBody, TR, TD, EmptyState } from "@/components/ui/table";
+import { Table, THead, TH, TBody, TR, TD, EmptyState } from "@/components/admin/ui/table";
 import { listProfileSubmissions } from "@/lib/data/admin";
 import { profileProgress } from "@/lib/profile/fields";
 import { formatDateTime } from "@/lib/utils";

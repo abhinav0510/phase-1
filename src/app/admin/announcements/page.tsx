@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -9,7 +9,7 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/ui/table";
+} from "@/components/admin/ui/table";
 import { listAnnouncementsAdmin } from "@/lib/data/notifications";
 import { AUDIENCE_META, KIND_META } from "@/components/announcements/kinds";
 import { formatDate, formatDateTime } from "@/lib/utils";

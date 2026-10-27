@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bell, Megaphone, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { dismissAnnouncements } from "@/app/actions/announcements";
 import type { AnnouncementKind } from "@/lib/types/db";
 import { KIND_META } from "./kinds";
@@ -25,9 +25,11 @@ export interface AnnouncementItem {
 export function AnnouncementCenter({
   items,
   unreadIds,
+  buttonClassName,
 }: {
   items: AnnouncementItem[];
   unreadIds: number[];
+  buttonClassName?: string;
 }) {
   const [unread, setUnread] = useState<Set<number>>(() => new Set(unreadIds));
   // The popup pages through `queue`; `idx` is the one on screen.
@@ -98,7 +100,10 @@ export function AnnouncementCenter({
         <button
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
-          className="relative flex h-9 w-9 items-center justify-center rounded-full text-navy-500 hover:bg-navy-50 hover:text-navy-800"
+          className={cn(
+            "relative flex h-9 w-9 items-center justify-center rounded-full text-navy-500 transition hover:bg-navy-50 hover:text-navy-800",
+            buttonClassName,
+          )}
           aria-label={`Announcements${unread.size ? `, ${unread.size} unread` : ""}`}
         >
           <Bell className="h-5 w-5" />

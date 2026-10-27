@@ -24,6 +24,18 @@ const config: Config = {
           950: "#0b1222",
         },
         brand: { DEFAULT: "#1f2f4d", accent: "#476aa0" },
+        // Dashboard frame + pastel stat-card tints
+        frame: "#e9edf4",
+        // Founder portal: light canvas, near-black panels, iris accent
+        canvas: "#f3f4f8",
+        obsidian: { DEFAULT: "#15161f", 2: "#1e1f2b", 3: "#2a2c3b" },
+        iris: { DEFAULT: "#5b5fe6", deep: "#4a4ed6", soft: "#eef0ff", ink: "#2f3296" },
+        pastel: {
+          blue: "#e4edfb",
+          lavender: "#ebe5f8",
+          mint: "#e0f3e9",
+          cream: "#fdf0d8",
+        },
         // Sidana Labs marketing site palette
         midnight: { DEFAULT: "#07111F", 2: "#0B1728", 3: "#101D30" },
         ivory: "#F5F0E7",
@@ -39,6 +51,8 @@ const config: Config = {
       },
       boxShadow: {
         card: "0 1px 2px 0 rgb(16 24 40 / 0.06), 0 1px 3px 0 rgb(16 24 40 / 0.1)",
+        soft: "0 1px 2px rgb(16 24 40 / 0.04), 0 10px 30px -16px rgb(16 24 40 / 0.12)",
+        frame: "0 30px 80px -30px rgb(20 31 53 / 0.35)",
         gold: "0 0 40px rgba(216,176,120,0.18)",
       },
     },

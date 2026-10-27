@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, FlaskConical, Search, Send, X } from "lucide-react";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import {
   cleanSubject,
   parseEmailList,

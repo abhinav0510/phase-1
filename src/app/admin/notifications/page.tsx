@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Mail, Building2, RefreshCw } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
-import { StatCard, Card, CardHeader, CardBody } from "@/components/ui/card";
+import { StatCard, Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import {
   Table,
   THead,
@@ -10,7 +10,7 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/ui/table";
+} from "@/components/admin/ui/table";
 import {
   getLastContactSync,
   getStartupRecipients,

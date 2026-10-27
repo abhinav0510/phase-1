@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getProfileForReview } from "@/lib/data/admin";
 import {

@@ -1,6 +1,6 @@
-import { Card, CardHeader, CardBody, StatCard } from "@/components/ui/card";
+import { Card, CardHeader, CardBody, StatCard } from "@/components/admin/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, THead, TH, TBody, TR, TD } from "@/components/ui/table";
+import { Table, THead, TH, TBody, TR, TD } from "@/components/admin/ui/table";
 import { listAppUsers, getAdminKpis, getContactEmailsByStartup } from "@/lib/data/admin";
 import { ADMIN_ROLES } from "@/lib/types/db";
 import { formatDate } from "@/lib/utils";

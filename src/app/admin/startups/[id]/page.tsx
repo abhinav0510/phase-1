@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import { StatusBadge, Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -11,7 +11,7 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/ui/table";
+} from "@/components/admin/ui/table";
 import { getStartupDetail } from "@/lib/data/admin";
 import { JoinLink } from "@/components/ui/join-link";
 import { formatCr, formatLakh, formatDate, formatDateTime } from "@/lib/utils";
