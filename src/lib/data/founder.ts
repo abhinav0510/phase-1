@@ -1,7 +1,9 @@
 import "server-only";
 
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { FOUNDER_TTL_SECONDS, startupTag } from "@/lib/cache-tags";
 import type {
   Match,
   Meeting,
@@ -18,72 +20,97 @@ import type {
  * session server-side — never from client input). This enforces per-startup
  * isolation in application code. A matching RLS policy is also recommended at
  * the database level (see MIGRATIONS/PROPOSED-rls.sql — not auto-applied).
+ *
+ * Reads go through a two-layer cache:
+ *   - react `cache()` dedups repeat calls within one request/render.
+ *   - `unstable_cache` persists the result across requests for FOUNDER_TTL_SECONDS,
+ *     keyed and tagged per startup. Each founder only ever reads their own rows
+ *     via the verified startupId, so cache entries never cross tenants. A write
+ *     that changes a founder's data calls revalidateTag(startupTag(id)) to drop
+ *     that startup's entries immediately (see the profile actions); data written
+ *     out-of-band (n8n sync, the match engine) simply refreshes within the TTL.
  */
 
-export const getOwnStartup = cache(async function getOwnStartup(startupId: number): Promise<Startup | null> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("startups")
-    .select("*")
-    .eq("id", startupId)
-    .maybeSingle();
-  return (data as Startup | null) ?? null;
-});
-
-export const getOwnMatches = cache(async function getOwnMatches(
-  startupId: number,
-): Promise<(Match & { investor: Pick<Investor, "id" | "name" | "type" | "status"> | null })[]> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("matches")
-    .select("*, investor:investors(id,name,type,status)")
-    .eq("startup_id", startupId)
-    .order("priority", { ascending: true, nullsFirst: false })
-    .limit(200);
-  return (data ?? []) as any[];
-});
-
-export const getOwnMeetings = cache(async function getOwnMeetings(startupId: number): Promise<Meeting[]> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("meetings")
-    .select("*")
-    .eq("startup_id", startupId)
-    .order("scheduled_at", { ascending: false, nullsFirst: false })
-    .limit(100);
-  return (data ?? []) as Meeting[];
-});
-
-export async function getOwnFunding(startupId: number): Promise<any[]> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("funding_rounds")
-    .select("*")
-    .eq("startup_id", startupId)
-    .order("closed_on", { ascending: false, nullsFirst: false });
-  return data ?? [];
+function founderCache<T>(name: string, startupId: number, fn: () => Promise<T>): Promise<T> {
+  return unstable_cache(fn, [name, String(startupId)], {
+    revalidate: FOUNDER_TTL_SECONDS,
+    tags: [startupTag(startupId)],
+  })();
 }
+
+export const getOwnStartup = cache((startupId: number): Promise<Startup | null> =>
+  founderCache("getOwnStartup", startupId, async () => {
+    const admin = createAdminClient();
+    const { data } = await admin.from("startups").select("*").eq("id", startupId).maybeSingle();
+    return (data as Startup | null) ?? null;
+  }),
+);
+
+export const getOwnMatches = cache(
+  (
+    startupId: number,
+  ): Promise<(Match & { investor: Pick<Investor, "id" | "name" | "type" | "status"> | null })[]> =>
+    founderCache("getOwnMatches", startupId, async () => {
+      const admin = createAdminClient();
+      const { data } = await admin
+        .from("matches")
+        .select("*, investor:investors(id,name,type,status)")
+        .eq("startup_id", startupId)
+        .order("priority", { ascending: true, nullsFirst: false })
+        .limit(200);
+      return (data ?? []) as any[];
+    }),
+);
+
+export const getOwnMeetings = cache((startupId: number): Promise<Meeting[]> =>
+  founderCache("getOwnMeetings", startupId, async () => {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("meetings")
+      .select("*")
+      .eq("startup_id", startupId)
+      .order("scheduled_at", { ascending: false, nullsFirst: false })
+      .limit(100);
+    return (data ?? []) as Meeting[];
+  }),
+);
+
+export const getOwnFunding = cache((startupId: number): Promise<any[]> =>
+  founderCache("getOwnFunding", startupId, async () => {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("funding_rounds")
+      .select("*")
+      .eq("startup_id", startupId)
+      .order("closed_on", { ascending: false, nullsFirst: false });
+    return data ?? [];
+  }),
+);
 
 /** Emails on file for this startup (from Founders Info) — any of them can sign in. */
-export async function getOwnSignInEmails(startupId: number): Promise<string[]> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("startup_contacts")
-    .select("email")
-    .eq("startup_id", startupId)
-    .order("id");
-  return (data ?? []).map((r) => r.email as string);
-}
+export const getOwnSignInEmails = cache((startupId: number): Promise<string[]> =>
+  founderCache("getOwnSignInEmails", startupId, async () => {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("startup_contacts")
+      .select("email")
+      .eq("startup_id", startupId)
+      .order("id");
+    return (data ?? []).map((r) => r.email as string);
+  }),
+);
 
-export async function getOwnDocs(startupId: number): Promise<any[]> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("docs")
-    .select("*")
-    .eq("startup_id", startupId)
-    .order("created_at", { ascending: false });
-  return data ?? [];
-}
+export const getOwnDocs = cache((startupId: number): Promise<any[]> =>
+  founderCache("getOwnDocs", startupId, async () => {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("docs")
+      .select("*")
+      .eq("startup_id", startupId)
+      .order("created_at", { ascending: false });
+    return data ?? [];
+  }),
+);
 
 /**
  * Weekly fundraising reports for this startup, newest first. Scoped STRICTLY by
@@ -96,52 +123,56 @@ export async function getOwnDocs(startupId: number): Promise<any[]> {
  * Returns [] when the table is empty or absent, so the page degrades gracefully
  * before the first report lands.
  */
-export const getOwnWeeklyReports = cache(async function getOwnWeeklyReports(
-  startupId: number,
-): Promise<WeeklyReport[]> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("weekly_reports")
-    .select("*")
-    .eq("startup_id", startupId)
-    .order("week_start", { ascending: false })
-    .limit(52);
-  // Table may not exist yet (migration pending) — treat as "no reports".
-  if (error) return [];
-  return (data ?? []) as WeeklyReport[];
-});
+export const getOwnWeeklyReports = cache((startupId: number): Promise<WeeklyReport[]> =>
+  founderCache("getOwnWeeklyReports", startupId, async () => {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("weekly_reports")
+      .select("*")
+      .eq("startup_id", startupId)
+      .order("week_start", { ascending: false })
+      .limit(52);
+    // Table may not exist yet (migration pending) — treat as "no reports".
+    if (error) return [];
+    return (data ?? []) as WeeklyReport[];
+  }),
+);
 
 /**
  * The founder's own profile submission (answers + review status), or null when
  * they have not started one or the table is not created yet. Scoped strictly
  * by the verified startupId.
  */
-export const getOwnProfile = cache(async function getOwnProfile(startupId: number): Promise<StartupProfile | null> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("startup_profiles")
-    .select("*")
-    .eq("startup_id", startupId)
-    .maybeSingle();
-  if (error) return null;
-  return (data as StartupProfile | null) ?? null;
-});
+export const getOwnProfile = cache((startupId: number): Promise<StartupProfile | null> =>
+  founderCache("getOwnProfile", startupId, async () => {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("startup_profiles")
+      .select("*")
+      .eq("startup_id", startupId)
+      .maybeSingle();
+    if (error) return null;
+    return (data as StartupProfile | null) ?? null;
+  }),
+);
 
 /**
  * The deck Sidana sends to investors for this startup (mirrored hourly from the
  * Pilot sheet by n8n SYNC-DECKS). Scoped strictly by the verified startupId.
  * Returns null when there is no deck on file or the table is not created yet.
  */
-export const getOwnDeck = cache(async function getOwnDeck(startupId: number): Promise<StartupDeck | null> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("startup_decks")
-    .select("*")
-    .eq("startup_id", startupId)
-    .maybeSingle();
-  if (error) return null;
-  return (data as StartupDeck | null) ?? null;
-});
+export const getOwnDeck = cache((startupId: number): Promise<StartupDeck | null> =>
+  founderCache("getOwnDeck", startupId, async () => {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("startup_decks")
+      .select("*")
+      .eq("startup_id", startupId)
+      .maybeSingle();
+    if (error) return null;
+    return (data as StartupDeck | null) ?? null;
+  }),
+);
 
 export interface FounderOverview {
   startup: Startup | null;
@@ -175,18 +206,13 @@ export function computeProfileCompletion(s: Startup | null): number {
   return Math.round((filled / PROFILE_FIELDS.length) * 100);
 }
 
-export async function getFounderOverview(
-  startupId: number,
-): Promise<FounderOverview> {
-  const admin = createAdminClient();
-  const nowIso = new Date().toISOString();
-  const [startupRes, matchCount, matchSent, meetingsUpcoming, meetingsHeld] =
-    await Promise.all([
+export const getFounderOverview = cache((startupId: number): Promise<FounderOverview> =>
+  founderCache("getFounderOverview", startupId, async () => {
+    const admin = createAdminClient();
+    const nowIso = new Date().toISOString();
+    const [startupRes, matchCount, matchSent, meetingsUpcoming, meetingsHeld] = await Promise.all([
       admin.from("startups").select("*").eq("id", startupId).maybeSingle(),
-      admin
-        .from("matches")
-        .select("*", { count: "exact", head: true })
-        .eq("startup_id", startupId),
+      admin.from("matches").select("*", { count: "exact", head: true }).eq("startup_id", startupId),
       admin
         .from("matches")
         .select("*", { count: "exact", head: true })
@@ -206,13 +232,14 @@ export async function getFounderOverview(
         .eq("held", true),
     ]);
 
-  const startup = (startupRes.data as Startup | null) ?? null;
-  return {
-    startup,
-    matchCount: matchCount.count ?? 0,
-    matchSent: matchSent.count ?? 0,
-    meetingsUpcoming: meetingsUpcoming.count ?? 0,
-    meetingsHeld: meetingsHeld.count ?? 0,
-    profileCompletion: computeProfileCompletion(startup),
-  };
-}
+    const startup = (startupRes.data as Startup | null) ?? null;
+    return {
+      startup,
+      matchCount: matchCount.count ?? 0,
+      matchSent: matchSent.count ?? 0,
+      meetingsUpcoming: meetingsUpcoming.count ?? 0,
+      meetingsHeld: meetingsHeld.count ?? 0,
+      profileCompletion: computeProfileCompletion(startup),
+    };
+  }),
+);

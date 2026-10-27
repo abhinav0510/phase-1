@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { requireFounder } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { startupTag } from "@/lib/cache-tags";
 import { PROFILE_FIELDS, type Answers } from "@/lib/profile/fields";
 
 export type ProfileSaveResult = { ok: true } | { ok: false; error: string };
@@ -85,6 +86,8 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
           : "Could not save your profile. Please try again.",
     };
   }
+  // Drop this startup's cached reads so the founder sees their own save at once.
+  revalidateTag(startupTag(session.startupId));
   revalidatePath("/complete-profile");
   revalidatePath("/dashboard");
   return { ok: true };

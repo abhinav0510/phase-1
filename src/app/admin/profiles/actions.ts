@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { startupTag } from "@/lib/cache-tags";
 
 export type ReviewResult = { ok: true } | { ok: false; error: string };
 
@@ -51,6 +52,8 @@ export async function reviewProfile(raw: unknown): Promise<ReviewResult> {
     .eq("startup_id", startupId);
   if (error) return { ok: false, error: error.message };
 
+  // The review changes what the founder sees (status, note) — drop their cache.
+  revalidateTag(startupTag(startupId));
   revalidatePath("/admin/profiles");
   revalidatePath(`/admin/profiles/${startupId}`);
   return { ok: true };
