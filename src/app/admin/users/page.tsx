@@ -39,8 +39,7 @@ export default async function AdminUsers() {
             <THead>
               <tr>
                 <TH>Name</TH>
-                <TH>Login email</TH>
-                <TH>Contact email</TH>
+                <TH>Email</TH>
                 <TH>Role</TH>
                 <TH>Linked to</TH>
                 <TH>Active</TH>
@@ -54,11 +53,10 @@ export default async function AdminUsers() {
                   <TD className="font-medium text-navy-800">
                     {u.full_name ?? "—"}
                   </TD>
-                  <TD className="text-navy-500">{u.email ?? "—"}</TD>
                   <TD className="text-navy-500">
-                    {u.startup_id
-                      ? (contactEmails.get(u.startup_id) ?? []).join(", ") || "—"
-                      : "—"}
+                    {u.startup_id && contactEmails.get(u.startup_id)?.length
+                      ? contactEmails.get(u.startup_id)!.join(", ")
+                      : u.email ?? "—"}
                   </TD>
                   <TD>
                     <Badge tone={ADMIN_ROLES.includes(u.role) ? "violet" : "blue"}>
