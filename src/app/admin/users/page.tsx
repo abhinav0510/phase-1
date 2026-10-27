@@ -4,6 +4,7 @@ import { Table, THead, TH, TBody, TR, TD } from "@/components/ui/table";
 import { listAppUsers, getAdminKpis } from "@/lib/data/admin";
 import { ADMIN_ROLES } from "@/lib/types/db";
 import { formatDate } from "@/lib/utils";
+import { ResetPasswordButton } from "./reset-password-button";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function AdminUsers() {
                 <TH>Linked to</TH>
                 <TH>Active</TH>
                 <TH>Created</TH>
+                <TH>Actions</TH>
               </tr>
             </THead>
             <TBody>
@@ -68,6 +70,9 @@ export default async function AdminUsers() {
                     )}
                   </TD>
                   <TD className="text-navy-500">{formatDate(u.created_at)}</TD>
+                  <TD>
+                    <ResetPasswordButton userId={u.id} userName={u.full_name} />
+                  </TD>
                 </TR>
               ))}
             </TBody>
