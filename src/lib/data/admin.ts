@@ -264,6 +264,21 @@ export async function listAppUsers(): Promise<AppUser[]> {
   return (data ?? []) as AppUser[];
 }
 
+export async function getContactEmailsByStartup(): Promise<Map<number, string[]>> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("startup_contacts")
+    .select("startup_id, email")
+    .order("id");
+  const map = new Map<number, string[]>();
+  for (const row of (data ?? []) as { startup_id: number; email: string }[]) {
+    const list = map.get(row.startup_id) ?? [];
+    list.push(row.email);
+    map.set(row.startup_id, list);
+  }
+  return map;
+}
+
 export async function getRecentMeetings(limit = 8): Promise<Meeting[]> {
   const admin = createAdminClient();
   const { data } = await admin

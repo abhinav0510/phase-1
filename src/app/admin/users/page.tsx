@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardBody, StatCard } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, THead, TH, TBody, TR, TD } from "@/components/ui/table";
-import { listAppUsers, getAdminKpis } from "@/lib/data/admin";
+import { listAppUsers, getAdminKpis, getContactEmailsByStartup } from "@/lib/data/admin";
 import { ADMIN_ROLES } from "@/lib/types/db";
 import { formatDate } from "@/lib/utils";
 import { ResetPasswordButton } from "./reset-password-button";
@@ -9,7 +9,11 @@ import { ResetPasswordButton } from "./reset-password-button";
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsers() {
-  const [users, kpis] = await Promise.all([listAppUsers(), getAdminKpis()]);
+  const [users, kpis, contactEmails] = await Promise.all([
+    listAppUsers(),
+    getAdminKpis(),
+    getContactEmailsByStartup(),
+  ]);
   const founders = users.filter((u) => u.role === "founder");
   const admins = users.filter((u) => ADMIN_ROLES.includes(u.role));
 
@@ -35,7 +39,8 @@ export default async function AdminUsers() {
             <THead>
               <tr>
                 <TH>Name</TH>
-                <TH>Email</TH>
+                <TH>Login email</TH>
+                <TH>Contact email</TH>
                 <TH>Role</TH>
                 <TH>Linked to</TH>
                 <TH>Active</TH>
@@ -50,6 +55,11 @@ export default async function AdminUsers() {
                     {u.full_name ?? "—"}
                   </TD>
                   <TD className="text-navy-500">{u.email ?? "—"}</TD>
+                  <TD className="text-navy-500">
+                    {u.startup_id
+                      ? (contactEmails.get(u.startup_id) ?? []).join(", ") || "—"
+                      : "—"}
+                  </TD>
                   <TD>
                     <Badge tone={ADMIN_ROLES.includes(u.role) ? "violet" : "blue"}>
                       {u.role}
