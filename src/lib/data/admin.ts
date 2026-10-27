@@ -125,15 +125,24 @@ export async function getRecentStartups(limit = 6): Promise<Startup[]> {
   return (data ?? []) as Startup[];
 }
 
+function flattenMeetingJoins(row: any): Meeting {
+  const { startup, investor, ...rest } = row;
+  return {
+    ...rest,
+    startup_name: rest.startup_name || (startup as any)?.name || null,
+    investor_name: rest.investor_name || (investor as any)?.name || null,
+  } as Meeting;
+}
+
 export async function getUpcomingMeetings(limit = 6): Promise<Meeting[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("meetings")
-    .select("*")
+    .select("*, startup:startups(name), investor:investors(name)")
     .gte("scheduled_at", new Date().toISOString())
     .order("scheduled_at", { ascending: true })
     .limit(limit);
-  return (data ?? []) as Meeting[];
+  return ((data ?? []) as any[]).map(flattenMeetingJoins);
 }
 
 export interface StartupListParams {
@@ -192,7 +201,7 @@ export async function getStartupDetail(id: number): Promise<StartupDetail> {
         .limit(200),
       admin
         .from("meetings")
-        .select("*")
+        .select("*, startup:startups(name), investor:investors(name)")
         .eq("startup_id", id)
         .order("scheduled_at", { ascending: false })
         .limit(100),
@@ -211,7 +220,7 @@ export async function getStartupDetail(id: number): Promise<StartupDetail> {
   return {
     startup: (startupRes.data as Startup | null) ?? null,
     matches: (matchesRes.data ?? []) as any[],
-    meetings: (meetingsRes.data ?? []) as Meeting[],
+    meetings: ((meetingsRes.data ?? []) as any[]).map(flattenMeetingJoins),
     funding: fundingRes.data ?? [],
     docs: docsRes.data ?? [],
   };
@@ -259,10 +268,10 @@ export async function getRecentMeetings(limit = 8): Promise<Meeting[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("meetings")
-    .select("*")
+    .select("*, startup:startups(name), investor:investors(name)")
     .order("scheduled_at", { ascending: false, nullsFirst: false })
     .limit(limit);
-  return (data ?? []) as Meeting[];
+  return ((data ?? []) as any[]).map(flattenMeetingJoins);
 }
 
 export async function listMeetings(params: {
@@ -277,7 +286,7 @@ export async function listMeetings(params: {
   const to = from + pageSize - 1;
   const nowIso = new Date().toISOString();
 
-  let q = admin.from("meetings").select("*", { count: "exact" });
+  let q = admin.from("meetings").select("*, startup:startups(name), investor:investors(name)", { count: "exact" });
   if (params.scope === "upcoming") {
     q = q
       .gte("scheduled_at", nowIso)
@@ -291,7 +300,7 @@ export async function listMeetings(params: {
   }
   q = q.range(from, to);
   const { data, count: c } = await q;
-  return { rows: (data ?? []) as Meeting[], total: c ?? 0 };
+  return { rows: ((data ?? []) as any[]).map(flattenMeetingJoins), total: c ?? 0 };
 }
 
 export async function getMatchStateDistribution(): Promise<
