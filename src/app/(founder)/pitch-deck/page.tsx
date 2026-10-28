@@ -1,8 +1,9 @@
-import { ExternalLink, FileText, Presentation, RefreshCw } from "lucide-react";
+import { ExternalLink, FileText, Mail, Presentation, RefreshCw } from "lucide-react";
 import { requireFounder } from "@/lib/auth";
 import { getOwnDeck, getOwnStartup } from "@/lib/data/founder";
-import { PageHeader, Card, CardHeader, CardBody, EmptyState, ButtonLink, Avatar } from "@/components/founder/ui";
+import { PageHeader, Card, CardHeader, CardBody, EmptyState, ButtonLink, Avatar, buttonClass } from "@/components/founder/ui";
 import { Reveal } from "@/components/founder/motion";
+import { SITE } from "@/components/site/site-config";
 import { formatDateTime } from "@/lib/utils";
 import { CopyLink } from "./copy-link";
 
@@ -20,6 +21,20 @@ export default async function PitchDeckPage() {
   const { startupId } = await requireFounder();
   const [deck, startup] = await Promise.all([getOwnDeck(startupId), getOwnStartup(startupId)]);
   const contact = startup?.owner_name ?? "your Sidana contact";
+  const contactFirst = startup?.owner_name?.trim().split(/\s+/)[0] || "Sidana";
+  const startupName = startup?.name ?? "our startup";
+  // Reaches the monitored Sidana inbox (the relationship owner included), with a
+  // ready-to-send subject and body the founder can edit before sending.
+  const mailHref =
+    `mailto:${SITE.contactEmail}` +
+    `?subject=${encodeURIComponent(`Pitch deck update — ${startupName}`)}` +
+    `&body=${encodeURIComponent(`Hi ${contactFirst},\n\nHere's an updated version of our pitch deck for ${startupName}.\n\nThanks`)}`;
+  const mailButton = (
+    <a href={mailHref} className={buttonClass("primary", "sm")}>
+      <Mail className="h-4 w-4" />
+      Email {contactFirst}
+    </a>
+  );
 
   if (!deck || !isHttpUrl(deck.deck_link)) {
     return (
@@ -31,6 +46,7 @@ export default async function PitchDeckPage() {
               <EmptyState
                 title="No pitch deck on file yet"
                 message={`Send your latest deck to ${contact}. Once it is added to your outreach, it will appear here within the hour.`}
+                action={mailButton}
               />
             </CardBody>
           </Card>
@@ -122,6 +138,7 @@ export default async function PitchDeckPage() {
                   replaces the current deck, this page updates within the hour.
                 </p>
               </div>
+              <div>{mailButton}</div>
               <p className="flex items-center gap-1.5 text-xs text-navy-400">
                 <RefreshCw className="h-3.5 w-3.5" />
                 Last checked {formatDateTime(deck.synced_at)}
