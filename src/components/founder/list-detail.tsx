@@ -26,6 +26,8 @@ export interface DetailSpec {
   aside?: { label: string; value: string };
   person?: { name: string; role?: string };
   stats?: { label: string; value: string }[];
+  /** Highlighted "what they said" block. */
+  quote?: { label: string; text: string };
   lists?: { title: string; items: string[]; empty?: string }[];
   rows?: { label: string; value: string }[];
   action?: { label: string; href: string; external?: boolean };
@@ -222,6 +224,15 @@ export function ListDetail({
                         <p className="text-[11px] text-white/70">{s.label}</p>
                       </div>
                     ))}
+                  </div>
+                ) : null}
+
+                {detail.quote ? (
+                  <div className="mt-5 rounded-2xl bg-white/15 px-4 py-3 backdrop-blur-sm">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-white/60">
+                      {detail.quote.label}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-white">{detail.quote.text}</p>
                   </div>
                 ) : null}
 

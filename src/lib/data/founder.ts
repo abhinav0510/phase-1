@@ -58,7 +58,9 @@ export const getOwnMatches = cache(
         .eq("startup_id", startupId)
         .order("priority", { ascending: true, nullsFirst: false })
         .limit(200);
-      return (data ?? []) as any[];
+      // Paused matches (outreach Sidana paused, e.g. off-thesis) are internal —
+      // never shown to founders. Keep everything else, including null-state rows.
+      return ((data ?? []) as any[]).filter((m) => m.state !== "paused");
     }),
 );
 
@@ -174,6 +176,59 @@ export const getOwnDeck = cache((startupId: number): Promise<StartupDeck | null>
   }),
 );
 
+/**
+ * An investor's classified reply about this startup, read from the live mail_log
+ * mirror (kept current hourly by the n8n MAIL-HISTORY workflow). reply_kind is
+ * set only on inbound investor replies, so filtering on it gives exactly the
+ * replies that said something — passes (with the reason in reply_gist),
+ * interest, meeting asks. Scoped strictly by the verified startupId; investor
+ * names are resolved from public.investors. Returns [] if the table is absent.
+ */
+export interface MailReply {
+  investor_id: number;
+  investor_name: string | null;
+  sent_at: string | null;
+  reply_kind: string | null; // 'pass' | 'interested' | 'invite' | 'other'
+  reply_gist: string | null;
+  subject: string | null;
+}
+
+export const getOwnReplies = cache((startupId: number): Promise<MailReply[]> =>
+  founderCache("getOwnReplies", startupId, async () => {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("mail_log")
+      .select("investor_id, sent_at, reply_kind, reply_gist, subject")
+      .eq("startup_id", startupId)
+      .not("reply_kind", "is", null)
+      .not("investor_id", "is", null)
+      .order("sent_at", { ascending: false })
+      .limit(400);
+    if (error) return [];
+    const rows = (data ?? []) as {
+      investor_id: number;
+      sent_at: string | null;
+      reply_kind: string | null;
+      reply_gist: string | null;
+      subject: string | null;
+    }[];
+    const ids = Array.from(new Set(rows.map((r) => r.investor_id).filter(Boolean)));
+    const names = new Map<number, string | null>();
+    if (ids.length) {
+      const { data: inv } = await admin.from("investors").select("id,name").in("id", ids);
+      for (const i of (inv ?? []) as { id: number; name: string | null }[]) names.set(i.id, i.name);
+    }
+    return rows.map((r) => ({
+      investor_id: r.investor_id,
+      investor_name: names.get(r.investor_id) ?? null,
+      sent_at: r.sent_at,
+      reply_kind: r.reply_kind,
+      reply_gist: r.reply_gist,
+      subject: r.subject,
+    }));
+  }),
+);
+
 export interface FounderOverview {
   startup: Startup | null;
   matchCount: number;
@@ -212,7 +267,12 @@ export const getFounderOverview = cache((startupId: number): Promise<FounderOver
     const nowIso = new Date().toISOString();
     const [startupRes, matchCount, matchSent, meetingsUpcoming, meetingsHeld] = await Promise.all([
       admin.from("startups").select("*").eq("id", startupId).maybeSingle(),
-      admin.from("matches").select("*", { count: "exact", head: true }).eq("startup_id", startupId),
+      admin
+        .from("matches")
+        .select("*", { count: "exact", head: true })
+        .eq("startup_id", startupId)
+        // Exclude paused matches from the count too (keep null-state rows).
+        .or("state.is.null,state.neq.paused"),
       admin
         .from("matches")
         .select("*", { count: "exact", head: true })

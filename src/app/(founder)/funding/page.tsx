@@ -1,7 +1,19 @@
-import { Handshake, Send, Hourglass, Sparkles } from "lucide-react";
+import { Handshake, Send, Hourglass, Sparkles, XCircle } from "lucide-react";
 import { requireFounder } from "@/lib/auth";
-import { getOwnMatches } from "@/lib/data/founder";
-import { KpiCard, PageHeader, Note, MATCH_STATE_TONE, label } from "@/components/founder/ui";
+import { getOwnMatches, getOwnReplies, type MailReply } from "@/lib/data/founder";
+import {
+  KpiCard,
+  PageHeader,
+  Card,
+  CardHeader,
+  CardBody,
+  EmptyState,
+  Avatar,
+  Note,
+  MATCH_STATE_TONE,
+  label,
+  type ChipTone,
+} from "@/components/founder/ui";
 import { Stagger, Item, Reveal } from "@/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
 import { TYPE_LABEL } from "../dashboard/_components/model";
@@ -23,47 +35,89 @@ function groupOf(state: string | null) {
   return "other";
 }
 
+/** Heading over the reply gist, by how the investor replied. */
+function replyLabel(kind: string | null): string {
+  if (kind === "pass") return "Why they passed";
+  if (kind === "interested") return "What they said";
+  if (kind === "invite") return "They asked to meet";
+  return "Their reply";
+}
+
 export default async function FounderFunding() {
   const { startupId } = await requireFounder();
-  const matches = await getOwnMatches(startupId);
+  const [matches, replies] = await Promise.all([getOwnMatches(startupId), getOwnReplies(startupId)]);
   const sent = matches.filter((m) => m.state === "sent").length;
   const queued = matches.filter((m) => m.state === "queued").length;
   const strongFit = matches.filter((m) => m.stage_fit && m.cheque_fit).length;
 
-  const items: ListItem[] = matches.map((m) => ({
-    id: String(m.id),
-    title: m.investor?.name ?? "Investor",
-    subtitle: m.investor?.type ? (TYPE_LABEL[m.investor.type] ?? label(m.investor.type)) : "Investor",
-    chip: { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: MATCH_STATE_TONE[m.state ?? ""] ?? "neutral" },
-    value: m.score != null ? `${m.score}` : undefined,
-    group: groupOf(m.state),
-  }));
+  // replies arrive newest-first; keep the latest reply, and the latest pass, per investor.
+  const latestByInvestor = new Map<number, MailReply>();
+  const passedByInvestor = new Map<number, MailReply>();
+  for (const r of replies) {
+    if (!latestByInvestor.has(r.investor_id)) latestByInvestor.set(r.investor_id, r);
+    if (r.reply_kind === "pass" && !passedByInvestor.has(r.investor_id)) passedByInvestor.set(r.investor_id, r);
+  }
+  // Only surface passes from investors the founder can otherwise see. matches
+  // already excludes paused outreach upstream, so this also keeps paused
+  // investors out of the Passed section.
+  const visibleInvestorIds = new Set(
+    matches.map((m) => m.investor?.id).filter((x): x is number => x != null),
+  );
+  const passed = Array.from(passedByInvestor.values()).filter((r) =>
+    visibleInvestorIds.has(r.investor_id),
+  );
+
+  const items: ListItem[] = matches.map((m) => {
+    const invId = m.investor?.id;
+    const didPass = invId != null && passedByInvestor.has(invId);
+    const chip: { label: string; tone: ChipTone } = didPass
+      ? { label: "Passed", tone: "red" }
+      : { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: MATCH_STATE_TONE[m.state ?? ""] ?? "neutral" };
+    return {
+      id: String(m.id),
+      title: m.investor?.name ?? "Investor",
+      subtitle: m.investor?.type ? (TYPE_LABEL[m.investor.type] ?? label(m.investor.type)) : "Investor",
+      chip,
+      value: m.score != null ? `${m.score}` : undefined,
+      group: groupOf(m.state),
+    };
+  });
 
   const details: Record<string, DetailSpec> = Object.fromEntries(
-    matches.map((m) => [
-      String(m.id),
-      {
-        eyebrow: m.investor?.type ? (TYPE_LABEL[m.investor.type] ?? label(m.investor.type)) : "Investor",
-        heading: m.investor?.name ?? "Investor",
-        chip: { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: "iris" },
-        aside: m.score != null ? { label: "Match score", value: String(m.score) } : undefined,
-        stats: [
-          { label: "Stage fit", value: m.stage_fit === null ? "—" : m.stage_fit ? "Yes" : "No" },
-          { label: "Cheque fit", value: m.cheque_fit === null ? "—" : m.cheque_fit ? "Yes" : "No" },
-          { label: "Match type", value: m.type ? label(m.type) : "—" },
-        ],
-        rows: [
-          { label: "Matched on", value: formatDate(m.created_at) },
-          { label: "Priority", value: m.priority != null ? `#${m.priority}` : "—" },
-        ],
-        note:
-          m.state === "sent"
-            ? "Sidana has introduced you. Meetings booked from this intro show up under Meetings."
-            : m.state === "queued"
-              ? "Lined up for outreach. Sidana sends introductions in priority order."
-              : undefined,
-      } satisfies DetailSpec,
-    ]),
+    matches.map((m) => {
+      const invId = m.investor?.id;
+      const reply = invId != null ? latestByInvestor.get(invId) : undefined;
+      const didPass = invId != null && passedByInvestor.has(invId);
+      return [
+        String(m.id),
+        {
+          eyebrow: m.investor?.type ? (TYPE_LABEL[m.investor.type] ?? label(m.investor.type)) : "Investor",
+          heading: m.investor?.name ?? "Investor",
+          chip: didPass
+            ? { label: "Passed", tone: "red" }
+            : { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: "iris" },
+          aside: m.score != null ? { label: "Match score", value: String(m.score) } : undefined,
+          stats: [
+            { label: "Stage fit", value: m.stage_fit === null ? "—" : m.stage_fit ? "Yes" : "No" },
+            { label: "Cheque fit", value: m.cheque_fit === null ? "—" : m.cheque_fit ? "Yes" : "No" },
+            { label: "Match type", value: m.type ? label(m.type) : "—" },
+          ],
+          quote: reply?.reply_gist ? { label: replyLabel(reply.reply_kind), text: reply.reply_gist } : undefined,
+          rows: [
+            { label: "Matched on", value: formatDate(m.created_at) },
+            { label: reply ? "Last reply" : "Priority", value: reply ? formatDate(reply.sent_at) : m.priority != null ? `#${m.priority}` : "—" },
+          ],
+          note:
+            didPass
+              ? undefined
+              : m.state === "sent"
+                ? "Sidana has introduced you. Meetings booked from this intro show up under Meetings."
+                : m.state === "queued"
+                  ? "Lined up for outreach. Sidana sends introductions in priority order."
+                  : undefined,
+        } satisfies DetailSpec,
+      ];
+    }),
   );
 
   return (
@@ -71,10 +125,10 @@ export default async function FounderFunding() {
       <PageHeader
         eyebrow="Fundraise"
         title="Investors & Matches"
-        subtitle="Every investor Sidana's engine has matched to your startup, and where each one stands."
+        subtitle="Every investor Sidana's engine has matched to your startup, what they said, and where each one stands."
       />
 
-      <Stagger className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
         <Item>
           <KpiCard tone="accent" label="Matched investors" value={matches.length} icon={<Handshake className="h-4 w-4" />} hint="Fit by sector, stage and cheque" />
         </Item>
@@ -82,7 +136,10 @@ export default async function FounderFunding() {
           <KpiCard label="Reached out" value={sent} icon={<Send className="h-4 w-4" />} delta={{ text: matches.length ? `${Math.round((sent / matches.length) * 100)}%` : "0%", tone: sent ? "good" : "neutral", arrow: sent ? "up" : "flat", hint: "of matches contacted" }} />
         </Item>
         <Item>
-          <KpiCard label="In queue" value={queued} icon={<Hourglass className="h-4 w-4" />} hint="Waiting for the next outreach wave" />
+          <KpiCard label="In queue" value={queued} icon={<Hourglass className="h-4 w-4" />} hint="Waiting for the next wave" />
+        </Item>
+        <Item>
+          <KpiCard label="Passed" value={passed.length} icon={<XCircle className="h-4 w-4" />} hint={passed.length ? "See reasons below" : "None so far"} />
         </Item>
         <Item>
           <KpiCard label="Strong fit" value={strongFit} icon={<Sparkles className="h-4 w-4" />} hint="Both stage and cheque match" />
@@ -92,7 +149,7 @@ export default async function FounderFunding() {
       <Reveal>
         <ListDetail
           title="Investor matches"
-          subtitle="Select an investor to see the fit"
+          subtitle="Select an investor to see the fit and what they said"
           listLabel="Investors"
           tabs={[
             { key: "all", label: "All" },
@@ -107,9 +164,49 @@ export default async function FounderFunding() {
         />
       </Reveal>
 
+      <Reveal>
+        <Card>
+          <CardHeader
+            title="Passed"
+            subtitle={
+              passed.length
+                ? `${passed.length} investor${passed.length === 1 ? "" : "s"} passed — here's the reason each gave`
+                : "Investors who passed and the reason they gave will appear here"
+            }
+          />
+          <CardBody className="p-2 pt-3">
+            {passed.length === 0 ? (
+              <div className="p-3">
+                <EmptyState
+                  title="No passes yet"
+                  message="When an investor passes, the reason they gave in their reply shows up here."
+                />
+              </div>
+            ) : (
+              <ul className="space-y-1">
+                {passed.map((r) => (
+                  <li key={r.investor_id} className="flex items-start gap-3 rounded-2xl px-3 py-3 transition hover:bg-canvas">
+                    <Avatar name={r.investor_name} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-semibold text-obsidian">{r.investor_name ?? "Investor"}</p>
+                        <span className="shrink-0 text-xs text-navy-400">{formatDate(r.sent_at)}</span>
+                      </div>
+                      <p className="mt-0.5 text-sm leading-relaxed text-navy-600">
+                        {r.reply_gist ?? "No reason recorded."}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardBody>
+        </Card>
+      </Reveal>
+
       <Note>
-        Sidana runs the outreach for you. Investors move from <strong>In queue</strong> to <strong>Reached out</strong> as
-        introductions go out, and any meetings booked appear under Meetings.
+        Sidana runs the outreach for you. What an investor said is summarised from their reply; when someone passes, the
+        reason they gave appears above and in the <strong>Passed</strong> section.
       </Note>
     </div>
   );
