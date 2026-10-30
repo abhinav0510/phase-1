@@ -2,17 +2,20 @@
 // services. Values set here win over .env.local, and the build goes to its own
 // folder so a running dev server is left alone.
 import { spawnSync, spawn } from "node:child_process";
-import { rmSync } from "node:fs";
+import { cpSync, rmSync } from "node:fs";
 import path from "node:path";
 
 const MOCK = `http://localhost:${process.env.MOCK_PORT ?? 4329}`;
 const APP_PORT = process.env.APP_PORT ?? "3100";
 const NEXT = path.resolve("node_modules/next/dist/bin/next");
+// APP_STANDALONE=1 tests the same server the production image runs.
+const STANDALONE = process.env.APP_STANDALONE === "1";
 
 const env = {
   ...process.env,
   NODE_ENV: "production",
   NEXT_DIST_DIR: ".next-test",
+  ...(STANDALONE ? { NEXT_OUTPUT: "standalone", PORT: APP_PORT, HOSTNAME: "127.0.0.1", REQUIRE_ENV: "1" } : {}),
   NEXT_TELEMETRY_DISABLED: "1",
   NODE_OPTIONS: "--require ./tests/mock/net-guard.cjs",
   NEXT_PUBLIC_SUPABASE_URL: MOCK,
@@ -33,7 +36,13 @@ if (!process.env.SKIP_BUILD) {
   if (built.status !== 0) process.exit(built.status ?? 1);
 }
 
-const server = spawn(process.execPath, [NEXT, "start", "-p", APP_PORT], { env, stdio: "inherit" });
+if (STANDALONE) {
+  cpSync(".next-test/static", ".next-test/standalone/.next-test/static", { recursive: true });
+  cpSync("public", ".next-test/standalone/public", { recursive: true });
+}
+
+const args = STANDALONE ? [".next-test/standalone/server.js"] : [NEXT, "start", "-p", APP_PORT];
+const server = spawn(process.execPath, args, { env, stdio: "inherit" });
 const stop = () => server.kill();
 process.on("SIGTERM", stop);
 process.on("SIGINT", stop);

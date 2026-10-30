@@ -18,6 +18,11 @@
 .env.local
 .env*.local
 
+# production settings on the VPS
+/deploy/.env
+/deploy/app.env
+/deploy/backup.env
+
 # misc
 .DS_Store
 *.pem

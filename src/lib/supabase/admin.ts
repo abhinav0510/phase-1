@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { resilientFetch } from "./resilient-fetch";
 
 /**
  * Service-role Supabase client. BYPASSES RLS. Server-only.
@@ -20,5 +21,6 @@ export function createAdminClient() {
       persistSession: false,
       autoRefreshToken: false,
     },
+    global: { fetch: resilientFetch },
   });
 }

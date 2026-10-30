@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Lock, User } from "lucide-react";
 import { signInFounder } from "./actions";
 import {
@@ -13,9 +14,25 @@ import {
 } from "@/components/site/auth-shell";
 import { SITE } from "@/components/site/site-config";
 
+// Set by requireUser / requireFounder when a signed-in account can't enter the portal.
+const ACCOUNT_ERRORS: Record<string, string> = {
+  inactive: "This account has been deactivated. Please contact the Sidana team.",
+  no_startup: "This account isn't linked to a startup yet. Please contact the Sidana team.",
+};
+
 // Public founder sign-in. Team/admin sign-in lives at the unlisted /teamonly.
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const [state, action, pending] = useActionState(signInFounder, undefined);
+  const accountError = ACCOUNT_ERRORS[useSearchParams().get("error") ?? ""];
+  const error = state?.error ?? accountError;
 
   return (
     <AuthShell portalLabel="Founder Portal">
@@ -43,7 +60,7 @@ export default function LoginPage() {
           autoComplete="current-password"
         />
 
-        {state?.error ? <AuthError text={state.error} /> : null}
+        {error ? <AuthError text={error} /> : null}
 
         <AuthSubmit pending={pending} label="Sign in" pendingLabel="Signing in…" />
 

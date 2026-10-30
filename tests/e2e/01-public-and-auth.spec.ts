@@ -89,6 +89,7 @@ test.describe("team sign-in", () => {
   test("a deactivated account is turned away", async ({ page }) => {
     await loginTeam(page, "inactive@sidana.test");
     await expect(page).toHaveURL(/\/login\?error=inactive/);
+    await expect(page.getByText("This account has been deactivated.")).toBeVisible();
   });
 });
 

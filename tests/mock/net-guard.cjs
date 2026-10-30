@@ -4,13 +4,17 @@
 // `next build` downloads the site's fonts and they carry no project data.
 const dns = require("node:dns");
 const fs = require("node:fs");
+const path = require("node:path");
+
+// Resolved now because the standalone server changes directory when it starts.
+const LOG = path.resolve(".next-test/net-guard.log");
 
 const ALLOWED = new Set(["localhost", "127.0.0.1", "::1", "fonts.googleapis.com", "fonts.gstatic.com"]);
 
 const blocked = (host) => {
   try {
-    fs.mkdirSync(".next-test", { recursive: true });
-    fs.appendFileSync(".next-test/net-guard.log", `${host}\n`);
+    fs.mkdirSync(path.dirname(LOG), { recursive: true });
+    fs.appendFileSync(LOG, `${host}\n`);
   } catch {}
   const err = new Error(`net-guard: blocked connection to ${host} during tests`);
   err.code = "ENOTFOUND";

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { resilientFetch } from "./resilient-fetch";
 
 /**
  * Server Supabase client bound to the request cookies (anon key, RLS-enforced).
@@ -13,6 +14,7 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      global: { fetch: resilientFetch },
       cookies: {
         getAll() {
           return cookieStore.getAll();

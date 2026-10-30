@@ -14,6 +14,7 @@ export const WEBHOOK_SECRET = "test-webhook-secret";
 
 let db, users, files, webhooks, nextId;
 const failing = new Set();
+const failingTables = new Set();
 
 function reset() {
   const seed = buildSeed();
@@ -212,6 +213,7 @@ function sortRows(rows, order) {
 // ---------------------------------------------------------------- PostgREST handler
 function rest(req, url, body, res) {
   const table = decodeURIComponent(url.pathname.split("/")[3]);
+  if (failingTables.has(table)) return send(res, 500, { code: "XX000", message: "test failure" });
   const params = [...url.searchParams.entries()];
   const select = url.searchParams.get("select");
   const prefer = req.headers.prefer ?? "";
@@ -278,6 +280,8 @@ function rest(req, url, body, res) {
 // ---------------------------------------------------------------- Auth handler
 function auth(req, url, body, res) {
   const path = url.pathname.replace("/auth/v1", "");
+
+  if (path === "/health") return send(res, 200, { name: "GoTrue" });
 
   if (path === "/token" && req.method === "POST") {
     const grant = url.searchParams.get("grant_type");
@@ -440,9 +444,11 @@ createServer((req, res) => {
       }
       if (url.pathname === "/__fail") {
         const name = url.searchParams.get("webhook");
-        if (url.searchParams.get("on") === "1") failing.add(name);
-        else failing.delete(name);
-        return send(res, 200, { failing: [...failing] });
+        const table = url.searchParams.get("table");
+        const set = table ? failingTables : failing;
+        if (url.searchParams.get("on") === "1") set.add(table ?? name);
+        else set.delete(table ?? name);
+        return send(res, 200, { failing: [...failing], failingTables: [...failingTables] });
       }
       if (url.pathname === "/__state") return send(res, 200, db[url.searchParams.get("table")] ?? null);
       if (url.pathname === "/__webhooks") return send(res, 200, webhooks);
