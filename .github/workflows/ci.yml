@@ -27,6 +27,9 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:unit
+      - name: Server scripts are executable in git
+        run: |
+          ! git ls-files -s deploy/scripts deploy/nginx/05-select-site.sh | grep -v '^100755'
       - name: No known high or critical vulnerabilities in production packages
         run: npm audit --omit=dev --audit-level=high
 
