@@ -25,7 +25,7 @@ The app restarts during a release, usually within a few seconds. Visitors see th
 
 ### 1. Decide these
 
-- **Domain**, for example `portal.sidanaventures.com`. Create an `A` record pointing at the VPS.
+- **Domain**. Point its `A` record at the VPS, and make `www` resolve to the same place. `www` redirects to the main address, and the certificate covers both.
 - **Sign-in on the VPS**: a user with `sudo`, or the owner's help for step 2.
 
 ### 2. Prepare the server (once, needs sudo)

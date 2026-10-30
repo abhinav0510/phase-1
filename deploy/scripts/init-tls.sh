@@ -8,7 +8,7 @@ set -a; . ./.env; set +a
 
 ./scripts/dc.sh up -d nginx
 ./scripts/dc.sh run --rm --no-deps --entrypoint certbot certbot certonly \
-  --webroot -w /var/www/certbot -d "$DOMAIN" \
+  --webroot -w /var/www/certbot -d "$DOMAIN" -d "www.$DOMAIN" \
   --email "$LETSENCRYPT_EMAIL" --agree-tos --no-eff-email --non-interactive
 ./scripts/dc.sh up -d --force-recreate --no-deps nginx
 ./scripts/dc.sh up -d certbot

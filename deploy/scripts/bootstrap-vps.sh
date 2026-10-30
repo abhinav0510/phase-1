@@ -29,8 +29,13 @@ id "$DEPLOY_USER" > /dev/null 2>&1 || adduser --disabled-password --gecos "" "$D
 usermod -aG docker "$DEPLOY_USER"
 install -d -m 0750 -o "$DEPLOY_USER" -g "$DEPLOY_USER" /srv/sidana
 
-# Open the SSH port in use before turning the firewall on.
-SSH_PORT="$(sshd -T 2>/dev/null | awk '$1=="port"{print $2; exit}')"
+# Open the SSH port in use before turning the firewall on. The current connection is the
+# surest source. `sshd -T` is only a fallback, and its failure must not stop this script.
+SSH_PORT="${SSH_CONNECTION:+${SSH_CONNECTION##* }}"
+if [ -z "$SSH_PORT" ]; then
+  mkdir -p /run/sshd
+  SSH_PORT="$(sshd -T 2>/dev/null | awk '$1=="port"{print $2; exit}' || true)"
+fi
 ufw allow "${SSH_PORT:-22}/tcp"
 ufw allow 80/tcp
 ufw allow 443/tcp

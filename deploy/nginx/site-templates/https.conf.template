@@ -10,10 +10,10 @@ server {
 
 server {
   listen 80;
-  server_name ${DOMAIN};
+  server_name ${DOMAIN} www.${DOMAIN};
   include /etc/nginx/snippets/internal.conf;
   location / {
-    return 301 https://$host$request_uri;
+    return 301 https://${DOMAIN}$request_uri;
   }
 }
 
@@ -23,17 +23,25 @@ server {
   ssl_reject_handshake on;
 }
 
+ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_session_cache shared:tls:10m;
+ssl_session_timeout 1d;
+ssl_session_tickets off;
+
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name www.${DOMAIN};
+  add_header Strict-Transport-Security "max-age=31536000" always;
+  return 301 https://${DOMAIN}$request_uri;
+}
+
 server {
   listen 443 ssl;
   http2 on;
   server_name ${DOMAIN};
-
-  ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-  ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
-  ssl_protocols TLSv1.2 TLSv1.3;
-  ssl_session_cache shared:tls:10m;
-  ssl_session_timeout 1d;
-  ssl_session_tickets off;
 
   add_header Strict-Transport-Security "max-age=31536000" always;
 
