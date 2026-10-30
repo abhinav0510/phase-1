@@ -22,7 +22,7 @@ export function FounderNav({ items }: { items: NavItem[] }) {
   return (
     <nav
       aria-label="Portal sections"
-      className="hidden items-center gap-0.5 rounded-full bg-obsidian p-1 shadow-lg shadow-obsidian/25 md:flex"
+      className="hidden items-center gap-0.5 rounded-full bg-white p-1 shadow-soft ring-1 ring-ocean-100 md:flex"
     >
       {items.map((item) => {
         const active = isFounderNavActive(pathname, item.href);
@@ -34,21 +34,21 @@ export function FounderNav({ items }: { items: NavItem[] }) {
             aria-current={active ? "page" : undefined}
             className={cn(
               "group relative flex h-9 items-center rounded-full px-3 text-xs font-medium transition-colors duration-200",
-              active ? "text-white" : "text-white/55 hover:text-white",
+              active ? "text-ocean-800" : "text-navy-500 hover:text-tide",
             )}
           >
             {active ? (
               <motion.span
                 layoutId="founder-nav-active"
                 transition={spring}
-                className="absolute inset-0 rounded-full bg-iris shadow-md shadow-iris/40"
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-ocean-100 to-leaf-100 ring-1 ring-ocean-200/70"
               />
             ) : null}
             <span className="relative flex items-center gap-1.5">
               <Icon className="h-3.5 w-3.5" strokeWidth={active ? 2.4 : 2} />
               <span className="hidden xl:inline">{item.label}</span>
             </span>
-            <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-obsidian px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg ring-1 ring-white/10 transition-opacity group-hover:opacity-100 xl:hidden">
+            <span className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-tide px-2 py-1 text-[11px] font-medium text-white opacity-0 shadow-lg ring-1 ring-white/10 transition-opacity group-hover:opacity-100 xl:hidden">
               {item.label}
             </span>
           </Link>
@@ -71,7 +71,7 @@ export function FounderMobileNav({ items }: { items: NavItem[] }) {
             href={item.href}
             className={cn(
               "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition",
-              active ? "bg-iris text-white" : "bg-white text-navy-600 ring-1 ring-navy-100",
+              active ? "bg-gradient-to-r from-ocean-100 to-leaf-100 text-ocean-800 ring-1 ring-ocean-200/70" : "bg-white text-navy-600 ring-1 ring-navy-100",
             )}
           >
             <Icon className="h-3.5 w-3.5" />

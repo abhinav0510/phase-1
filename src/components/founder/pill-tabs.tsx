@@ -27,7 +27,7 @@ export function PillTabs({
   return (
     <div
       role="tablist"
-      className={cn("inline-flex items-center gap-0.5 rounded-full p-1", dark ? "bg-white/10" : "bg-navy-100/70")}
+      className={cn("scroll-thin inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full p-1", dark ? "bg-white/10" : "bg-ocean-100/70")}
     >
       {tabs.map((t) => {
         const active = t.key === value;
@@ -39,8 +39,8 @@ export function PillTabs({
             aria-selected={active}
             onClick={() => onChange(t.key)}
             className={cn(
-              "relative flex h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors",
-              active ? "text-obsidian" : dark ? "text-white/65 hover:text-white" : "text-navy-500 hover:text-obsidian",
+              "relative flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-colors",
+              active ? "text-tide" : dark ? "text-white/65 hover:text-white" : "text-navy-500 hover:text-tide",
             )}
           >
             {active ? (
@@ -55,7 +55,7 @@ export function PillTabs({
               <span
                 className={cn(
                   "relative rounded-full px-1.5 text-[10px] tabular-nums",
-                  active ? "bg-obsidian text-white" : dark ? "bg-white/15 text-white/80" : "bg-white text-navy-600",
+                  active ? "bg-ocean-600 text-white" : dark ? "bg-white/15 text-white/80" : "bg-white text-navy-600",
                 )}
               >
                 {t.count}

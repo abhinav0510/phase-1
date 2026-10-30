@@ -26,10 +26,34 @@ const config: Config = {
         brand: { DEFAULT: "#1f2f4d", accent: "#476aa0" },
         // Dashboard frame + pastel stat-card tints
         frame: "#e9edf4",
-        // Founder portal: light canvas, near-black panels, iris accent
-        canvas: "#f3f4f8",
-        obsidian: { DEFAULT: "#15161f", 2: "#1e1f2b", 3: "#2a2c3b" },
-        iris: { DEFAULT: "#5b5fe6", deep: "#4a4ed6", soft: "#eef0ff", ink: "#2f3296" },
+        // Founder portal: Sidana logo blue + green on white. Light ocean / leaf
+        // tints for panels, deep-blue "tide" for text instead of black.
+        canvas: "#f3f8fb",
+        tide: { DEFAULT: "#0d2c48", 2: "#163f63", 3: "#1f527e" },
+        ocean: {
+          50: "#eef7fd",
+          100: "#dbeefa",
+          200: "#b9ddf4",
+          300: "#88c3ea",
+          400: "#4fa2db",
+          500: "#1f84c9",
+          600: "#0a6ab0",
+          700: "#0b568f",
+          800: "#0e4774",
+          900: "#113b60",
+        },
+        leaf: {
+          50: "#f1fbee",
+          100: "#def5d7",
+          200: "#bfe9b2",
+          300: "#95d983",
+          400: "#6dc958",
+          500: "#4fb13b",
+          600: "#3c8f2d",
+          700: "#317126",
+          800: "#2a5a23",
+          900: "#254b20",
+        },
         pastel: {
           blue: "#e4edfb",
           lavender: "#ebe5f8",

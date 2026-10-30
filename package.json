@@ -12,7 +12,10 @@
     "provision:admins": "node --env-file=.env.local scripts/provision-admins.mjs",
     "backfill:weekly": "node --env-file=.env.local scripts/backfill-weekly-reports.mjs",
     "migrate:mustreset": "node --env-file=.env.local scripts/migrate-mustreset.mjs",
-    "reset:founders": "node --env-file=.env.local scripts/reset-founder-passwords.mjs"
+    "reset:founders": "node --env-file=.env.local scripts/reset-founder-passwords.mjs",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node node_modules/vitest/vitest.mjs run",
+    "test:e2e": "node node_modules/@playwright/test/cli.js test"
   },
   "dependencies": {
     "@supabase/ssr": "0.5.2",
@@ -28,6 +31,7 @@
     "zod": "3.24.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.55.0",
     "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
@@ -36,6 +40,7 @@
     "eslint-config-next": "15.1.6",
     "postcss": "8.5.1",
     "tailwindcss": "3.4.17",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "vitest": "3.2.4"
   }
 }

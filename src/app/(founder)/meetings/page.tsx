@@ -51,7 +51,7 @@ export default async function FounderMeetings() {
         {
           eyebrow: m.is_second ? "Second meeting" : "Investor meeting",
           heading: m.investor_name ?? "Investor",
-          chip: { label: m.held ? "Held" : up ? "Scheduled" : "Past", tone: "iris" },
+          chip: { label: m.held ? "Held" : up ? "Scheduled" : "Past", tone: "ocean" },
           aside: { label: "When", value: formatDateTime(m.scheduled_at) },
           stats: [
             { label: "Status", value: m.held ? "Held" : up ? "Upcoming" : "Not marked held" },

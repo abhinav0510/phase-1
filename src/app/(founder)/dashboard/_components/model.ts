@@ -16,7 +16,7 @@ export const MATCH_STATE_META: Record<
   sent: { label: "Reached out", color: SERIES.navy, order: 0 },
   queued: { label: "In queue", color: SERIES.gold, order: 1 },
   tracker_only: { label: "Tracker only", color: SERIES.teal, order: 2 },
-  not_queued: { label: "Not queued", color: SERIES.violet, order: 4 },
+  not_queued: { label: "Not queued", color: SERIES.leaf, order: 4 },
 };
 
 export function matchStateSlices(matches: MatchRow[]): DonutSlice[] {

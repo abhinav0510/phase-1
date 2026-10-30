@@ -1,13 +1,13 @@
 import { PencilLine } from "lucide-react";
 import { requireFounder } from "@/lib/auth";
-import { getOwnStartup } from "@/lib/data/founder";
+import { getOwnBranding, getOwnStartup, logoUrlFor } from "@/lib/data/founder";
 import {
   PageHeader,
   Card,
   CardBody,
   FieldRow,
   Note,
-  Avatar,
+  CompanyLogo,
   Chip,
   ButtonLink,
   STARTUP_STATUS_TONE,
@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BusinessDetails() {
   const { startupId } = await requireFounder();
-  const s = await getOwnStartup(startupId);
+  const [s, branding] = await Promise.all([getOwnStartup(startupId), getOwnBranding(startupId)]);
 
   return (
     <div className="space-y-5">
@@ -37,11 +37,11 @@ export default async function BusinessDetails() {
 
       <Reveal>
         <Card className="overflow-hidden">
-          <div className="flex flex-wrap items-center gap-4 bg-obsidian px-6 py-6 text-white">
-            <Avatar name={s?.name} size="lg" tone="white" />
+          <div className="flex flex-wrap items-center gap-4 bg-gradient-to-r from-ocean-100 to-leaf-100 px-6 py-6 text-tide">
+            <CompanyLogo src={logoUrlFor(branding)} name={s?.name} size="lg" className="ring-white" />
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-xl font-bold tracking-tight">{s?.name ?? "Your startup"}</h2>
-              <p className="mt-0.5 text-sm text-white/60">
+              <p className="mt-0.5 text-sm text-tide/60">
                 {[s?.sector, s?.subsector, s?.stage].filter(Boolean).join(" · ") || "Sector and stage not set"}
               </p>
             </div>
