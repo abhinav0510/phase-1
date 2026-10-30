@@ -1,16 +1,20 @@
 // Loaded into the app under test with NODE_OPTIONS=--require. Any attempt to reach
 // a host other than this machine fails, so a misconfigured test can't touch the real
-// Supabase project, n8n, Google or a mailbox. Google Fonts is the one exception:
-// `next build` downloads the site's fonts and they carry no project data.
+// Supabase project, n8n, Google or a mailbox. It also proves a build needs no outside
+// service, since the site's fonts now live in the repo.
 const dns = require("node:dns");
 const fs = require("node:fs");
+const path = require("node:path");
 
-const ALLOWED = new Set(["localhost", "127.0.0.1", "::1", "fonts.googleapis.com", "fonts.gstatic.com"]);
+// Resolved now because the standalone server changes directory when it starts.
+const LOG = path.resolve(".next-test/net-guard.log");
+
+const ALLOWED = new Set(["localhost", "127.0.0.1", "::1"]);
 
 const blocked = (host) => {
   try {
-    fs.mkdirSync(".next-test", { recursive: true });
-    fs.appendFileSync(".next-test/net-guard.log", `${host}\n`);
+    fs.mkdirSync(path.dirname(LOG), { recursive: true });
+    fs.appendFileSync(LOG, `${host}\n`);
   } catch {}
   const err = new Error(`net-guard: blocked connection to ${host} during tests`);
   err.code = "ENOTFOUND";

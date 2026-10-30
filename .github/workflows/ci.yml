@@ -1,0 +1,162 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, types, unit tests, audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - name: Server scripts are executable in git
+        run: |
+          ! git ls-files -s deploy/scripts deploy/nginx/05-select-site.sh | grep -v '^100755'
+      - name: No known high or critical vulnerabilities in production packages
+        run: npm audit --omit=dev --audit-level=high
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  browser-tests:
+    name: Browser tests (fake services)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: node node_modules/@playwright/test/cli.js install --with-deps chrome
+      - name: Run against the same standalone server the image uses
+        run: npm run test:e2e
+        env:
+          APP_STANDALONE: "1"
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results
+          retention-days: 7
+
+  production-stack:
+    name: Production image behind nginx
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APP_IMAGE: sidana-ci
+      APP_TAG: ci
+      DOMAIN: localhost
+      HTTP_PORT: "8080"
+      HTTPS_PORT: "8443"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Build the image
+        run: |
+          docker build -t sidana-ci:ci \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=http://mock:4329 \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key \
+            --build-arg APP_VERSION="$GITHUB_SHA" .
+      - name: The image contains no secrets or client files
+        run: |
+          docker run --rm --entrypoint sh sidana-ci:ci -c \
+            '! find /app -path /app/node_modules -prune -o \( -name ".env*" -o -name "*.csv" -o -name "*.pem" \) -print | grep .'
+      - name: The app refuses to start without its settings
+        run: |
+          status=0
+          docker run --rm -e NEXT_PUBLIC_SUPABASE_URL= sidana-ci:ci timeout 20 node server.js || status=$?
+          test "$status" != 0 -a "$status" != 124
+      - name: Write test settings
+        run: |
+          mkdir -p .ci-certs
+          cat > deploy/app.env <<'SETTINGS'
+          NEXT_PUBLIC_SUPABASE_URL=http://mock:4329
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key
+          SUPABASE_SERVICE_ROLE_KEY=test-service-role-key
+          N8N_NOTIFY_SECRET=test-webhook-secret
+          N8N_BROADCAST_WEBHOOK_URL=http://mock:4329/webhook/broadcast
+          N8N_CONTACTS_SYNC_WEBHOOK_URL=http://mock:4329/webhook/contacts-sync
+          SETTINGS
+          sed -i 's/^ *//' deploy/app.env
+      - name: Start in plain HTTP mode, as a new server does
+        run: docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up -d --wait --wait-timeout 120 app nginx
+      - name: Check the site over HTTP
+        run: deploy/scripts/smoke-test.sh http://localhost:8080
+      - name: The app runs as a non-root user on a read-only disk
+        run: |
+          dc() { docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml "$@"; }
+          test "$(dc exec -T app id -u)" = 1001
+          ! dc exec -T app sh -c 'touch /app/should-fail 2>/dev/null'
+      - name: Unknown hosts are dropped
+        run: |
+          status=0
+          curl -sS --max-time 5 -o /dev/null -H 'Host: not-our-site.example' http://localhost:8080/ || status=$?
+          test "$status" = 52
+      - name: Sign-in attempts are rate limited, page views are not
+        run: |
+          get=$(for i in $(seq 1 30); do curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8080/login; done | sort -u)
+          test "$get" = 200
+          post=$(for i in $(seq 1 30); do curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:8080/login; done)
+          echo "$post" | grep -q 429
+      - name: Switch to HTTPS with a test certificate
+        run: |
+          mkdir -p .ci-certs/live/localhost
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=localhost' \
+            -addext 'subjectAltName=DNS:localhost' \
+            -keyout .ci-certs/live/localhost/privkey.pem -out .ci-certs/live/localhost/fullchain.pem
+          chmod 644 .ci-certs/live/localhost/privkey.pem
+          docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml up -d --force-recreate --no-deps --wait nginx
+      - name: Check the site over HTTPS
+        run: deploy/scripts/smoke-test.sh https://localhost:8443
+        env:
+          CURL_EXTRA: -k
+      - name: HTTP redirects to HTTPS, and HSTS is on
+        run: |
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/)" = 301
+          curl -skI https://localhost:8443/ | grep -i '^strict-transport-security: max-age=31536000'
+      - run: npm ci
+      - run: node node_modules/@playwright/test/cli.js install --with-deps chrome
+      - name: Sign in and save through nginx in a real browser
+        run: npm run test:stack
+      - name: Logs if anything failed
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.ci.yml logs --no-color --tail 200
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: stack-test-results
+          path: test-results
+          retention-days: 7

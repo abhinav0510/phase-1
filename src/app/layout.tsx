@@ -1,18 +1,29 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const serif = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
+const serif = localFont({
+  src: [
+    { path: "../fonts/cormorant-garamond/300-normal.woff2", weight: "300", style: "normal" },
+    { path: "../fonts/cormorant-garamond/400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/cormorant-garamond/500-normal.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/cormorant-garamond/600-normal.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/cormorant-garamond/300-italic.woff2", weight: "300", style: "italic" },
+    { path: "../fonts/cormorant-garamond/400-italic.woff2", weight: "400", style: "italic" },
+    { path: "../fonts/cormorant-garamond/500-italic.woff2", weight: "500", style: "italic" },
+    { path: "../fonts/cormorant-garamond/600-italic.woff2", weight: "600", style: "italic" },
+  ],
   variable: "--font-serif",
   display: "swap",
 });
 
-const sans = Inter({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+const sans = localFont({
+  src: [
+    { path: "../fonts/inter/300-normal.woff2", weight: "300", style: "normal" },
+    { path: "../fonts/inter/400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/inter/500-normal.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/inter/600-normal.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-sans",
   display: "swap",
 });

@@ -1,0 +1,24 @@
+# Added on top of docker-compose.yml in CI: runs the real image and nginx against the fake
+# Supabase and n8n from tests/mock, so the test touches no real data.
+services:
+  mock:
+    image: node:24.22-bookworm-slim
+    command: ["node", "/mock/server.mjs"]
+    environment:
+      MOCK_PORT: "4329"
+    volumes:
+      - ../tests/mock:/mock:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4329/__health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    depends_on:
+      mock:
+        condition: service_healthy
+
+  nginx:
+    volumes:
+      - ../.ci-certs:/etc/letsencrypt:ro

@@ -26,6 +26,9 @@ export async function restoreUser(email: string) {
     body: JSON.stringify({ password: PASSWORD, app_metadata: {} }),
   });
 }
+export async function failTable(table: string, on: boolean) {
+  await fetch(`${MOCK}/__fail?table=${table}&on=${on ? 1 : 0}`);
+}
 export async function failWebhook(name: string, on: boolean) {
   await fetch(`${MOCK}/__fail?webhook=${name}&on=${on ? 1 : 0}`);
 }
@@ -39,10 +42,13 @@ export const test = base.extend<{ guard: void }>({
     async ({ page, context }, use) => {
       const errors: string[] = [];
       page.on("pageerror", (e) => errors.push(e.message));
+      page.on("console", (m) => {
+        if (m.text().includes("Content Security Policy")) errors.push(m.text());
+      });
       page.on("dialog", (d) => d.accept());
       await context.route("**/*", (route) => {
         const host = new URL(route.request().url()).hostname;
-        if (host === "localhost" || host === "fonts.googleapis.com" || host === "fonts.gstatic.com") return route.continue();
+        if (host === "localhost") return route.continue();
         // A real project host must never even be attempted.
         expect(host, "browser tried to reach a real service").not.toMatch(/supabase\.co|n8n\.cloud/);
         return route.abort();

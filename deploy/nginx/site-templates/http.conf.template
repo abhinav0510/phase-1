@@ -1,0 +1,16 @@
+# Used until the HTTPS certificate exists (see scripts/init-tls.sh).
+server {
+  listen 80 default_server;
+  server_name _;
+  include /etc/nginx/snippets/internal.conf;
+  location / {
+    return 444;
+  }
+}
+
+server {
+  listen 80;
+  server_name ${DOMAIN} www.${DOMAIN};
+  include /etc/nginx/snippets/internal.conf;
+  include /etc/nginx/snippets/app.conf;
+}

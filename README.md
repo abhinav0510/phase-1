@@ -177,3 +177,7 @@ No other workflow was modified. Further integration points (e.g. `DB-READ`,
 - **RLS** — proposed, not applied (`MIGRATIONS/PROPOSED-rls.sql`).
 - **n8n notifications** — inventoried and mapped; not yet wired to UI actions.
 - **Investor-role portal** — the role exists in the enum but was out of the chosen Phase-1 scope (founder + admin).
+
+## Production
+
+Docker, nginx, CI/CD and the VPS setup steps are in [deploy/README.md](deploy/README.md).

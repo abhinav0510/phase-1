@@ -26,11 +26,13 @@ export const getSessionUser = cache(async function getSessionUser(): Promise<Ses
   if (!user) return null;
 
   const admin = createAdminClient();
-  const { data: appUser } = await admin
+  const { data: appUser, error } = await admin
     .from("app_users")
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
+  // A failed read must not look like "this person has no role".
+  if (error) throw new Error(`Could not read app_users: ${error.code || error.message}`);
 
   return {
     authId: user.id,
