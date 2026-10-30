@@ -1,11 +1,11 @@
 # Builds the production image. Only NEXT_PUBLIC_* values go in at build time, and those
 # are public anyway. Server secrets arrive at run time from deploy/app.env.
-FROM node:24.22-bookworm-slim AS deps
+FROM node:26.11-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:24.22-bookworm-slim AS build
+FROM node:26.11-bookworm-slim AS build
 WORKDIR /app
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -17,7 +17,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN node node_modules/next/dist/bin/next build
 
-FROM node:24.22-bookworm-slim AS run
+FROM node:26.11-bookworm-slim AS run
 WORKDIR /app
 ARG APP_VERSION=dev
 ENV NODE_ENV=production \
