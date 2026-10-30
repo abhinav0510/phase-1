@@ -145,7 +145,10 @@ test.describe("company logo", () => {
     await expect(page.getByTitle("Add your company logo")).toHaveCount(0);
 
     await page.goto("/profile");
+    // Removing asks for a second click to confirm.
     await page.getByRole("button", { name: /Remove/i }).click();
+    await expect.poll(async () => (await state("startup_branding")).find((b) => b.startup_id === ID.zeta)?.logo_path).toBeTruthy();
+    await page.getByRole("button", { name: /Remove|confirm|sure/i }).click();
     await expect.poll(async () => (await state("startup_branding")).find((b) => b.startup_id === ID.zeta)?.logo_path ?? null).toBeNull();
     await page.goto("/dashboard");
     await expect(page.getByTitle("Add your company logo")).toBeVisible();

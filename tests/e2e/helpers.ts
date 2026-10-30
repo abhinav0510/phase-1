@@ -16,6 +16,16 @@ export async function state<T = any>(table: string): Promise<T[]> {
 export async function webhooks(): Promise<any[]> {
   return (await fetch(`${MOCK}/__webhooks`)).json();
 }
+/** Put a demo account back after a test changes its password. */
+export async function restoreUser(email: string) {
+  const users = await (await fetch(`${MOCK}/__users`)).json();
+  const user = users.find((u: any) => u.email === email);
+  await fetch(`${MOCK}/auth/v1/admin/users/${user.id}`, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ password: PASSWORD, app_metadata: {} }),
+  });
+}
 export async function failWebhook(name: string, on: boolean) {
   await fetch(`${MOCK}/__fail?webhook=${name}&on=${on ? 1 : 0}`);
 }

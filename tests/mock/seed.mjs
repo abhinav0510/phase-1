@@ -204,7 +204,11 @@ export function buildSeed() {
         { id: 3, title: "Demo team-only announcement", body: "Should be hidden from founders", kind: "info", audience: "team", is_active: true, publish_at: iso(-2), expires_at: null, created_by: USER.team, created_by_email: "team@sidana.test", created_at: NOW },
         { id: 4, title: "Demo inactive announcement", body: "Should be hidden", kind: "info", audience: "all", is_active: false, publish_at: iso(-2), expires_at: null, created_by: USER.team, created_by_email: "team@sidana.test", created_at: NOW },
       ],
-      announcement_dismissals: [],
+      // Everyone has already seen the live notices, except Founder Beta, who tests the
+      // popup. Otherwise the popup would sit on top of every other test's clicks.
+      announcement_dismissals: [USER.team, USER.alpha, USER.gamma, USER.delta, USER.epsilon, USER.zeta, USER.eta, USER.inactive].flatMap((user_id, i) =>
+        [1, 3].map((announcement_id) => ({ id: i * 10 + announcement_id, user_id, announcement_id })),
+      ),
       email_broadcasts: [],
       email_broadcast_recipients: [],
     },

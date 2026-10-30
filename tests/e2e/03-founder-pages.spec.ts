@@ -51,7 +51,7 @@ test.describe("navigation", () => {
   test("the menu opens My Profile and Settings", async ({ page }) => {
     await asFounder(page, ID.alpha);
     await page.getByRole("button", { name: /Demo Alpha Foods/ }).click();
-    await page.getByRole("link", { name: /profile/i }).first().click();
+    await page.getByRole("menu").getByRole("link", { name: "My profile" }).click();
     await expect(page).toHaveURL(/\/profile/);
     await page.goto("/settings");
     await expect(page.locator('input[type="password"]').first()).toBeVisible();
@@ -81,7 +81,7 @@ test.describe("financials", () => {
     await expect(page.getByText(/multiply by 12/)).toBeVisible();
   });
   test("asks for previous years and projections", async ({ page }) => {
-    await expect(page.getByText("Previous years' records")).toBeVisible();
+    await expect(page.getByText("Previous years' records", { exact: true })).toBeVisible();
     await expect(page.getByText("Projections", { exact: true })).toBeVisible();
     await expect(page.getByText(/0 of 3 added/)).toHaveCount(2);
   });
@@ -120,7 +120,7 @@ test.describe("investors and matches", () => {
   });
   test("shows the investor's cheque size, sectors and geography", async ({ page }) => {
     await page.getByRole("button", { name: /Demo Capital/ }).click();
-    await expect(page.getByText("₹2–10 Cr")).toBeVisible();
+    await expect(page.getByText("₹2–10 Cr").first()).toBeVisible();
     await expect(page.getByText("India", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("foodtech", { exact: false }).first()).toBeVisible();
   });
@@ -244,7 +244,7 @@ test.describe("a startup with almost no data", () => {
 
 test.describe("announcements", () => {
   test("a founder sees live notices only and can dismiss them", async ({ page }) => {
-    await asFounder(page, ID.alpha);
+    await asFounder(page, ID.beta);
     const dialog = page.getByRole("dialog");
     await expect(dialog).toContainText("Demo live announcement");
     await page.getByRole("button", { name: /Got it|Next|Dismiss all/ }).first().click();

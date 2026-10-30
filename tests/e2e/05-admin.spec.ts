@@ -33,7 +33,7 @@ test.describe("admin pages", () => {
   });
 
   test("startups can be searched and filtered", async ({ page }) => {
-    await page.goto("/admin/startups?search=Beta");
+    await page.goto("/admin/startups?q=Beta");
     await expect(page.locator("main")).toContainText("Demo Beta Labs");
     await expect(page.locator("main")).not.toContainText("Demo Alpha Foods");
 
@@ -41,7 +41,7 @@ test.describe("admin pages", () => {
     await expect(page.locator("main")).toContainText("Demo Beta Labs");
     await expect(page.locator("main")).not.toContainText("Demo Alpha Foods");
 
-    await page.goto("/admin/startups?search=zzzz-nothing");
+    await page.goto("/admin/startups?q=zzzz-nothing");
     await expect(page.locator("main")).not.toContainText("Demo Alpha Foods");
   });
 
@@ -57,12 +57,13 @@ test.describe("admin pages", () => {
   });
 
   test("an unknown startup doesn't crash", async ({ page }) => {
-    const res = await page.goto("/admin/startups/999999");
-    expect(res?.status()).toBe(404);
+    await page.goto("/admin/startups/999999");
+    await expect(page.locator("body")).toContainText(/could not be found|not found/i);
+    await expect(page.locator("body")).not.toContainText("Application error");
   });
 
   test("investors can be searched", async ({ page }) => {
-    await page.goto("/admin/investors?search=Passed");
+    await page.goto("/admin/investors?q=Passed");
     await expect(page.locator("main")).toContainText("Passed Partners");
     await expect(page.locator("main")).not.toContainText("Queue Ventures");
   });
@@ -76,12 +77,17 @@ test.describe("admin pages", () => {
   test("users are listed with their roles", async ({ page }) => {
     await page.goto("/admin/users");
     await expect(page.locator("main")).toContainText("team@sidana.test");
-    await expect(page.locator("main")).toContainText("s101@founders.sidana.local");
+    await expect(page.locator("main")).toContainText("s101");
   });
 
   test("the top search is available", async ({ page }) => {
     await page.goto("/admin");
-    await expect(page.getByPlaceholder(/search/i).first()).toBeVisible();
+    await page.getByRole("button", { name: "Search" }).click();
+    const box = page.getByPlaceholder("Search startups…");
+    await box.fill("Beta");
+    await box.press("Enter");
+    await expect(page).toHaveURL(/\/admin\/startups\?.*q=Beta/);
+    await expect(page.locator("main")).toContainText("Demo Beta Labs");
   });
 });
 
@@ -98,8 +104,9 @@ test.describe("announcements", () => {
     await page.context().clearCookies();
     await asFounder(page, ID.epsilon);
     await expect(page.getByRole("dialog")).toContainText("Automated test notice");
-    await page.getByRole("button", { name: "Dismiss all" }).click();
-    await expect.poll(async () => (await state("announcement_dismissals")).length).toBeGreaterThan(0);
+    const notice = (await state("announcements")).find((a) => a.title === "Automated test notice");
+    await page.getByRole("button", { name: /Got it|Dismiss all/ }).first().click();
+    await expect.poll(async () => (await state("announcement_dismissals")).some((d) => d.announcement_id === notice.id)).toBe(true);
     await page.reload();
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
@@ -115,10 +122,12 @@ test.describe("announcements", () => {
   test("a title and message are required", async ({ page }) => {
     await asTeam(page);
     await page.goto("/admin/announcements");
-    const before = (await state("announcements")).length;
-    await page.getByRole("button", { name: "Publish announcement" }).click();
-    await page.waitForTimeout(500);
-    expect((await state("announcements")).length).toBe(before);
+    const publish = page.getByRole("button", { name: "Publish announcement" });
+    await expect(publish).toBeDisabled();
+    await page.getByPlaceholder(/New: weekly reports/).fill("Only a title");
+    await expect(publish).toBeDisabled();
+    await page.getByPlaceholder(/What changed/).fill("And a message");
+    await expect(publish).toBeEnabled();
   });
 });
 

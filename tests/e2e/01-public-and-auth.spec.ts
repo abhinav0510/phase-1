@@ -1,4 +1,4 @@
-import { asFounder, asTeam, expect, ID, loginFounder, loginTeam, PASSWORD, state, test, webhooks } from "./helpers";
+import { asFounder, asTeam, expect, ID, loginFounder, loginTeam, PASSWORD, restoreUser, test, webhooks } from "./helpers";
 
 test.describe("public pages", () => {
   test("homepage loads with its sign-in link", async ({ page }) => {
@@ -96,7 +96,7 @@ test.describe("signing out", () => {
   test("ends the session", async ({ page }) => {
     await asFounder(page, ID.alpha);
     await page.getByRole("button", { name: /Demo Alpha Foods/ }).click();
-    await page.getByRole("button", { name: /sign out/i }).click();
+    await page.getByRole("menu").getByRole("button", { name: /log out/i }).click();
     await expect(page).toHaveURL(/\/(login|teamonly)?$|\/login/);
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login/);
@@ -140,17 +140,18 @@ test.describe("passwords", () => {
     await fields.nth(0).fill("zeta-new-password");
     await fields.nth(1).fill("does-not-match");
     await page.getByRole("button", { name: /password/i }).click();
-    await expect(page.getByText(/match/i)).toBeVisible();
+    await expect(page.getByText("Passwords do not match.")).toBeVisible();
 
     await fields.nth(1).fill("zeta-new-password");
     await page.getByRole("button", { name: /password/i }).click();
-    await expect(page.getByText(/updated|changed/i)).toBeVisible();
+    await expect(page.getByText("Password updated.")).toBeVisible();
 
     await page.context().clearCookies();
     await loginFounder(page, ID.zeta, PASSWORD);
     await expect(page.getByText("Invalid email / Login ID or password.")).toBeVisible();
     await loginFounder(page, ID.zeta, "zeta-new-password");
     await expect(page).toHaveURL(/\/dashboard/);
+    await restoreUser(`s${ID.zeta}@founders.sidana.local`);
   });
 
   test("forgot password asks for a reset link", async ({ page }) => {
@@ -163,19 +164,14 @@ test.describe("passwords", () => {
   test("an admin can issue a temporary password that must be changed", async ({ page }) => {
     await asTeam(page);
     await page.goto("/admin/users");
-    const row = page.getByRole("row", { name: /s105@founders/ });
+    const row = page.getByRole("row", { name: /s105/ });
     await row.getByRole("button", { name: /Reset password/ }).click();
     await row.getByRole("button", { name: /^Reset / }).click();
-    await expect(page.getByText(/temporary|temp password/i).first()).toBeVisible();
+    await expect(row.locator("code")).toBeVisible();
     const users = await (await fetch("http://localhost:4329/__users")).json();
     const epsilon = users.find((u: any) => u.email === `s${ID.epsilon}@founders.sidana.local`);
     expect(epsilon.app_metadata.must_reset).toBe(true);
     expect(epsilon.password).not.toBe(PASSWORD);
-    // Put it back for later tests.
-    await page.request.fetch("http://localhost:4329/auth/v1/admin/users/" + epsilon.id, {
-      method: "PUT",
-      data: { password: PASSWORD, app_metadata: {} },
-    });
-    expect((await state("app_users")).length).toBeGreaterThan(0);
+    await restoreUser(epsilon.email);
   });
 });
