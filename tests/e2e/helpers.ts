@@ -48,7 +48,7 @@ export const test = base.extend<{ guard: void }>({
       page.on("dialog", (d) => d.accept());
       await context.route("**/*", (route) => {
         const host = new URL(route.request().url()).hostname;
-        if (host === "localhost" || host === "fonts.googleapis.com" || host === "fonts.gstatic.com") return route.continue();
+        if (host === "localhost") return route.continue();
         // A real project host must never even be attempted.
         expect(host, "browser tried to reach a real service").not.toMatch(/supabase\.co|n8n\.cloud/);
         return route.abort();

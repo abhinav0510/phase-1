@@ -26,6 +26,20 @@ test.describe("production behaviour", () => {
     });
   }
 
+  test("fonts load from this site, not from Google", async ({ page }) => {
+    const fontHosts = new Set<string>();
+    page.on("request", (r) => {
+      if (r.resourceType() === "font") fontHosts.add(new URL(r.url()).hostname);
+    });
+    await page.goto("/login");
+    const loaded = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return [...document.fonts].filter((f) => f.status === "loaded").length;
+    });
+    expect(loaded).toBeGreaterThan(0);
+    expect([...fontHosts]).toEqual(["localhost"]);
+  });
+
   test("robots.txt is public and doesn't reveal private pages", async ({ request }) => {
     const res = await request.get("/robots.txt", { maxRedirects: 0 });
     expect(res.status()).toBe(200);
