@@ -113,6 +113,10 @@ test.describe("announcements", () => {
     await page.context().clearCookies();
     await asTeam(page);
     await page.goto("/admin/announcements");
+    // The team sees the notice too. Its popup opens after a short delay and covers the page.
+    await expect(page.getByRole("dialog")).toContainText("Automated test notice");
+    await page.getByRole("button", { name: /Got it|Dismiss all/ }).first().click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
     const row = page.getByRole("row", { name: /Automated test notice/ });
     await expect(row).toBeVisible();
     await row.getByRole("button", { name: /delete/i }).click();
