@@ -118,7 +118,7 @@ export function IconDisc({
   children,
   size = "md",
 }: {
-  tone: "gold" | "navy" | "teal" | "coral" | "violet";
+  tone: "gold" | "navy" | "teal" | "coral" | "leaf";
   children: React.ReactNode;
   size?: "sm" | "md";
 }) {
@@ -127,7 +127,7 @@ export function IconDisc({
     navy: "bg-[#e6eefb] text-[#2F5FA8]",
     teal: "bg-[#e1f5f1] text-[#157e6e]",
     coral: "bg-[#fdeae5] text-[#c04f37]",
-    violet: "bg-[#ece9fb] text-[#5e4cc4]",
+    leaf: "bg-leaf-50 text-leaf-700",
   } as const;
   return (
     <div

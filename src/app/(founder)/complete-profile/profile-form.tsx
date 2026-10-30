@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { Fragment, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle2, Save, Send, Sparkles } from "lucide-react";
@@ -91,7 +91,7 @@ export function ProfileForm({
                 "inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
                 complete
                   ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-navy-200 bg-white text-navy-700 hover:border-iris hover:text-iris",
+                  : "border-navy-200 bg-white text-navy-700 hover:border-ocean-600 hover:text-ocean-600",
               )}
             >
               {complete ? <CheckCircle2 className="h-3.5 w-3.5" /> : null}
@@ -116,7 +116,7 @@ export function ProfileForm({
         >
           <header className="flex flex-wrap items-baseline justify-between gap-2 px-5 pb-1 pt-5">
             <div>
-              <h3 className="text-[15px] font-semibold tracking-tight text-obsidian">{s.title}</h3>
+              <h3 className="text-[15px] font-semibold tracking-tight text-tide">{s.title}</h3>
               <p className="mt-0.5 text-xs text-navy-500">{s.blurb}</p>
             </div>
             <span className="rounded-full bg-canvas px-2.5 py-1 text-xs tabular-nums text-navy-500">
@@ -125,7 +125,14 @@ export function ProfileForm({
           </header>
           <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-5 py-5 md:grid-cols-2">
             {PROFILE_FIELDS.filter((f) => f.section === s.key).map((f) => (
-              <Field key={f.key} field={f} value={values[f.key]} record={record[f.key]} onChange={(v) => set(f.key, v)} />
+              <Fragment key={f.key}>
+                {f.heading ? (
+                  <h4 className="border-t border-navy-50 pt-4 text-xs font-semibold uppercase tracking-wider text-ocean-700 first:border-t-0 first:pt-0 md:col-span-2">
+                    {f.heading}
+                  </h4>
+                ) : null}
+                <Field field={f} value={values[f.key]} record={record[f.key]} onChange={(v) => set(f.key, v)} />
+              </Fragment>
             ))}
           </div>
         </motion.section>
@@ -133,12 +140,12 @@ export function ProfileForm({
 
       {/* Sticky action bar */}
       <div className="fixed inset-x-0 bottom-0 z-30 px-3 pb-3 md:px-6">
-        <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-100 bg-white/95 px-4 py-3 shadow-[0_-10px_40px_-20px_rgba(21,22,31,0.35)] backdrop-blur sm:px-5">
+        <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-between gap-3 rounded-2xl border border-navy-100 bg-white/95 px-4 py-3 shadow-[0_-10px_40px_-20px_rgba(13,44,72,0.35)] backdrop-blur sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <div className="h-2 w-28 overflow-hidden rounded-full bg-navy-100 sm:w-40">
-              <div className="h-full rounded-full bg-iris transition-all duration-500" style={{ width: `${progress.pct}%` }} />
+              <div className="h-full rounded-full bg-ocean-600 transition-all duration-500" style={{ width: `${progress.pct}%` }} />
             </div>
-            <span className="text-xs font-semibold text-obsidian">{progress.pct}% complete</span>
+            <span className="text-xs font-semibold text-tide">{progress.pct}% complete</span>
             {msg ? (
               <span
                 role="status"
@@ -197,11 +204,16 @@ function Field({
   return (
     <div className={cn(wide && "md:col-span-2")}>
       <div className="mb-1.5 flex flex-wrap items-center gap-2">
-        <label htmlFor={id} className="text-sm font-medium text-obsidian">
+        <label htmlFor={id} className="text-sm font-medium text-tide">
           {f.label}
         </label>
+        {f.required ? (
+          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+            Required
+          </span>
+        ) : null}
         {f.matching ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-iris-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-iris-ink">
+          <span className="inline-flex items-center gap-1 rounded-full bg-ocean-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ocean-800">
             <Sparkles className="h-3 w-3" />
             Used for matching
           </span>
@@ -241,8 +253,8 @@ function Field({
                 className={cn(
                   "rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-[0.97]",
                   on
-                    ? "border-iris bg-iris text-white shadow-sm shadow-iris/30"
-                    : "border-navy-200 bg-white text-navy-700 hover:border-iris hover:text-iris",
+                    ? "border-ocean-600 bg-ocean-600 text-white shadow-sm shadow-ocean-600/30"
+                    : "border-navy-200 bg-white text-navy-700 hover:border-ocean-600 hover:text-ocean-600",
                 )}
               >
                 {o}

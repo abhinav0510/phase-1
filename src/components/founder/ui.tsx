@@ -4,9 +4,9 @@ import { cn, initials } from "@/lib/utils";
 
 // Server-safe founder UI kit (no hooks). Animated pieces live in motion.tsx.
 
-export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
+export function Card({ className, children, id }: { className?: string; children: React.ReactNode; id?: string }) {
   return (
-    <div className={cn("rounded-[20px] border border-navy-100/70 bg-white shadow-soft", className)}>
+    <div id={id} className={cn("rounded-[20px] border border-navy-100/70 bg-white shadow-soft", className)}>
       {children}
     </div>
   );
@@ -24,7 +24,7 @@ export function CardHeader({
   return (
     <div className="flex items-start justify-between gap-4 px-5 pb-1 pt-5">
       <div>
-        <h3 className="text-[15px] font-semibold tracking-tight text-obsidian">{title}</h3>
+        <h3 className="text-[15px] font-semibold tracking-tight text-tide">{title}</h3>
         {subtitle ? <p className="mt-0.5 text-xs text-navy-500">{subtitle}</p> : null}
       </div>
       {action}
@@ -63,9 +63,9 @@ export function PageHeader({
         ) : null}
         <div className="min-w-0">
           {eyebrow ? (
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-iris">{eyebrow}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ocean-600">{eyebrow}</p>
           ) : null}
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-obsidian md:text-[30px]">
+          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-tide md:text-[30px]">
             {title}
           </h1>
           {subtitle ? <p className="mt-1 text-sm text-navy-500">{subtitle}</p> : null}
@@ -83,24 +83,24 @@ export function Delta({
   tone = "neutral",
   arrow,
   hint,
-  onDark,
+  onTint,
 }: {
   text: string;
   tone?: DeltaTone;
   arrow?: "up" | "down" | "flat";
   hint?: string;
-  onDark?: boolean;
+  onTint?: boolean;
 }) {
   const Icon = arrow === "up" ? ArrowUpRight : arrow === "down" ? ArrowDownRight : Minus;
   const color =
-    tone === "good" ? "text-emerald-500" : tone === "bad" ? "text-red-500" : onDark ? "text-white/70" : "text-navy-500";
+    tone === "good" ? "text-emerald-500" : tone === "bad" ? "text-red-500" : onTint ? "text-tide/70" : "text-navy-500";
   return (
     <p className="mt-1.5 flex items-center gap-1.5 text-xs">
       <span className={cn("inline-flex items-center gap-0.5 font-semibold", color)}>
         <Icon className="h-3.5 w-3.5" />
         {text}
       </span>
-      {hint ? <span className={onDark ? "text-white/50" : "text-navy-400"}>{hint}</span> : null}
+      {hint ? <span className={onTint ? "text-tide/50" : "text-navy-400"}>{hint}</span> : null}
     </p>
   );
 }
@@ -108,10 +108,10 @@ export function Delta({
 export type KpiTone = "white" | "dark" | "accent" | "soft";
 
 const KPI_TONES: Record<KpiTone, string> = {
-  white: "border border-navy-100/70 bg-white text-obsidian shadow-soft",
-  soft: "bg-iris-soft text-obsidian",
-  dark: "bg-obsidian text-white",
-  accent: "bg-iris text-white shadow-lg shadow-iris/30",
+  white: "border border-navy-100/70 bg-white text-tide shadow-soft",
+  soft: "bg-ocean-50 text-tide",
+  dark: "bg-gradient-to-br from-leaf-100 to-leaf-50 text-tide ring-1 ring-leaf-200/70",
+  accent: "bg-gradient-to-br from-ocean-100 to-ocean-50 text-tide ring-1 ring-ocean-200/70",
 };
 
 export function KpiCard({
@@ -133,16 +133,16 @@ export function KpiCard({
   tone?: KpiTone;
   className?: string;
 }) {
-  const dark = tone === "dark" || tone === "accent";
+  const tinted = tone === "dark" || tone === "accent";
   return (
     <div className={cn("relative flex flex-col overflow-hidden rounded-[20px] p-5", KPI_TONES[tone], className)}>
       <div className="flex items-center justify-between gap-2">
-        <p className={cn("text-xs font-medium", dark ? "text-white/65" : "text-navy-500")}>{label}</p>
+        <p className={cn("text-xs font-medium", tinted ? "text-tide/65" : "text-navy-500")}>{label}</p>
         {icon ? (
           <span
             className={cn(
               "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-              dark ? "bg-white/15 text-white" : "bg-navy-50 text-navy-600",
+              tinted ? "bg-white/80 text-ocean-700 shadow-sm" : "bg-navy-50 text-navy-600",
             )}
           >
             {icon}
@@ -151,20 +151,20 @@ export function KpiCard({
       </div>
       <p className="mt-3 truncate text-[28px] font-bold leading-none tracking-tight">{value}</p>
       {delta ? (
-        <Delta {...delta} onDark={dark} />
+        <Delta {...delta} onTint={tinted} />
       ) : hint ? (
-        <p className={cn("mt-1.5 text-xs", dark ? "text-white/55" : "text-navy-400")}>{hint}</p>
+        <p className={cn("mt-1.5 text-xs", tinted ? "text-tide/55" : "text-navy-400")}>{hint}</p>
       ) : null}
       {visual ? <div className="mt-4">{visual}</div> : null}
     </div>
   );
 }
 
-export function DarkPanel({ className, children }: { className?: string; children: React.ReactNode }) {
+export function TintPanel({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <div
       className={cn(
-        "rounded-[24px] bg-obsidian p-4 text-white shadow-[0_30px_60px_-30px_rgba(21,22,31,0.6)] md:p-5",
+        "rounded-[24px] bg-gradient-to-br from-ocean-50 via-white to-leaf-50 p-4 text-tide shadow-soft ring-1 ring-ocean-100 md:p-5",
         className,
       )}
     >
@@ -175,34 +175,34 @@ export function DarkPanel({ className, children }: { className?: string; childre
 
 export function AccentPanel({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-[20px] bg-iris p-5 text-white shadow-lg shadow-iris/30", className)}>
+    <div className={cn("rounded-[20px] bg-gradient-to-br from-ocean-100 to-leaf-100 p-5 text-tide", className)}>
       {children}
     </div>
   );
 }
 
-export type ChipTone = "neutral" | "iris" | "green" | "amber" | "red" | "blue" | "violet" | "dark";
+export type ChipTone = "neutral" | "ocean" | "green" | "amber" | "red" | "blue" | "teal" | "dark";
 
 const CHIP_TONES: Record<ChipTone, string> = {
   neutral: "bg-navy-50 text-navy-700",
-  iris: "bg-iris-soft text-iris-ink",
-  green: "bg-emerald-50 text-emerald-700",
+  ocean: "bg-ocean-50 text-ocean-800",
+  green: "bg-leaf-50 text-leaf-700",
   amber: "bg-amber-50 text-amber-700",
   red: "bg-red-50 text-red-700",
   blue: "bg-sky-50 text-sky-700",
-  violet: "bg-violet-50 text-violet-700",
-  dark: "bg-obsidian text-white",
+  teal: "bg-teal-50 text-teal-700",
+  dark: "bg-tide text-white",
 };
 
 export const CHIP_DOT: Record<ChipTone, string> = {
   neutral: "#98afd0",
-  iris: "#5b5fe6",
-  green: "#10b981",
+  ocean: "#0a6ab0",
+  green: "#4fb13b",
   amber: "#f59e0b",
   red: "#ef4444",
   blue: "#0ea5e9",
-  violet: "#8b5cf6",
-  dark: "#15161f",
+  teal: "#14b8a6",
+  dark: "#0d2c48",
 };
 
 export function Chip({
@@ -229,7 +229,7 @@ export function Chip({
 
 export const STARTUP_STATUS_TONE: Record<string, ChipTone> = {
   live: "blue",
-  a1_ready: "violet",
+  a1_ready: "teal",
   a2_waiting: "amber",
   term_sheet: "green",
   closed: "green",
@@ -240,9 +240,9 @@ export const STARTUP_STATUS_TONE: Record<string, ChipTone> = {
 
 export const MATCH_STATE_TONE: Record<string, ChipTone> = {
   queued: "amber",
-  sent: "iris",
+  sent: "ocean",
   paused: "neutral",
-  tracker_only: "violet",
+  tracker_only: "teal",
   not_queued: "neutral",
 };
 
@@ -253,10 +253,10 @@ export function label(v: string | null | undefined) {
 type ButtonVariant = "primary" | "ghost" | "dark" | "white";
 
 const BUTTON: Record<ButtonVariant, string> = {
-  primary: "bg-iris text-white shadow-md shadow-iris/30 hover:bg-iris-deep",
+  primary: "bg-ocean-600 text-white shadow-md shadow-ocean-600/30 hover:bg-ocean-700",
   ghost: "border border-navy-200 bg-white text-navy-800 hover:bg-navy-50",
-  dark: "bg-obsidian text-white hover:bg-obsidian-2",
-  white: "bg-white text-obsidian shadow hover:bg-white/90",
+  dark: "bg-tide text-white hover:bg-tide-2",
+  white: "bg-white text-tide shadow hover:bg-white/90",
 };
 
 export function buttonClass(variant: ButtonVariant = "primary", size: "sm" | "md" = "md") {
@@ -309,7 +309,7 @@ export function IconButtonLink({
   external?: boolean;
 }) {
   const cls =
-    "flex h-10 w-10 items-center justify-center rounded-xl border border-navy-100 bg-white text-navy-600 shadow-sm transition hover:bg-navy-50 hover:text-obsidian";
+    "flex h-10 w-10 items-center justify-center rounded-xl border border-navy-100 bg-white text-navy-600 shadow-sm transition hover:bg-navy-50 hover:text-tide";
   if (external) {
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className={cls}>
@@ -324,7 +324,7 @@ export function IconButtonLink({
   );
 }
 
-const AVATAR_BG = ["#5b5fe6", "#1b9e8a", "#d9644a", "#b8893e", "#2f5fa8", "#7c6bd9", "#0ea5e9"];
+const AVATAR_BG = ["#0a6ab0", "#1b9e8a", "#d9644a", "#b8893e", "#3c8f2d", "#4fa2db", "#0b568f"];
 
 export function avatarColor(name: string | null | undefined) {
   const s = name ?? "?";
@@ -348,9 +348,9 @@ export function Avatar({
   const dim = size === "sm" ? "h-8 w-8 text-[11px]" : size === "lg" ? "h-14 w-14 text-lg" : "h-10 w-10 text-xs";
   const style =
     tone === "white"
-      ? { background: "#ffffff", color: "#15161f" }
+      ? { background: "#ffffff", color: "#0d2c48" }
       : tone === "dark"
-        ? { background: "#15161f", color: "#ffffff" }
+        ? { background: "#0d2c48", color: "#ffffff" }
         : { background: avatarColor(name), color: "#ffffff" };
   return (
     <span
@@ -358,6 +358,50 @@ export function Avatar({
       style={style}
     >
       {initials(name)}
+    </span>
+  );
+}
+
+const LOGO_DIM = {
+  sm: "h-8 w-8 rounded-lg p-1",
+  md: "h-10 w-10 rounded-xl p-1",
+  lg: "h-14 w-14 rounded-2xl p-1.5",
+  xl: "h-[72px] w-[72px] rounded-[20px] p-2",
+} as const;
+
+/** The startup's uploaded logo on a white tile, or name-initials when there is none. */
+export function CompanyLogo({
+  src,
+  name,
+  size = "md",
+  className,
+}: {
+  src: string | null | undefined;
+  name: string | null | undefined;
+  size?: keyof typeof LOGO_DIM;
+  className?: string;
+}) {
+  if (!src) {
+    const fallback = size === "xl" ? "lg" : size;
+    return (
+      <Avatar
+        name={name}
+        size={fallback}
+        className={cn(size === "xl" && "h-[72px] w-[72px] text-xl", className)}
+      />
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center overflow-hidden bg-white shadow-sm ring-1 ring-navy-100",
+        LOGO_DIM[size],
+        className,
+      )}
+    >
+      {/* Served by a session-checked route, so next/image's optimiser can't fetch it. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={name ? `${name} logo` : "Company logo"} className="h-full w-full object-contain" />
     </span>
   );
 }
@@ -401,7 +445,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-navy-200 bg-canvas/60 px-6 py-12 text-center">
-      <p className="text-sm font-semibold text-obsidian">{title}</p>
+      <p className="text-sm font-semibold text-tide">{title}</p>
       {message ? <p className="mt-1 max-w-sm text-xs text-navy-500">{message}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
@@ -413,7 +457,7 @@ export function FieldRow({ label, value, wide }: { label: string; value: React.R
   return (
     <div className={cn("rounded-2xl bg-canvas px-4 py-3", wide && "sm:col-span-2 lg:col-span-3")}>
       <p className="text-[11px] font-medium uppercase tracking-wide text-navy-400">{label}</p>
-      <div className="mt-1 text-sm font-semibold text-obsidian">{value || "—"}</div>
+      <div className="mt-1 text-sm font-semibold text-tide">{value || "—"}</div>
     </div>
   );
 }
@@ -430,7 +474,7 @@ export function ViewAll({ href, label = "View all" }: { href: string; label?: st
   return (
     <Link
       href={href}
-      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-navy-100 px-3 py-1 text-xs font-medium text-navy-600 transition hover:bg-navy-50 hover:text-obsidian"
+      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-navy-100 px-3 py-1 text-xs font-medium text-navy-600 transition hover:bg-navy-50 hover:text-tide"
     >
       {label}
       <ArrowUpRight className="h-3.5 w-3.5" />
@@ -439,4 +483,4 @@ export function ViewAll({ href, label = "View all" }: { href: string; label?: st
 }
 
 export const inputClass =
-  "w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-obsidian outline-none transition placeholder:text-navy-300 focus:border-iris focus:ring-4 focus:ring-iris/15";
+  "w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-tide outline-none transition placeholder:text-navy-300 focus:border-ocean-600 focus:ring-4 focus:ring-ocean-600/15";

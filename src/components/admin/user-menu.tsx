@@ -11,12 +11,15 @@ export function UserMenu({
   userEmail,
   settingsHref,
   links,
+  avatarSrc,
 }: {
   userName: string | null;
   userEmail: string | null;
   settingsHref?: string;
   /** Explicit menu links; overrides settingsHref. */
   links?: { href: string; label: string }[];
+  /** Optional image (e.g. a founder's company logo) shown instead of initials. */
+  avatarSrc?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const display = userName ?? userEmail ?? "User";
@@ -31,9 +34,16 @@ export function UserMenu({
         aria-expanded={open}
         className="flex h-10 items-center gap-2 rounded-full border border-navy-100 bg-white py-1 pl-1 pr-2.5 transition hover:bg-navy-50"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-950 text-[11px] font-semibold text-white">
-          {initials(display)}
-        </span>
+        {avatarSrc ? (
+          <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-white p-0.5 ring-1 ring-navy-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={avatarSrc} alt="" className="h-full w-full rounded-full object-contain" />
+          </span>
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ocean-600 text-[11px] font-semibold text-white">
+            {initials(display)}
+          </span>
+        )}
         <span className="hidden max-w-[140px] truncate text-sm font-medium text-navy-800 sm:block">
           {display}
         </span>

@@ -13,7 +13,7 @@ export default function FounderLoading() {
           <div key={i} className="h-36 rounded-[20px] bg-white ring-1 ring-navy-100/70" />
         ))}
       </div>
-      <div className="h-[420px] rounded-[24px] bg-obsidian/90" />
+      <div className="h-[420px] rounded-[24px] bg-ocean-100" />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="h-56 rounded-[20px] bg-white ring-1 ring-navy-100/70" />
         <div className="h-56 rounded-[20px] bg-white ring-1 ring-navy-100/70" />

@@ -1,7 +1,7 @@
 import { Handshake, CalendarClock, XCircle, PhoneForwarded } from "lucide-react";
 import { requireFounder } from "@/lib/auth";
 import { getOwnStartup, getOwnWeeklyReports } from "@/lib/data/founder";
-import { KpiCard, PageHeader, Card, CardBody, EmptyState, Note, type DeltaTone } from "@/components/founder/ui";
+import { KpiCard, PageHeader, Card, CardBody, EmptyState, Note, type ChipTone, type DeltaTone } from "@/components/founder/ui";
 import { Stagger, Item, Reveal } from "@/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
 import { formatDate } from "@/lib/utils";
@@ -14,6 +14,24 @@ function weekLabel(r: WeeklyReport): string {
   const end = r.week_end ? formatDate(r.week_end) : null;
   return end ? `${start} – ${end}` : start;
 }
+
+type ReportKind = "emailed" | "reconstructed";
+
+/** Emailed to the founder, or rebuilt later from pipeline data (quiet un-emailed weeks are filtered out upstream). */
+function reportKind(r: WeeklyReport): ReportKind {
+  return r.source === "backfill-recomputed" ? "reconstructed" : "emailed";
+}
+
+const KIND_CHIP: Record<ReportKind, { label: string; tone: ChipTone }> = {
+  emailed: { label: "Emailed", tone: "green" },
+  reconstructed: { label: "Reconstructed", tone: "teal" },
+};
+
+const KIND_NOTE: Record<ReportKind, string | undefined> = {
+  emailed: undefined,
+  reconstructed:
+    "Reconstructed from Sidana's pipeline activity for this week. No report email was sent at the time, and the figures reflect the pipeline as it stands today.",
+};
 
 function delta(cur: number, prev: number | undefined, upIsGood = true) {
   if (prev === undefined) return { text: "First report", tone: "neutral" as DeltaTone, arrow: "flat" as const };
@@ -39,6 +57,7 @@ export default async function WeeklyReportsPage() {
     title: `Week of ${formatDate(r.week_start)}`,
     subtitle: weekLabel(r),
     avatar: formatDate(r.week_start).slice(0, 2),
+    chip: KIND_CHIP[reportKind(r)],
     value: `${r.reached} reached`,
   }));
 
@@ -61,7 +80,9 @@ export default async function WeeklyReportsPage() {
           { title: "Investors who passed", items: (r.passed_list ?? []).filter(Boolean), empty: "No investor passed this week." },
           { title: "Feedback after meetings", items: (r.feedback_list ?? []).filter(Boolean), empty: "No post-meeting feedback this week." },
         ],
+        chip: KIND_CHIP[reportKind(r)],
         rows: r.sent_to ? [{ label: "Emailed to", value: r.sent_to }] : undefined,
+        note: KIND_NOTE[reportKind(r)],
       } satisfies DetailSpec,
     ]),
   );

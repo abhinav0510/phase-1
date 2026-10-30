@@ -8,7 +8,6 @@ export function cn(...inputs: ClassValue[]) {
 /** Format an INR amount given in CRORES (numeric cr) into a readable string. */
 export function formatCr(cr: number | null | undefined): string {
   if (cr === null || cr === undefined || Number.isNaN(cr)) return "—";
-  if (cr >= 100) return `₹${(cr / 100).toFixed(2)} Cr`.replace("Cr", "k Cr");
   return `₹${cr.toFixed(2)} Cr`;
 }
 

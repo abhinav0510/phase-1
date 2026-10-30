@@ -87,7 +87,7 @@ export function ProgressBar({
         initial={{ width: 0 }}
         animate={{ width: `${p}%` }}
         transition={{ duration: 0.9, ease: EASE, delay: 0.2 }}
-        className={barClassName ?? "h-full rounded-full bg-iris"}
+        className={barClassName ?? "h-full rounded-full bg-ocean-600"}
       />
     </div>
   );

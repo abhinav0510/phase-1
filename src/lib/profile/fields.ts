@@ -11,7 +11,7 @@ import type { Startup } from "@/lib/types/db";
 
 export type FieldType = "text" | "textarea" | "url" | "number" | "select" | "multi";
 
-export type SectionKey = "company" | "team" | "traction" | "round" | "preferences";
+export type SectionKey = "company" | "team" | "traction" | "financials" | "round" | "preferences";
 
 export interface ProfileField {
   key: string;
@@ -23,6 +23,10 @@ export interface ProfileField {
   help?: string;
   /** Used directly by the match engine (sector, stage, cheque size, geography…). */
   matching?: boolean;
+  /** Must be answered before the profile can be submitted for review. */
+  required?: boolean;
+  /** Sub-heading shown above this field in the form, starting a new group. */
+  heading?: string;
   record?: (s: Startup) => string | null;
 }
 
@@ -30,6 +34,7 @@ export const SECTIONS: { key: SectionKey; title: string; blurb: string }[] = [
   { key: "company", title: "Company", blurb: "What you build and who you build it for." },
   { key: "team", title: "Founders & team", blurb: "Who investors will be backing." },
   { key: "traction", title: "Stage & traction", blurb: "Where the business is today." },
+  { key: "financials", title: "Financials", blurb: "Yearly numbers only. Investors compare you on annual revenue (ARR), past results and projections." },
   { key: "round", title: "The round", blurb: "What you are raising and on what terms." },
   { key: "preferences", title: "Investor preferences", blurb: "Who you want us to prioritise or skip." },
 ];
@@ -97,6 +102,34 @@ const str = (v: unknown): string | null => {
 const num = (v: number | null | undefined): string | null =>
   v === null || v === undefined || Number.isNaN(v) ? null : String(v);
 
+/** Indian financial years run April to March. Returns the start year of the current one in IST. */
+function currentFyStart(now = new Date()): number {
+  const ist = new Date(now.getTime() + 5.5 * 3600 * 1000);
+  return ist.getUTCMonth() >= 3 ? ist.getUTCFullYear() : ist.getUTCFullYear() - 1;
+}
+
+const fyName = (start: number) => `FY ${start}-${String(start + 1).slice(2)}`;
+const fyKey = (start: number) => `${start}_${String(start + 1).slice(2)}`;
+
+export interface FinancialYear {
+  key: string;
+  label: string;
+}
+
+const FY_START = currentFyStart();
+
+/** The last three completed financial years, oldest first. */
+export const PAST_YEARS: FinancialYear[] = [3, 2, 1].map((back) => ({
+  key: `revenue_actual_fy${fyKey(FY_START - back)}`,
+  label: fyName(FY_START - back),
+}));
+
+/** The current financial year and the next two. */
+export const PROJECTED_YEARS: FinancialYear[] = [0, 1, 2].map((ahead) => ({
+  key: `revenue_projected_fy${fyKey(FY_START + ahead)}`,
+  label: fyName(FY_START + ahead),
+}));
+
 export const PROFILE_FIELDS: ProfileField[] = [
   // Company
   { key: "one_liner", label: "One-line pitch", type: "text", section: "company", placeholder: "e.g. AI hiring OS for mid-size Indian companies", help: "The first line investors read about you." },
@@ -117,11 +150,35 @@ export const PROFILE_FIELDS: ProfileField[] = [
 
   // Traction
   { key: "stage", label: "Stage", type: "select", section: "traction", options: STAGES, matching: true, record: (s) => str(s.stage) },
-  { key: "revenue_inr_l", label: "Revenue (₹ lakh)", type: "number", section: "traction", matching: true, placeholder: "e.g. 250", help: "Annualised. Enter 0 if pre-revenue.", record: (s) => num(s.revenue_inr_l) },
-  { key: "revenue_basis", label: "How that revenue is measured", type: "select", section: "traction", options: REVENUE_BASIS, matching: true },
-  { key: "burn_inr_l", label: "Monthly burn (₹ lakh)", type: "number", section: "traction", placeholder: "e.g. 12", record: (s) => num(s.burn_inr_l) },
-  { key: "runway_months", label: "Runway (months)", type: "number", section: "traction", placeholder: "e.g. 9", record: (s) => num(s.runway_months) },
   { key: "traction_highlights", label: "Key traction", type: "textarea", section: "traction", placeholder: "Customers, users, growth, retention, notable logos — the numbers you are proudest of." },
+
+  // Financials
+  { key: "revenue_inr_l", label: "Annual revenue – ARR (₹ lakh)", type: "number", section: "financials", matching: true, required: true, heading: "Current annual revenue", placeholder: "e.g. 250", help: "Enter the full-year figure, not a monthly number. If you bill monthly, multiply by 12. Enter 0 if pre-revenue.", record: (s) => num(s.revenue_inr_l) },
+  { key: "revenue_basis", label: "How that revenue is measured", type: "select", section: "financials", options: REVENUE_BASIS, matching: true },
+  { key: "burn_inr_l", label: "Monthly burn (₹ lakh)", type: "number", section: "financials", placeholder: "e.g. 12", record: (s) => num(s.burn_inr_l) },
+  { key: "runway_months", label: "Runway (months)", type: "number", section: "financials", placeholder: "e.g. 9", record: (s) => num(s.runway_months) },
+  ...PAST_YEARS.map((y, i): ProfileField => ({
+    key: y.key,
+    label: `${y.label} revenue (₹ lakh)`,
+    type: "number",
+    section: "financials",
+    heading: i === 0 ? "Previous years' records" : undefined,
+    placeholder: "e.g. 180",
+    help: i === 0 ? "Full-year actual revenue from your books. Enter 0 for a year with no revenue." : undefined,
+  })),
+  { key: "past_financials_note", label: "Notes on those years", type: "textarea", section: "financials", placeholder: "Net profit or loss each year, one-off items, and why revenue moved." },
+  { key: "financial_statements_link", label: "Link to your financial statements", type: "url", section: "financials", placeholder: "https://", help: "Audited accounts or P&L for those years, shared from Google Drive or similar." },
+  ...PROJECTED_YEARS.map((y, i): ProfileField => ({
+    key: y.key,
+    label: `${y.label} projected revenue (₹ lakh)`,
+    type: "number",
+    section: "financials",
+    heading: i === 0 ? "Projections" : undefined,
+    placeholder: "e.g. 400",
+    help: i === 0 ? "Your full-year forecast for the current year and the next two." : undefined,
+  })),
+  { key: "projection_basis", label: "What the projections assume", type: "textarea", section: "financials", placeholder: "Customers, pricing, new markets and hiring behind these numbers." },
+  { key: "financial_model_link", label: "Link to your financial model", type: "url", section: "financials", placeholder: "https://", help: "A spreadsheet or deck with the detail, if you have one." },
 
   // Round
   { key: "raise_amount", label: "Amount you are raising", type: "text", section: "round", matching: true, placeholder: "e.g. INR 5 Cr or US$1.5M", record: (s) => str(s.ask_as_written) },

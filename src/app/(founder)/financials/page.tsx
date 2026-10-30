@@ -1,12 +1,14 @@
-import { Target, Wallet, TrendingUp, Flame, PencilLine } from "lucide-react";
+import { Target, Wallet, TrendingUp, Flame, PencilLine, CheckCircle2, CircleAlert } from "lucide-react";
 import { requireFounder } from "@/lib/auth";
-import { getOwnStartup, getOwnFunding } from "@/lib/data/founder";
+import { getOwnStartup, getOwnFunding, getOwnProfile } from "@/lib/data/founder";
+import { PAST_YEARS, PROJECTED_YEARS, isFilled, type FinancialYear } from "@/lib/profile/fields";
 import {
   KpiCard,
   PageHeader,
   Card,
   CardHeader,
   CardBody,
+  Chip,
   FieldRow,
   Note,
   ButtonLink,
@@ -23,9 +25,37 @@ import { formatCr, formatLakh, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+const FINANCIALS_FORM = "/complete-profile#section-financials";
+
+function ChecklistItem({ done, title, detail }: { done: boolean; title: string; detail: string }) {
+  const Icon = done ? CheckCircle2 : CircleAlert;
+  return (
+    <li className="flex items-start gap-2.5 rounded-2xl bg-white/80 px-4 py-3">
+      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${done ? "text-leaf-600" : "text-amber-600"}`} />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-tide">{title}</p>
+        <p className="mt-0.5 text-xs text-tide/65">{detail}</p>
+      </div>
+    </li>
+  );
+}
+
 export default async function Financials() {
   const { startupId } = await requireFounder();
-  const [s, funding] = await Promise.all([getOwnStartup(startupId), getOwnFunding(startupId)]);
+  const [s, funding, profile] = await Promise.all([
+    getOwnStartup(startupId),
+    getOwnFunding(startupId),
+    getOwnProfile(startupId),
+  ]);
+  const answers = profile?.answers ?? {};
+  const filled = (years: FinancialYear[]) => years.filter((y) => isFilled(answers[y.key])).length;
+  const hasArr = isFilled(answers.revenue_inr_l) || isFilled(s?.revenue_inr_l);
+  const pastDone = filled(PAST_YEARS);
+  const projectedDone = filled(PROJECTED_YEARS);
+  const yearRows = [
+    ...PAST_YEARS.map((y) => ({ ...y, kind: "Actual" as const })),
+    ...PROJECTED_YEARS.map((y) => ({ ...y, kind: "Projected" as const })),
+  ];
   const runway = s?.runway_months ?? null;
   const runwayPct = runway ? Math.max(4, Math.min(100, Math.round((runway / 24) * 100))) : 0;
   const runwayTone = runway === null ? "neutral" : runway >= 12 ? "good" : runway >= 6 ? "neutral" : "bad";
@@ -37,11 +67,45 @@ export default async function Financials() {
         title="Financials"
         subtitle="The latest figures Sidana has on file for your raise."
         actions={
-          <ButtonLink href="/complete-profile#section-traction" variant="ghost">
+          <ButtonLink href={FINANCIALS_FORM} variant="ghost">
             <PencilLine className="h-4 w-4" /> Update via profile
           </ButtonLink>
         }
       />
+
+      <Reveal>
+        <div id="annual-numbers" className="rounded-[20px] bg-gradient-to-br from-ocean-100 via-ocean-50 to-leaf-100 p-5 ring-1 ring-ocean-200/60">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-2xl">
+              <h2 className="text-base font-semibold text-tide">Report your revenue annually, as ARR</h2>
+              <p className="mt-1 text-sm text-tide/70">
+                Always give the full-year figure, not a monthly one. If you bill monthly, multiply by 12. Investors also
+                expect your previous years&apos; records and your projections, so please add those too.
+              </p>
+            </div>
+            <ButtonLink href={FINANCIALS_FORM}>
+              <PencilLine className="h-4 w-4" /> Add your financials
+            </ButtonLink>
+          </div>
+          <ul className="mt-4 grid gap-3 md:grid-cols-3">
+            <ChecklistItem
+              done={hasArr}
+              title="Annual revenue (ARR)"
+              detail={hasArr ? "On file. Check it is the yearly figure." : "Required. Enter 0 if pre-revenue."}
+            />
+            <ChecklistItem
+              done={pastDone === PAST_YEARS.length}
+              title="Previous years' records"
+              detail={`${pastDone} of ${PAST_YEARS.length} added: ${PAST_YEARS[0].label} to ${PAST_YEARS[PAST_YEARS.length - 1].label}`}
+            />
+            <ChecklistItem
+              done={projectedDone === PROJECTED_YEARS.length}
+              title="Projections"
+              detail={`${projectedDone} of ${PROJECTED_YEARS.length} added: ${PROJECTED_YEARS[0].label} to ${PROJECTED_YEARS[PROJECTED_YEARS.length - 1].label}`}
+            />
+          </ul>
+        </div>
+      </Reveal>
 
       <Stagger className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <Item>
@@ -62,7 +126,7 @@ export default async function Financials() {
           />
         </Item>
         <Item>
-          <KpiCard label="Revenue" value={formatLakh(s?.revenue_inr_l)} icon={<TrendingUp className="h-4 w-4" />} hint={s?.revenue_note ? "See note below" : "Latest on record"} />
+          <KpiCard label="Annual revenue (ARR)" value={formatLakh(s?.revenue_inr_l)} icon={<TrendingUp className="h-4 w-4" />} hint={s?.revenue_note ? "See note below" : "Latest on record"} />
         </Item>
         <Item>
           <KpiCard
@@ -92,6 +156,45 @@ export default async function Financials() {
 
       <Reveal>
         <Card>
+          <CardHeader title="Revenue by year" subtitle="As you entered it, reviewed by the Sidana team" />
+          <CardBody className="p-0 pt-2">
+            {pastDone + projectedDone === 0 ? (
+              <div className="p-5">
+                <EmptyState
+                  title="No yearly numbers added yet"
+                  message="Add your previous years' revenue and your projections, and they will appear here."
+                />
+              </div>
+            ) : (
+              <Table>
+                <THead>
+                  <tr>
+                    <TH>Financial year</TH>
+                    <TH>Type</TH>
+                    <TH>Revenue</TH>
+                  </tr>
+                </THead>
+                <TBody>
+                  {yearRows.map((y) => (
+                    <TR key={y.key}>
+                      <TD className="font-semibold text-tide">{y.label}</TD>
+                      <TD>
+                        <Chip tone={y.kind === "Actual" ? "green" : "blue"}>{y.kind}</Chip>
+                      </TD>
+                      <TD className="text-navy-700">
+                        {isFilled(answers[y.key]) ? formatLakh(Number(answers[y.key])) : "Not added"}
+                      </TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            )}
+          </CardBody>
+        </Card>
+      </Reveal>
+
+      <Reveal>
+        <Card>
           <CardHeader title="Funding rounds" subtitle="Closed rounds on record" />
           <CardBody className="p-0 pt-2">
             {funding.length === 0 ? (
@@ -111,7 +214,7 @@ export default async function Financials() {
                 <TBody>
                   {funding.map((f: any) => (
                     <TR key={f.id}>
-                      <TD className="font-semibold text-obsidian">{f.round_name ?? f.instrument ?? "Round"}</TD>
+                      <TD className="font-semibold text-tide">{f.round_name ?? f.instrument ?? "Round"}</TD>
                       <TD className="text-navy-700">{f.as_written ?? formatCr(f.amount)}</TD>
                       <TD className="text-navy-500">{f.lead_investor_name ?? "—"}</TD>
                       <TD className="text-navy-500">{formatDate(f.closed_on)}</TD>
@@ -125,7 +228,7 @@ export default async function Financials() {
       </Reveal>
 
       <Note>
-        Figures shown are the latest on record with Sidana. To update revenue, burn, runway or your round, use{" "}
+        Figures shown are the latest on record with Sidana. To update your annual revenue, burn, runway or your round, use{" "}
         <strong>Update via profile</strong>. The Sidana team reviews every update before it is used for matching.
       </Note>
     </div>

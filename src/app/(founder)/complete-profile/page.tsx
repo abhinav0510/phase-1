@@ -39,28 +39,28 @@ export default async function CompleteProfilePage() {
 
       <Reveal>
         <Card className="overflow-hidden">
-          <div className="relative bg-gradient-to-br from-iris to-iris-deep px-6 py-6 text-white">
-            <div className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-white/10 blur-2xl" aria-hidden="true" />
+          <div className="relative bg-gradient-to-br from-ocean-100 via-ocean-50 to-leaf-100 px-6 py-6 text-tide">
+            <div className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-white/60 blur-2xl" aria-hidden="true" />
             <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div className="max-w-2xl">
-                <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70">
+                <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ocean-700">
                   <Sparkles className="h-3.5 w-3.5" />
                   Fields marked “Used for matching” matter most
                 </p>
                 <h2 className="mt-2 text-xl font-semibold">The more we have, the sharper your matches</h2>
-                <p className="mt-1.5 text-sm text-white/75">
+                <p className="mt-1.5 text-sm text-tide/70">
                   A complete profile gives investors the full picture and strengthens every introduction Sidana makes.
                 </p>
               </div>
               <div className="shrink-0 md:w-56 md:text-right">
                 <p className="text-4xl font-bold leading-none">{progress.pct}%</p>
-                <p className="mt-1 text-xs text-white/70">
+                <p className="mt-1 text-xs text-tide/60">
                   {progress.done} of {progress.total} details complete
                 </p>
                 <ProgressBar
                   pct={progress.pct}
-                  className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/20"
-                  barClassName="h-full rounded-full bg-white"
+                  className="mt-3 h-2 w-full overflow-hidden rounded-full bg-white/70"
+                  barClassName="h-full rounded-full bg-gradient-to-r from-ocean-500 to-leaf-500"
                 />
               </div>
             </div>

@@ -4,7 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { requireFounder } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { startupTag } from "@/lib/cache-tags";
-import { PROFILE_FIELDS, type Answers } from "@/lib/profile/fields";
+import { PROFILE_FIELDS, isFilled, type Answers } from "@/lib/profile/fields";
 
 export type ProfileSaveResult = { ok: true } | { ok: false; error: string };
 
@@ -15,7 +15,7 @@ const MAX = { text: 200, url: 300, number: 12, textarea: 2000 } as const;
  * listed options and multis a subset of them. Anything else is dropped, so the
  * stored JSON can only ever contain the keys defined in fields.ts.
  */
-function clean(raw: unknown): { answers: Answers } | { error: string } {
+function clean(raw: unknown, submit: boolean): { answers: Answers } | { error: string } {
   const src = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const out: Answers = {};
   for (const f of PROFILE_FIELDS) {
@@ -51,6 +51,10 @@ function clean(raw: unknown): { answers: Answers } | { error: string } {
       out[f.key] = s;
     }
   }
+  if (submit) {
+    const missing = PROFILE_FIELDS.find((f) => f.required && !isFilled(out[f.key]));
+    if (missing) return { error: `Please fill in “${missing.label}” before submitting.` };
+  }
   return { answers: out };
 }
 
@@ -61,7 +65,7 @@ function clean(raw: unknown): { answers: Answers } | { error: string } {
  */
 export async function saveProfile(raw: unknown, submit: boolean): Promise<ProfileSaveResult> {
   const session = await requireFounder();
-  const parsed = clean(raw);
+  const parsed = clean(raw, submit);
   if ("error" in parsed) return { ok: false, error: parsed.error };
 
   const now = new Date().toISOString();
@@ -90,5 +94,6 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
   revalidateTag(startupTag(session.startupId));
   revalidatePath("/complete-profile");
   revalidatePath("/dashboard");
+  revalidatePath("/financials");
   return { ok: true };
 }

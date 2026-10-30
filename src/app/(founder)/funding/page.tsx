@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardBody,
   EmptyState,
-  Avatar,
   Note,
   MATCH_STATE_TONE,
   label,
@@ -16,6 +15,8 @@ import {
 } from "@/components/founder/ui";
 import { Stagger, Item, Reveal } from "@/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
+import { PassedList, type PassedItem } from "@/components/founder/passed-list";
+import { profileView } from "@/components/founder/investor-format";
 import { TYPE_LABEL } from "../dashboard/_components/model";
 import { formatDate } from "@/lib/utils";
 
@@ -43,6 +44,10 @@ function replyLabel(kind: string | null): string {
   return "Their reply";
 }
 
+function typeLabelOf(type: string | null | undefined): string | null {
+  return type ? (TYPE_LABEL[type] ?? label(type)) : null;
+}
+
 export default async function FounderFunding() {
   const { startupId } = await requireFounder();
   const [matches, replies] = await Promise.all([getOwnMatches(startupId), getOwnReplies(startupId)]);
@@ -66,6 +71,13 @@ export default async function FounderFunding() {
   const passed = Array.from(passedByInvestor.values()).filter((r) =>
     visibleInvestorIds.has(r.investor_id),
   );
+  const passedItems: PassedItem[] = passed.map((r) => ({
+    key: String(r.investor_id),
+    name: r.investor_name ?? "Investor",
+    date: formatDate(r.sent_at),
+    reason: r.reply_gist ?? "No reason recorded.",
+    profile: profileView(r.investor, typeLabelOf(r.investor?.type)),
+  }));
 
   const items: ListItem[] = matches.map((m) => {
     const invId = m.investor?.id;
@@ -88,6 +100,7 @@ export default async function FounderFunding() {
       const invId = m.investor?.id;
       const reply = invId != null ? latestByInvestor.get(invId) : undefined;
       const didPass = invId != null && passedByInvestor.has(invId);
+      const prof = profileView(m.investor, typeLabelOf(m.investor?.type));
       return [
         String(m.id),
         {
@@ -95,14 +108,20 @@ export default async function FounderFunding() {
           heading: m.investor?.name ?? "Investor",
           chip: didPass
             ? { label: "Passed", tone: "red" }
-            : { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: "iris" },
+            : { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: "ocean" },
           aside: m.score != null ? { label: "Match score", value: String(m.score) } : undefined,
           stats: [
+            { label: "Cheque size", value: prof.cheque },
+            { label: "Geography", value: prof.geography ?? "—" },
             { label: "Stage fit", value: m.stage_fit === null ? "—" : m.stage_fit ? "Yes" : "No" },
             { label: "Cheque fit", value: m.cheque_fit === null ? "—" : m.cheque_fit ? "Yes" : "No" },
             { label: "Match type", value: m.type ? label(m.type) : "—" },
           ],
           quote: reply?.reply_gist ? { label: replyLabel(reply.reply_kind), text: reply.reply_gist } : undefined,
+          tags: [
+            { label: "Sectors they invest in", items: prof.sectors },
+            { label: "Stages they back", items: prof.stages },
+          ],
           rows: [
             { label: "Matched on", value: formatDate(m.created_at) },
             { label: reply ? "Last reply" : "Priority", value: reply ? formatDate(reply.sent_at) : m.priority != null ? `#${m.priority}` : "—" },
@@ -170,7 +189,7 @@ export default async function FounderFunding() {
             title="Passed"
             subtitle={
               passed.length
-                ? `${passed.length} investor${passed.length === 1 ? "" : "s"} passed — here's the reason each gave`
+                ? `${passed.length} investor${passed.length === 1 ? "" : "s"} passed — click one to see their profile`
                 : "Investors who passed and the reason they gave will appear here"
             }
           />
@@ -183,22 +202,7 @@ export default async function FounderFunding() {
                 />
               </div>
             ) : (
-              <ul className="space-y-1">
-                {passed.map((r) => (
-                  <li key={r.investor_id} className="flex items-start gap-3 rounded-2xl px-3 py-3 transition hover:bg-canvas">
-                    <Avatar name={r.investor_name} size="sm" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-obsidian">{r.investor_name ?? "Investor"}</p>
-                        <span className="shrink-0 text-xs text-navy-400">{formatDate(r.sent_at)}</span>
-                      </div>
-                      <p className="mt-0.5 text-sm leading-relaxed text-navy-600">
-                        {r.reply_gist ?? "No reason recorded."}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <PassedList items={passedItems} />
             )}
           </CardBody>
         </Card>

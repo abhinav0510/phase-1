@@ -4,6 +4,7 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { FOUNDER_TTL_SECONDS, startupTag } from "@/lib/cache-tags";
+import { toFounderMeetings } from "@/lib/meetings";
 import type {
   Match,
   Meeting,
@@ -31,6 +32,19 @@ import type {
  *     out-of-band (n8n sync, the match engine) simply refreshes within the TTL.
  */
 
+/**
+ * The investor fields a founder may see. Deliberately excludes every contact
+ * channel (email, cc_email, linkedin_url, contact_person) and internal desk
+ * fields (status, do_not_contact, suppressed, notes, source) — only these
+ * columns are ever selected for founder reads, so nothing else reaches the client.
+ */
+export type InvestorProfile = Pick<
+  Investor,
+  "id" | "name" | "type" | "sectors" | "stage_pref" | "cheque_min_cr" | "cheque_max_cr" | "cheque_as_written" | "geography"
+>;
+
+const INVESTOR_PROFILE_COLS = "id,name,type,sectors,stage_pref,cheque_min_cr,cheque_max_cr,cheque_as_written,geography";
+
 function founderCache<T>(name: string, startupId: number, fn: () => Promise<T>): Promise<T> {
   return unstable_cache(fn, [name, String(startupId)], {
     revalidate: FOUNDER_TTL_SECONDS,
@@ -49,12 +63,12 @@ export const getOwnStartup = cache((startupId: number): Promise<Startup | null> 
 export const getOwnMatches = cache(
   (
     startupId: number,
-  ): Promise<(Match & { investor: Pick<Investor, "id" | "name" | "type" | "status"> | null })[]> =>
-    founderCache("getOwnMatches", startupId, async () => {
+  ): Promise<(Match & { investor: InvestorProfile | null })[]> =>
+    founderCache("getOwnMatches.v2", startupId, async () => {
       const admin = createAdminClient();
       const { data } = await admin
         .from("matches")
-        .select("*, investor:investors(id,name,type,status)")
+        .select(`*, investor:investors(${INVESTOR_PROFILE_COLS})`)
         .eq("startup_id", startupId)
         .order("priority", { ascending: true, nullsFirst: false })
         .limit(200);
@@ -65,15 +79,25 @@ export const getOwnMatches = cache(
 );
 
 export const getOwnMeetings = cache((startupId: number): Promise<Meeting[]> =>
-  founderCache("getOwnMeetings", startupId, async () => {
+  founderCache("getOwnMeetings.v2", startupId, async () => {
     const admin = createAdminClient();
-    const { data } = await admin
-      .from("meetings")
-      .select("*")
-      .eq("startup_id", startupId)
-      .order("scheduled_at", { ascending: false, nullsFirst: false })
-      .limit(100);
-    return (data ?? []) as Meeting[];
+    const [{ data }, { data: startup }] = await Promise.all([
+      admin
+        .from("meetings")
+        .select("*")
+        .eq("startup_id", startupId)
+        .order("scheduled_at", { ascending: false, nullsFirst: false })
+        .limit(300),
+      admin.from("startups").select("name").eq("id", startupId).maybeSingle(),
+    ]);
+    const rows = (data ?? []) as Meeting[];
+    const ids = [...new Set(rows.map((m) => m.investor_id).filter((id): id is number => id != null))];
+    const investorNames = new Map<number, string>();
+    if (ids.length) {
+      const { data: inv } = await admin.from("investors").select("id,name").in("id", ids);
+      for (const i of (inv ?? []) as { id: number; name: string }[]) investorNames.set(i.id, i.name);
+    }
+    return toFounderMeetings(rows, startup?.name, investorNames);
   }),
 );
 
@@ -126,7 +150,7 @@ export const getOwnDocs = cache((startupId: number): Promise<any[]> =>
  * before the first report lands.
  */
 export const getOwnWeeklyReports = cache((startupId: number): Promise<WeeklyReport[]> =>
-  founderCache("getOwnWeeklyReports", startupId, async () => {
+  founderCache("getOwnWeeklyReports.v2", startupId, async () => {
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("weekly_reports")
@@ -136,7 +160,13 @@ export const getOwnWeeklyReports = cache((startupId: number): Promise<WeeklyRepo
       .limit(52);
     // Table may not exist yet (migration pending) — treat as "no reports".
     if (error) return [];
-    return (data ?? []) as WeeklyReport[];
+    // Hide quiet weeks the Saturday run saved without emailing the founder.
+    // Keep emailed weeks and the history rebuilt by the backfill.
+    return ((data ?? []) as WeeklyReport[]).filter(
+      (r) =>
+        r.source === "backfill-recomputed" ||
+        (!!r.sent_to && r.source !== "weekly-dashboard-only" && r.source !== "backfill-dashboard-only"),
+    );
   }),
 );
 
@@ -184,9 +214,23 @@ export const getOwnDeck = cache((startupId: number): Promise<StartupDeck | null>
  * interest, meeting asks. Scoped strictly by the verified startupId; investor
  * names are resolved from public.investors. Returns [] if the table is absent.
  */
+const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+const LINKEDIN_RE = /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/\S*/gi;
+const PHONE_RE = /(?<![\w@])(?:\+\d{1,3}[\s-]?)?(?:\(?\d\)?[\s.-]?){9,13}\d(?!\w)/g;
+
+/** Reply gists are investor mail; strip any email, phone or LinkedIn link before a founder sees them. */
+function redactContacts(text: string | null): string | null {
+  if (!text) return text;
+  return text
+    .replace(EMAIL_RE, "[email hidden]")
+    .replace(LINKEDIN_RE, "[profile link hidden]")
+    .replace(PHONE_RE, (m) => (m.replace(/\D/g, "").length >= 10 ? "[phone hidden]" : m));
+}
+
 export interface MailReply {
   investor_id: number;
   investor_name: string | null;
+  investor: InvestorProfile | null;
   sent_at: string | null;
   reply_kind: string | null; // 'pass' | 'interested' | 'invite' | 'other'
   reply_gist: string | null;
@@ -194,7 +238,7 @@ export interface MailReply {
 }
 
 export const getOwnReplies = cache((startupId: number): Promise<MailReply[]> =>
-  founderCache("getOwnReplies", startupId, async () => {
+  founderCache("getOwnReplies.v3", startupId, async () => {
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("mail_log")
@@ -213,21 +257,49 @@ export const getOwnReplies = cache((startupId: number): Promise<MailReply[]> =>
       subject: string | null;
     }[];
     const ids = Array.from(new Set(rows.map((r) => r.investor_id).filter(Boolean)));
-    const names = new Map<number, string | null>();
+    const profiles = new Map<number, InvestorProfile>();
     if (ids.length) {
-      const { data: inv } = await admin.from("investors").select("id,name").in("id", ids);
-      for (const i of (inv ?? []) as { id: number; name: string | null }[]) names.set(i.id, i.name);
+      const { data: inv } = await admin.from("investors").select(INVESTOR_PROFILE_COLS).in("id", ids);
+      for (const i of (inv ?? []) as unknown as InvestorProfile[]) profiles.set(i.id, i);
     }
     return rows.map((r) => ({
       investor_id: r.investor_id,
-      investor_name: names.get(r.investor_id) ?? null,
+      investor_name: profiles.get(r.investor_id)?.name ?? null,
+      investor: profiles.get(r.investor_id) ?? null,
       sent_at: r.sent_at,
       reply_kind: r.reply_kind,
-      reply_gist: r.reply_gist,
-      subject: r.subject,
+      reply_gist: redactContacts(r.reply_gist),
+      subject: redactContacts(r.subject),
     }));
   }),
 );
+
+/** The founder's uploaded company logo (MIGRATIONS/startup-branding.sql), or null. */
+export interface StartupBranding {
+  logo_path: string | null;
+  logo_content_type: string | null;
+  updated_at: string | null;
+}
+
+export const getOwnBranding = cache((startupId: number): Promise<StartupBranding | null> =>
+  founderCache("getOwnBranding", startupId, async () => {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("startup_branding")
+      .select("logo_path, logo_content_type, updated_at")
+      .eq("startup_id", startupId)
+      .maybeSingle();
+    // Table not created yet → behave as "no logo".
+    if (error || !data) return null;
+    return data as StartupBranding;
+  }),
+);
+
+/** Versioned URL for the founder's own logo; the version busts the browser cache on change. */
+export function logoUrlFor(b: StartupBranding | null): string | null {
+  if (!b?.logo_path) return null;
+  return `/api/founder/logo?v=${encodeURIComponent(b.updated_at ?? b.logo_path)}`;
+}
 
 export interface FounderOverview {
   startup: Startup | null;
@@ -262,10 +334,10 @@ export function computeProfileCompletion(s: Startup | null): number {
 }
 
 export const getFounderOverview = cache((startupId: number): Promise<FounderOverview> =>
-  founderCache("getFounderOverview", startupId, async () => {
+  founderCache("getFounderOverview.v2", startupId, async () => {
     const admin = createAdminClient();
-    const nowIso = new Date().toISOString();
-    const [startupRes, matchCount, matchSent, meetingsUpcoming, meetingsHeld] = await Promise.all([
+    const now = Date.now();
+    const [startupRes, matchCount, matchSent, meetings] = await Promise.all([
       admin.from("startups").select("*").eq("id", startupId).maybeSingle(),
       admin
         .from("matches")
@@ -278,18 +350,8 @@ export const getFounderOverview = cache((startupId: number): Promise<FounderOver
         .select("*", { count: "exact", head: true })
         .eq("startup_id", startupId)
         .eq("state", "sent"),
-      admin
-        .from("meetings")
-        .select("*", { count: "exact", head: true })
-        .eq("startup_id", startupId)
-        .gte("scheduled_at", nowIso)
-        // `held` is NULL for un-flagged meetings; exclude only held=true.
-        .not("held", "is", true),
-      admin
-        .from("meetings")
-        .select("*", { count: "exact", head: true })
-        .eq("startup_id", startupId)
-        .eq("held", true),
+      // Same de-duplicated, investor-only list the Meetings page shows.
+      getOwnMeetings(startupId),
     ]);
 
     const startup = (startupRes.data as Startup | null) ?? null;
@@ -297,8 +359,8 @@ export const getFounderOverview = cache((startupId: number): Promise<FounderOver
       startup,
       matchCount: matchCount.count ?? 0,
       matchSent: matchSent.count ?? 0,
-      meetingsUpcoming: meetingsUpcoming.count ?? 0,
-      meetingsHeld: meetingsHeld.count ?? 0,
+      meetingsUpcoming: meetings.filter((m) => !!m.scheduled_at && Date.parse(m.scheduled_at) >= now && !m.held).length,
+      meetingsHeld: meetings.filter((m) => m.held).length,
       profileCompletion: computeProfileCompletion(startup),
     };
   }),

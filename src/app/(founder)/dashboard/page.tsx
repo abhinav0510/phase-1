@@ -1,9 +1,11 @@
+import Link from "next/link";
 import {
   ArrowRight,
   CalendarClock,
   CheckCircle2,
   FileBarChart,
   Handshake,
+  ImagePlus,
   Target,
   Wallet,
 } from "lucide-react";
@@ -18,6 +20,7 @@ import {
   EmptyState,
   ViewAll,
   Avatar,
+  CompanyLogo,
   STARTUP_STATUS_TONE,
   label,
 } from "@/components/founder/ui";
@@ -30,6 +33,8 @@ import {
   getOwnMatches,
   getOwnProfile,
   getOwnWeeklyReports,
+  getOwnBranding,
+  logoUrlFor,
 } from "@/lib/data/founder";
 import { profileProgress } from "@/lib/profile/fields";
 import { ProfileNudge } from "./_components/profile-nudge";
@@ -69,14 +74,16 @@ const STAGE_BLURB: Record<string, string> = {
 
 export default async function FounderDashboard() {
   const { startupId } = await requireFounder();
-  const [overview, meetings, matches, weeklyReports, profile] = await Promise.all([
+  const [overview, meetings, matches, weeklyReports, profile, branding] = await Promise.all([
     getFounderOverview(startupId),
     getOwnMeetings(startupId),
     getOwnMatches(startupId),
     getOwnWeeklyReports(startupId),
     getOwnProfile(startupId),
+    getOwnBranding(startupId),
   ]);
   const s = overview.startup;
+  const logoUrl = logoUrlFor(branding);
   const progress = profileProgress(s, profile?.answers ?? null);
   const now = new Date();
   const latestReport = weeklyReports[0] ?? null;
@@ -131,15 +138,29 @@ export default async function FounderDashboard() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-4 pt-1">
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-iris">{todayLabel}</p>
-          <h1 className="mt-1 text-[26px] font-bold leading-tight tracking-tight text-obsidian md:text-[30px]">
-            Welcome back, {s?.name ?? "founder"}
-          </h1>
-          <p className="mt-1 text-sm text-navy-500">
-            Here&apos;s where your raise stands today
-            {s?.sector || s?.stage ? <> · {[s?.sector, s?.stage].filter(Boolean).join(" · ")}</> : null}.
-          </p>
+        <div className="flex min-w-0 items-center gap-4">
+          {logoUrl ? (
+            <CompanyLogo src={logoUrl} name={s?.name} size="xl" />
+          ) : (
+            <Link
+              href="/profile#logo"
+              title="Add your company logo"
+              className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-navy-200 bg-white text-navy-400 transition hover:border-ocean-600 hover:bg-ocean-50 hover:text-ocean-600"
+            >
+              <ImagePlus className="h-5 w-5" />
+              <span className="text-[10px] font-semibold">Add logo</span>
+            </Link>
+          )}
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ocean-600">{todayLabel}</p>
+            <h1 className="mt-1 text-[26px] font-bold leading-tight tracking-tight text-tide md:text-[30px]">
+              Welcome back, {s?.name ?? "founder"}
+            </h1>
+            <p className="mt-1 text-sm text-navy-500">
+              Here&apos;s where your raise stands today
+              {s?.sector || s?.stage ? <> · {[s?.sector, s?.stage].filter(Boolean).join(" · ")}</> : null}.
+            </p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {s?.status ? <Chip tone={STARTUP_STATUS_TONE[s.status] ?? "neutral"}>{label(s.status)}</Chip> : null}
@@ -189,7 +210,7 @@ export default async function FounderDashboard() {
               <div className="flex items-center gap-3">
                 <Ring pct={reachedPct} color={SERIES.navy} size={44} />
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-100">
-                  <ProgressBar pct={reachedPct} className="h-1.5 w-full" barClassName="h-full rounded-full bg-iris" />
+                  <ProgressBar pct={reachedPct} className="h-1.5 w-full" barClassName="h-full rounded-full bg-ocean-600" />
                 </div>
               </div>
             }
@@ -204,12 +225,12 @@ export default async function FounderDashboard() {
             delta={{ text: `${overview.meetingsUpcoming} upcoming`, tone: overview.meetingsUpcoming ? "good" : "neutral", arrow: overview.meetingsUpcoming ? "up" : "flat", hint: `${overview.meetingsHeld} held` }}
             visual={
               upcoming[0] ? (
-                <p className="truncate text-xs text-white/60">
-                  Next: <span className="font-semibold text-white">{upcoming[0].investor_name ?? "Investor"}</span>{" "}
+                <p className="truncate text-xs text-tide/60">
+                  Next: <span className="font-semibold text-tide">{upcoming[0].investor_name ?? "Investor"}</span>{" "}
                   · {relativeTime(new Date(upcoming[0].scheduled_at!), now)}
                 </p>
               ) : (
-                <p className="text-xs text-white/50">No meeting on the calendar yet.</p>
+                <p className="text-xs text-tide/55">No meeting on the calendar yet.</p>
               )
             }
           />
@@ -242,7 +263,7 @@ export default async function FounderDashboard() {
                       <li key={sl.key} className="flex items-center gap-2 text-sm">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: sl.color }} />
                         <span className="flex-1 text-navy-700">{sl.label}</span>
-                        <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-obsidian">
+                        <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-tide">
                           {sl.value}
                           <span className="font-normal text-navy-400">
                             {" "}
@@ -289,7 +310,7 @@ export default async function FounderDashboard() {
                     const d = new Date(m.scheduled_at!);
                     return (
                       <li key={m.id} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-canvas">
-                        <div className="w-14 shrink-0 text-xs font-semibold text-obsidian">
+                        <div className="w-14 shrink-0 text-xs font-semibold text-tide">
                           {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                           <div className="text-[10px] font-normal text-navy-400">
                             {d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
@@ -297,7 +318,7 @@ export default async function FounderDashboard() {
                         </div>
                         <Avatar name={m.investor_name} size="sm" />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-obsidian">{m.investor_name ?? "Investor"}</p>
+                          <p className="truncate text-sm font-semibold text-tide">{m.investor_name ?? "Investor"}</p>
                           <p className="text-[11px] text-navy-400">
                             {m.is_second ? "Second meeting" : "Investor meeting"}
                             {m.source ? ` · ${m.source}` : ""}
@@ -332,7 +353,7 @@ export default async function FounderDashboard() {
                           <meta.Icon className="h-4 w-4" />
                         </IconDisc>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-obsidian">{e.detail}</p>
+                          <p className="truncate text-sm font-semibold text-tide">{e.detail}</p>
                           <p className="truncate text-xs text-navy-500">{e.title}</p>
                           <p className="mt-0.5 text-[11px] text-navy-400">{relativeTime(e.at, now)}</p>
                         </div>
@@ -378,7 +399,7 @@ export default async function FounderDashboard() {
             <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/financials" />} />
             <CardBody className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <Metric label="Revenue" value={formatLakh(s?.revenue_inr_l)} />
+                <Metric label="Annual revenue (ARR)" value={formatLakh(s?.revenue_inr_l)} />
                 <Metric label="Burn" value={formatLakh(s?.burn_inr_l)} />
                 <Metric label="Score" value={s?.score?.toString() ?? "—"} />
                 <Metric label="Rule tier" value={s?.rule_tier ?? "—"} />
@@ -386,16 +407,16 @@ export default async function FounderDashboard() {
               <div>
                 <div className="flex items-baseline justify-between">
                   <p className="text-xs text-navy-400">Runway</p>
-                  <p className="text-sm font-semibold text-obsidian">
+                  <p className="text-sm font-semibold text-tide">
                     {s?.runway_months ? `${s.runway_months} months` : "—"}
                   </p>
                 </div>
                 <RunwayMeter months={s?.runway_months ?? null} />
               </div>
-              <div className="flex items-center gap-3 rounded-2xl bg-obsidian px-4 py-3 text-white">
-                <Avatar name={s?.owner_name ?? "Sidana"} size="sm" tone="white" />
+              <div className="flex items-center gap-3 rounded-2xl bg-leaf-50 px-4 py-3 text-tide ring-1 ring-leaf-100">
+                <Avatar name={s?.owner_name ?? "Sidana"} size="sm" />
                 <div className="min-w-0">
-                  <p className="text-[11px] text-white/60">Your Sidana contact</p>
+                  <p className="text-[11px] text-tide/55">Your Sidana contact</p>
                   <p className="truncate text-sm font-semibold">{s?.owner_name ?? "Sidana deal desk"}</p>
                 </div>
               </div>
@@ -422,7 +443,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-canvas px-3 py-2.5">
       <p className="text-[11px] text-navy-400">{label}</p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-obsidian">{value}</p>
+      <p className="mt-0.5 truncate text-sm font-semibold text-tide">{value}</p>
     </div>
   );
 }
@@ -430,7 +451,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function Mini({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <p className="text-lg font-bold leading-tight text-obsidian">{value}</p>
+      <p className="text-lg font-bold leading-tight text-tide">{value}</p>
       <p className="text-[10px] text-navy-400">{label}</p>
     </div>
   );

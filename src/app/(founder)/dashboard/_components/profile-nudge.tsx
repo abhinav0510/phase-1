@@ -33,14 +33,14 @@ export function ProfileNudge({
   const matchingGaps = missing.filter((m) => m.matching).length;
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-iris to-iris-deep text-white shadow-lg shadow-iris/30">
+    <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-ocean-100 via-ocean-50 to-leaf-100 text-tide ring-1 ring-ocean-200/60">
       <div
-        className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-white/10 blur-2xl"
+        className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-white/60 blur-2xl"
         aria-hidden="true"
       />
       <div className="relative flex flex-col gap-5 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6">
         <div className="min-w-0 max-w-2xl">
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ocean-700">
             <Sparkles className="h-3.5 w-3.5" />
             {status === "changes_requested" ? "Changes requested" : "Complete your profile for the best matches"}
           </p>
@@ -49,7 +49,7 @@ export function ProfileNudge({
               ? "The Sidana team asked for a few updates"
               : `Your profile is ${pct}% complete`}
           </h3>
-          <p className="mt-1 text-sm text-white/75">
+          <p className="mt-1 text-sm text-tide/70">
             {status === "changes_requested" && reviewNote
               ? `“${reviewNote}”`
               : matchingGaps > 0
@@ -59,11 +59,11 @@ export function ProfileNudge({
           {shown.length ? (
             <ul className="mt-3 flex flex-wrap gap-2">
               {shown.map((m) => (
-                <li key={m.label} className="rounded-full bg-white/15 px-2.5 py-1 text-xs text-white">
+                <li key={m.label} className="rounded-full bg-white/80 px-2.5 py-1 text-xs text-tide">
                   {m.label}
                 </li>
               ))}
-              {more > 0 ? <li className="rounded-full px-1 py-1 text-xs text-white/60">+{more} more</li> : null}
+              {more > 0 ? <li className="rounded-full px-1 py-1 text-xs text-tide/55">+{more} more</li> : null}
             </ul>
           ) : null}
         </div>
@@ -71,14 +71,14 @@ export function ProfileNudge({
           <div className="flex w-48 items-center gap-2">
             <ProgressBar
               pct={pct}
-              className="h-2 flex-1 overflow-hidden rounded-full bg-white/20"
-              barClassName="h-full rounded-full bg-white"
+              className="h-2 flex-1 overflow-hidden rounded-full bg-white/70"
+              barClassName="h-full rounded-full bg-gradient-to-r from-ocean-500 to-leaf-500"
             />
-            <span className="text-xs tabular-nums text-white/80">{pct}%</span>
+            <span className="text-xs tabular-nums text-tide/70">{pct}%</span>
           </div>
           <Link
             href="/complete-profile"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-obsidian shadow transition hover:bg-white/90 active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-full bg-ocean-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-ocean-600/30 transition hover:bg-ocean-700 active:scale-[0.98]"
           >
             {status === "changes_requested" ? "Update profile" : "Complete profile"}
             <ArrowRight className="h-4 w-4" />
