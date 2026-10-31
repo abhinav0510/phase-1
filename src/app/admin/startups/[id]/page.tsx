@@ -12,6 +12,7 @@ import {
   TD,
   EmptyState,
 } from "@/components/admin/ui/table";
+import { requireAdmin } from "@/lib/auth";
 import { getStartupDetail } from "@/lib/data/admin";
 import { JoinLink } from "@/components/ui/join-link";
 import { formatCr, formatLakh, formatDate, formatDateTime } from "@/lib/utils";
@@ -23,6 +24,7 @@ export default async function StartupDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdmin();
   const { id } = await params;
   const startupId = Number(id);
   if (!Number.isInteger(startupId)) notFound();

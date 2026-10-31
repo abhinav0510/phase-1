@@ -8,6 +8,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Protects this layout only. Next.js renders a page alongside its layout, so every
+  // admin page must call requireAdmin() itself before it loads any data.
   const session = await requireAdmin();
   const announcements = await getAnnouncementsForUser(session.authId, "team");
   return (

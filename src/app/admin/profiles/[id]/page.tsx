@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { requireAdmin } from "@/lib/auth";
 import { getProfileForReview } from "@/lib/data/admin";
 import {
   PROFILE_FIELDS,
@@ -23,6 +24,7 @@ export default async function AdminProfileReview({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdmin();
   const { id } = await params;
   const startupId = Number(id);
   if (!Number.isInteger(startupId) || startupId <= 0) notFound();

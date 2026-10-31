@@ -24,6 +24,7 @@ import {
   TD,
   EmptyState,
 } from "@/components/admin/ui/table";
+import { requireAdmin } from "@/lib/auth";
 import {
   getAdminKpis,
   getStartupStatusDistribution,
@@ -37,6 +38,7 @@ import { formatDate, formatDateTime } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
+  await requireAdmin();
   const [kpis, statusDist, bucketDist, recent, upcoming, profilesWaiting] =
     await Promise.all([
       getAdminKpis(),
