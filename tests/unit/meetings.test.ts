@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { toFounderMeetings } from "@/lib/meetings";
-import type { Meeting } from "@/lib/types/db";
+import { toFounderMeetings } from "@/server/data/meetings";
+import type { Meeting } from "@/shared/types/db";
 
 let nextId = 1;
 function row(notes: string | null, extra: Partial<Meeting> = {}): Meeting {

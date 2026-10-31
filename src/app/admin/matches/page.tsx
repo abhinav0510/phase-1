@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Card, CardHeader, CardBody, StatCard } from "@/components/admin/ui/card";
-import { SimpleBarChart } from "@/components/admin/ui/bar-chart";
-import { requireAdmin } from "@/lib/auth";
-import { getMatchStateDistribution } from "@/lib/data/admin";
+import { Card, CardHeader, CardBody, StatCard } from "@/client/components/admin/ui/card";
+import { SimpleBarChart } from "@/client/components/admin/ui/bar-chart";
+import { requireAdmin } from "@/server/auth/session";
+import { getMatchStateDistribution } from "@/server/data/admin";
 
 export const dynamic = "force-dynamic";
 

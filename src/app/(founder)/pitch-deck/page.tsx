@@ -1,10 +1,10 @@
 import { ExternalLink, FileText, Mail, Presentation, RefreshCw } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
-import { getOwnDeck, getOwnStartup } from "@/lib/data/founder";
-import { PageHeader, Card, CardHeader, CardBody, EmptyState, ButtonLink, Avatar, buttonClass } from "@/components/founder/ui";
-import { Reveal } from "@/components/founder/motion";
-import { SITE } from "@/components/site/site-config";
-import { formatDateTime } from "@/lib/utils";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnDeck, getOwnStartup } from "@/server/data/founder";
+import { PageHeader, Card, CardHeader, CardBody, EmptyState, ButtonLink, Avatar, buttonClass } from "@/client/components/founder/ui";
+import { Reveal } from "@/client/components/founder/motion";
+import { SITE } from "@/client/components/site/site-config";
+import { formatDateTime } from "@/shared/lib/utils";
 import { CopyLink } from "./copy-link";
 
 export const dynamic = "force-dynamic";

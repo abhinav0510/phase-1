@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { buttonClass } from "@/components/founder/ui";
+import { buttonClass } from "@/client/components/founder/ui";
 
 /** Copies the investor-facing deck link to the clipboard. */
 export function CopyLink({ value }: { value: string }) {

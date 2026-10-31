@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 // Server-safe SVG figures (no hooks) used by the founder dashboard.
 

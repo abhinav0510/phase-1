@@ -1,6 +1,6 @@
-import { requireAdmin } from "@/lib/auth";
-import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { requireAdmin } from "@/server/auth/session";
+import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
+import { Badge } from "@/client/components/ui/badge";
 import {
   Table,
   THead,
@@ -9,10 +9,10 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/admin/ui/table";
-import { listAnnouncementsAdmin } from "@/lib/data/notifications";
-import { AUDIENCE_META, KIND_META } from "@/components/announcements/kinds";
-import { formatDate, formatDateTime } from "@/lib/utils";
+} from "@/client/components/admin/ui/table";
+import { listAnnouncementsAdmin } from "@/server/data/notifications";
+import { AUDIENCE_META, KIND_META } from "@/client/components/announcements/kinds";
+import { formatDate, formatDateTime } from "@/shared/lib/utils";
 import { AnnouncementForm } from "./announcement-form";
 import { AnnouncementRowActions } from "./row-actions";
 

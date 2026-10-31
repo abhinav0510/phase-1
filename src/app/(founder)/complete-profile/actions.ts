@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { requireFounder } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { startupTag } from "@/lib/cache-tags";
-import { PROFILE_FIELDS, isFilled, type Answers } from "@/lib/profile/fields";
+import { requireFounder } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
+import { startupTag } from "@/server/config/cache-tags";
+import { PROFILE_FIELDS, isFilled, type Answers } from "@/shared/lib/profile-fields";
 
 export type ProfileSaveResult = { ok: true } | { ok: false; error: string };
 

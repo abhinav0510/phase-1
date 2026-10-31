@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { buttonClass, inputClass } from "@/components/founder/ui";
+import { createClient } from "@/client/lib/supabase";
+import { buttonClass, inputClass } from "@/client/components/founder/ui";
 
 export function ChangePassword() {
   const [password, setPassword] = useState("");

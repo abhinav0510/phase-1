@@ -13,7 +13,7 @@ TypeScript + Tailwind + Supabase Auth.
 ### Shared foundation
 - Supabase clients: browser (anon, RLS), server (cookie-bound, RLS), **service-role (server-only, `server-only` guarded)**.
 - Auth: Supabase email/password, `middleware.ts` session refresh + route protection, role-aware redirects (`src/lib/auth.ts`).
-- Typed DB layer mirroring the live schema (`src/lib/types/db.ts`).
+- Typed DB layer mirroring the live schema (`src/shared/types/db.ts`).
 - Reusable UI: navy sidebar, top bar, cards, stat cards, status badges, tables, bar charts, empty states.
 
 ### Admin / Operations panel (`/admin/*`) — for owner/ops/deals_desk/angel_desk
@@ -60,7 +60,7 @@ The root `/` is the public marketing site — a premium investment-banking landi
 page with a real-time 3D hero (React Three Fiber: dotted globe, an animated glass
 skyline of setback towers with twinkling gold windows and a spire that rises in on
 load, gold orbit rings) and Framer Motion scroll/hover animations. Tower layout and
-scale live in `TOWERS` / `SKYLINE_SCALE` in `src/components/site/hero-scene.tsx`.
+scale live in `TOWERS` / `SKYLINE_SCALE` in `src/client/components/site/hero-scene.tsx`.
 
 | Route | Who | Linked from the site? |
 |---|---|---|
@@ -68,9 +68,9 @@ scale live in `TOWERS` / `SKYLINE_SCALE` in `src/components/site/hero-scene.tsx`
 | `/login` | Founders (Login ID + password) | **Yes** — the nav "Login" button and footer |
 | `/teamonly` | Sidana team / admins (email + password) | **No** — unlisted; team uses the URL directly |
 
-- Components: `src/components/site/*` (nav, hero, hero-scene, services-strip, principles, sections).
-- Auth pages (`/login`, `/teamonly`, `/force-reset`) share `src/components/site/auth-shell.tsx`: a cinematic CSS-built backdrop (angled slabs, glowing gold light-slit, reflective floor, drifting fog), brand chrome, and a glass card with icon fields, a password eye toggle, and staggered entrance animations.
-- Copy, contact email, nav links and the login path live in `src/components/site/site-config.ts`.
+- Components: `src/client/components/site/*` (nav, hero, hero-scene, services-strip, principles, sections).
+- Auth pages (`/login`, `/teamonly`, `/force-reset`) share `src/client/components/site/auth-shell.tsx`: a cinematic CSS-built backdrop (angled slabs, glowing gold light-slit, reflective floor, drifting fog), brand chrome, and a glass card with icon fields, a password eye toggle, and staggered entrance animations.
+- Copy, contact email, nav links and the login path live in `src/client/components/site/site-config.ts`.
 - The Contact buttons are `mailto:` links to `SITE.contactEmail` (currently investors@sidanaventures.com — change it there).
 - The Portfolio section lists focus **sectors only**; private startup names from the database are never shown publicly.
 - Fonts: Cormorant Garamond (editorial serif) + Inter (sans) via `next/font`.
@@ -93,7 +93,7 @@ workflow was modified.
   plus optional extra addresses. One email per startup, to every address on file.
 - **Compose:** plain text with `{{founder_name}}` / `{{startup_name}}` merge
   fields; everything is HTML-escaped and wrapped in the Sidana signature
-  (`src/lib/email/render.ts`, shared by the live preview and the sender).
+  (`src/shared/lib/email-render.ts`, shared by the live preview and the sender).
 - **Safety:** *Send test to me* sends one copy to the signed-in admin only. A real
   send needs the exact recipient count typed into a confirmation dialog; the
   server re-derives every recipient from the database (the browser never

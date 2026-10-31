@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
+import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
 import {
   Table,
   THead,
@@ -8,10 +8,10 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/admin/ui/table";
-import { requireAdmin } from "@/lib/auth";
-import { listPendingDocs } from "@/lib/data/admin";
-import { formatDateTime } from "@/lib/utils";
+} from "@/client/components/admin/ui/table";
+import { requireAdmin } from "@/server/auth/session";
+import { listPendingDocs } from "@/server/data/admin";
+import { formatDateTime } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

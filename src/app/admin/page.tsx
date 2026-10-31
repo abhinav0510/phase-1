@@ -12,9 +12,9 @@ import {
   KeyRound,
   ChevronRight,
 } from "lucide-react";
-import { StatCard, Card, CardHeader, CardBody } from "@/components/admin/ui/card";
-import { SimpleBarChart } from "@/components/admin/ui/bar-chart";
-import { StatusBadge } from "@/components/ui/badge";
+import { StatCard, Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
+import { SimpleBarChart } from "@/client/components/admin/ui/bar-chart";
+import { StatusBadge } from "@/client/components/ui/badge";
 import {
   Table,
   THead,
@@ -23,8 +23,8 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/admin/ui/table";
-import { requireAdmin } from "@/lib/auth";
+} from "@/client/components/admin/ui/table";
+import { requireAdmin } from "@/server/auth/session";
 import {
   getAdminKpis,
   getStartupStatusDistribution,
@@ -32,8 +32,8 @@ import {
   getRecentStartups,
   getUpcomingMeetings,
   countProfilesAwaitingReview,
-} from "@/lib/data/admin";
-import { formatDate, formatDateTime } from "@/lib/utils";
+} from "@/server/data/admin";
+import { formatDate, formatDateTime } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

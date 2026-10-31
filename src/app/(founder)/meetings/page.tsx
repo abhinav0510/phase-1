@@ -1,10 +1,10 @@
 import { CalendarClock, CheckCircle2, Repeat, Video } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
-import { getOwnMeetings } from "@/lib/data/founder";
-import { KpiCard, PageHeader, Note } from "@/components/founder/ui";
-import { Stagger, Item, Reveal } from "@/components/founder/motion";
-import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
-import { formatDateTime } from "@/lib/utils";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnMeetings } from "@/server/data/founder";
+import { KpiCard, PageHeader, Note } from "@/client/components/founder/ui";
+import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
+import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
+import { formatDateTime } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

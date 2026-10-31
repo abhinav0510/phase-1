@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { brandFontVars } from "@/lib/fonts";
+import { brandFontVars } from "@/client/lib/fonts";
 import "./home.css";
-import { AskSidana } from "@/components/home/ask-form";
-import { Cta } from "@/components/home/cta";
-import { DealDesk } from "@/components/home/deal-desk";
-import { HomeFooter } from "@/components/home/footer";
-import { HomeHero } from "@/components/home/hero";
-import { HomeShell } from "@/components/home/home-shell";
-import { HowWeHelp } from "@/components/home/how-we-help";
-import { Mandates } from "@/components/home/mandates";
+import { AskSidana } from "@/client/components/home/ask-form";
+import { Cta } from "@/client/components/home/cta";
+import { DealDesk } from "@/client/components/home/deal-desk";
+import { HomeFooter } from "@/client/components/home/footer";
+import { HomeHero } from "@/client/components/home/hero";
+import { HomeShell } from "@/client/components/home/home-shell";
+import { HowWeHelp } from "@/client/components/home/how-we-help";
+import { Mandates } from "@/client/components/home/mandates";
 
 export const metadata: Metadata = {
   title: "Sidana Ventures — Fundraising advisory and investor relations for startups",

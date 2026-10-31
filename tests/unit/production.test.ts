@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { freshOrRefetch } from "@/lib/cached-read";
-import { resilientFetch } from "@/lib/supabase/resilient-fetch";
+import { freshOrRefetch } from "@/server/data/cached-read";
+import { resilientFetch } from "@/server/integrations/supabase/resilient-fetch";
 
 describe("freshOrRefetch", () => {
   const entry = { at: 1_000, value: "cached" };

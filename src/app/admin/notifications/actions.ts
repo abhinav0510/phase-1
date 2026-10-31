@@ -2,17 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireAdmin, type SessionUser } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { callN8nWebhook } from "@/lib/n8n";
-import { getStartupRecipients } from "@/lib/data/notifications";
+import { requireAdmin, type SessionUser } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
+import { callN8nWebhook } from "@/server/integrations/n8n/client";
+import { getStartupRecipients } from "@/server/data/notifications";
 import {
   cleanSubject,
   isValidEmail,
   parseEmailList,
   renderBroadcast,
-} from "@/lib/email/render";
-import type { BroadcastAudience } from "@/lib/types/db";
+} from "@/shared/lib/email-render";
+import type { BroadcastAudience } from "@/shared/types/db";
 
 // Must match the cap enforced by the n8n ADMIN-BROADCAST "Validate" node.
 const MAX_MESSAGES = 300;

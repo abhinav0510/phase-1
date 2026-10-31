@@ -6,6 +6,7 @@
 # next.js
 /.next/
 /.next-test/
+/.next-dev/
 /test-results/
 /playwright-report/
 /out/

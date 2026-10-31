@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 import { completeForcedReset } from "./actions";
-import { AuthError, AuthField, AuthSubmit } from "@/components/site/auth-shell";
+import { AuthError, AuthField, AuthSubmit } from "@/client/components/site/auth-shell";
 
 export function ForceResetForm({ redirectTo }: { redirectTo: string }) {
   const router = useRouter();

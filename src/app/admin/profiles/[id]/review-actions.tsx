@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, MessageSquareWarning } from "lucide-react";
 import { reviewProfile } from "../actions";
-import type { ProfileStatus } from "@/lib/types/db";
+import type { ProfileStatus } from "@/shared/types/db";
 
 export function ReviewActions({ startupId, status }: { startupId: number; status: ProfileStatus }) {
   const router = useRouter();

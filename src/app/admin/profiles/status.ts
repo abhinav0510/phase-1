@@ -1,4 +1,4 @@
-import type { ProfileStatus } from "@/lib/types/db";
+import type { ProfileStatus } from "@/shared/types/db";
 
 export const PROFILE_STATUS_META: Record<
   ProfileStatus,

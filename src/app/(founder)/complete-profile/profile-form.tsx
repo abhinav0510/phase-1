@@ -4,8 +4,8 @@ import { Fragment, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle2, Save, Send, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { buttonClass, inputClass } from "@/components/founder/ui";
+import { cn } from "@/shared/lib/utils";
+import { buttonClass, inputClass } from "@/client/components/founder/ui";
 import {
   PROFILE_FIELDS,
   SECTIONS,
@@ -13,7 +13,7 @@ import {
   type Answers,
   type ProfileField,
   type SectionKey,
-} from "@/lib/profile/fields";
+} from "@/shared/lib/profile-fields";
 import { saveProfile } from "./actions";
 
 const EASE = [0.22, 1, 0.36, 1] as const;

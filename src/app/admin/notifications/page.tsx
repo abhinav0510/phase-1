@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Mail, Building2, RefreshCw } from "lucide-react";
-import { requireAdmin } from "@/lib/auth";
-import { StatCard, Card, CardHeader, CardBody } from "@/components/admin/ui/card";
+import { requireAdmin } from "@/server/auth/session";
+import { StatCard, Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
 import {
   Table,
   THead,
@@ -10,13 +10,13 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/admin/ui/table";
+} from "@/client/components/admin/ui/table";
 import {
   getLastContactSync,
   getStartupRecipients,
   listBroadcasts,
-} from "@/lib/data/notifications";
-import { formatDateTime } from "@/lib/utils";
+} from "@/server/data/notifications";
+import { formatDateTime } from "@/shared/lib/utils";
 import { BroadcastComposer } from "./composer";
 import { SyncContactsButton } from "./sync-button";
 import { AUDIENCE_LABEL, BroadcastStatusBadge } from "./status";

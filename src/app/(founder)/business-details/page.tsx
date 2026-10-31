@@ -1,6 +1,6 @@
 import { PencilLine } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
-import { getOwnBranding, getOwnStartup, logoUrlFor } from "@/lib/data/founder";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnBranding, getOwnStartup, logoUrlFor } from "@/server/data/founder";
 import {
   PageHeader,
   Card,
@@ -12,9 +12,9 @@ import {
   ButtonLink,
   STARTUP_STATUS_TONE,
   label,
-} from "@/components/founder/ui";
-import { Reveal } from "@/components/founder/motion";
-import { formatDate } from "@/lib/utils";
+} from "@/client/components/founder/ui";
+import { Reveal } from "@/client/components/founder/motion";
+import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

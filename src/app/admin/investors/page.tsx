@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Card, CardBody } from "@/components/admin/ui/card";
-import { StatusBadge, Badge } from "@/components/ui/badge";
+import { Card, CardBody } from "@/client/components/admin/ui/card";
+import { StatusBadge, Badge } from "@/client/components/ui/badge";
 import {
   Table,
   THead,
@@ -9,10 +9,10 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/admin/ui/table";
-import { requireAdmin } from "@/lib/auth";
-import { listInvestors } from "@/lib/data/admin";
-import { formatDate } from "@/lib/utils";
+} from "@/client/components/admin/ui/table";
+import { requireAdmin } from "@/server/auth/session";
+import { listInvestors } from "@/server/data/admin";
+import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

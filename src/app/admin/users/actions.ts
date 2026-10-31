@@ -1,7 +1,7 @@
 "use server";
 
-import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
 
 type Result = { ok: true; tempPassword: string } | { ok: false; error: string };
 

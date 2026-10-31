@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chequeLabel, listOf, prettyLabel, profileView } from "@/components/founder/investor-format";
+import { chequeLabel, listOf, prettyLabel, profileView } from "@/client/components/founder/investor-format";
 
 describe("prettyLabel", () => {
   it("tidies shouty labels and keeps acronyms", () => {

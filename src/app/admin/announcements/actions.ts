@@ -2,8 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
 
 export type AnnouncementResult = { ok: true } | { ok: false; error: string };
 

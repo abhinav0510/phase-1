@@ -1,8 +1,8 @@
-import { requireFounder } from "@/lib/auth";
-import { FounderShell } from "@/components/founder/shell";
-import { FOUNDER_NAV } from "@/components/layout/nav";
-import { getOwnBranding, getOwnStartup, logoUrlFor } from "@/lib/data/founder";
-import { getAnnouncementsForUser } from "@/lib/data/notifications";
+import { requireFounder } from "@/server/auth/session";
+import { FounderShell } from "@/client/components/founder/shell";
+import { FOUNDER_NAV } from "@/client/components/layout/nav";
+import { getOwnBranding, getOwnStartup, logoUrlFor } from "@/server/data/founder";
+import { getAnnouncementsForUser } from "@/server/data/notifications";
 
 export default async function FounderLayout({
   children,

@@ -4,8 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Megaphone } from "lucide-react";
 import { createAnnouncement } from "./actions";
-import { AUDIENCE_META, KIND_META } from "@/components/announcements/kinds";
-import type { AnnouncementAudience, AnnouncementKind } from "@/lib/types/db";
+import { AUDIENCE_META, KIND_META } from "@/client/components/announcements/kinds";
+import type { AnnouncementAudience, AnnouncementKind } from "@/shared/types/db";
 
 export function AnnouncementForm() {
   const router = useRouter();

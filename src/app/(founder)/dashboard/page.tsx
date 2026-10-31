@@ -9,7 +9,7 @@ import {
   Target,
   Wallet,
 } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
+import { requireFounder } from "@/server/auth/session";
 import {
   Card,
   CardHeader,
@@ -23,10 +23,10 @@ import {
   CompanyLogo,
   STARTUP_STATUS_TONE,
   label,
-} from "@/components/founder/ui";
-import { Stagger, Item, Reveal, ProgressBar } from "@/components/founder/motion";
-import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
-import { JoinLink } from "@/components/ui/join-link";
+} from "@/client/components/founder/ui";
+import { Stagger, Item, Reveal, ProgressBar } from "@/client/components/founder/motion";
+import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
+import { JoinLink } from "@/client/components/ui/join-link";
 import {
   getFounderOverview,
   getOwnMeetings,
@@ -35,10 +35,10 @@ import {
   getOwnWeeklyReports,
   getOwnBranding,
   logoUrlFor,
-} from "@/lib/data/founder";
-import { profileProgress } from "@/lib/profile/fields";
+} from "@/server/data/founder";
+import { profileProgress } from "@/shared/lib/profile-fields";
 import { ProfileNudge } from "./_components/profile-nudge";
-import { cn, formatCr, formatLakh, formatDate } from "@/lib/utils";
+import { cn, formatCr, formatLakh, formatDate } from "@/shared/lib/utils";
 import { ActivityBars, Donut } from "./_components/charts";
 import { SERIES } from "./_components/palette";
 import { Gauge, IconDisc, MeterRow, Ring } from "./_components/visuals";

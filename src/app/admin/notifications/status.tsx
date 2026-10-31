@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import type { BroadcastAudience, BroadcastStatus } from "@/lib/types/db";
+import { Badge } from "@/client/components/ui/badge";
+import type { BroadcastAudience, BroadcastStatus } from "@/shared/types/db";
 
 const STATUS_TONE: Record<BroadcastStatus, "gray" | "amber" | "green" | "red"> = {
   queued: "gray",

@@ -1,6 +1,6 @@
-import { requireAdmin } from "@/lib/auth";
-import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { requireAdmin } from "@/server/auth/session";
+import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
+import { Badge } from "@/client/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
