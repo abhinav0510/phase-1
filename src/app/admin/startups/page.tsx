@@ -10,6 +10,7 @@ import {
   TD,
   EmptyState,
 } from "@/components/admin/ui/table";
+import { requireAdmin } from "@/lib/auth";
 import { listStartups } from "@/lib/data/admin";
 import { formatCr, formatDate } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ export default async function AdminStartups({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
+  await requireAdmin();
   const sp = await searchParams;
   const page = Number(sp.page ?? "1") || 1;
   const pageSize = 20;

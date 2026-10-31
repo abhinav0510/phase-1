@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardBody, StatCard } from "@/components/admin/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, THead, TH, TBody, TR, TD } from "@/components/admin/ui/table";
+import { requireAdmin } from "@/lib/auth";
 import { listAppUsers, getAdminKpis, getContactEmailsByStartup } from "@/lib/data/admin";
 import { ADMIN_ROLES } from "@/lib/types/db";
 import { formatDate } from "@/lib/utils";
@@ -9,6 +10,7 @@ import { ResetPasswordButton } from "./reset-password-button";
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsers() {
+  await requireAdmin();
   const [users, kpis, contactEmails] = await Promise.all([
     listAppUsers(),
     getAdminKpis(),

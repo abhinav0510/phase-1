@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Card, CardHeader, CardBody, StatCard } from "@/components/admin/ui/card";
 import { SimpleBarChart } from "@/components/admin/ui/bar-chart";
+import { requireAdmin } from "@/lib/auth";
 import { getMatchStateDistribution } from "@/lib/data/admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminMatches() {
+  await requireAdmin();
   const dist = await getMatchStateDistribution();
   const total = dist.reduce((a, b) => a + b.count, 0);
   const sent = dist.find((d) => d.state === "sent")?.count ?? 0;

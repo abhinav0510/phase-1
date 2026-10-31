@@ -9,12 +9,14 @@ import {
   TD,
   EmptyState,
 } from "@/components/admin/ui/table";
+import { requireAdmin } from "@/lib/auth";
 import { listPendingDocs } from "@/lib/data/admin";
 import { formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDocuments() {
+  await requireAdmin();
   const pending = await listPendingDocs();
 
   return (

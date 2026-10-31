@@ -10,6 +10,7 @@ import {
   TD,
   EmptyState,
 } from "@/components/admin/ui/table";
+import { requireAdmin } from "@/lib/auth";
 import { listMeetings } from "@/lib/data/admin";
 import { JoinLink } from "@/components/ui/join-link";
 import { formatDateTime } from "@/lib/utils";
@@ -21,6 +22,7 @@ export default async function AdminMeetings({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
+  await requireAdmin();
   const sp = await searchParams;
   const scope = (sp.scope as "upcoming" | "past" | "all") ?? "upcoming";
   const page = Number(sp.page ?? "1") || 1;

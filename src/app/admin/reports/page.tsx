@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
 import { SimpleBarChart } from "@/components/admin/ui/bar-chart";
+import { requireAdmin } from "@/lib/auth";
 import {
   getStartupStatusDistribution,
   getBucketDistribution,
@@ -10,6 +11,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminReports() {
+  await requireAdmin();
   const [statusDist, bucketDist, investorTypes, matchStates] = await Promise.all(
     [
       getStartupStatusDistribution(),
