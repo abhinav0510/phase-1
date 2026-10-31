@@ -11,7 +11,7 @@ import {
   AuthItem,
   AuthShell,
   AuthSubmit,
-} from "@/components/site/auth-shell";
+} from "@/client/components/site/auth-shell";
 
 // Unlisted route — intentionally not linked from the public site.
 // Sidana team members reach it directly at /teamonly.

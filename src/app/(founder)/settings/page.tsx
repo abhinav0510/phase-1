@@ -1,7 +1,7 @@
-import { requireFounder } from "@/lib/auth";
-import { getOwnSignInEmails } from "@/lib/data/founder";
-import { PageHeader, Card, CardHeader, CardBody, FieldRow } from "@/components/founder/ui";
-import { Reveal } from "@/components/founder/motion";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnSignInEmails } from "@/server/data/founder";
+import { PageHeader, Card, CardHeader, CardBody, FieldRow } from "@/client/components/founder/ui";
+import { Reveal } from "@/client/components/founder/motion";
 import { ChangePassword } from "./change-password";
 
 export const dynamic = "force-dynamic";

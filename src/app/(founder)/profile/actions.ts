@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { requireFounder } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { startupTag } from "@/lib/cache-tags";
-import { LOGO_BUCKET, LOGO_MAX_BYTES, sniffImage } from "@/lib/branding";
+import { requireFounder } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
+import { startupTag } from "@/server/config/cache-tags";
+import { LOGO_BUCKET, LOGO_MAX_BYTES, sniffImage } from "@/server/validators/logo";
 
 export type LogoResult = { ok: true } | { ok: false; error: string };
 

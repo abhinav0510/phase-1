@@ -1,10 +1,10 @@
-import { Card, CardHeader, CardBody, StatCard } from "@/components/admin/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, THead, TH, TBody, TR, TD } from "@/components/admin/ui/table";
-import { requireAdmin } from "@/lib/auth";
-import { listAppUsers, getAdminKpis, getContactEmailsByStartup } from "@/lib/data/admin";
-import { ADMIN_ROLES } from "@/lib/types/db";
-import { formatDate } from "@/lib/utils";
+import { Card, CardHeader, CardBody, StatCard } from "@/client/components/admin/ui/card";
+import { Badge } from "@/client/components/ui/badge";
+import { Table, THead, TH, TBody, TR, TD } from "@/client/components/admin/ui/table";
+import { requireAdmin } from "@/server/auth/session";
+import { listAppUsers, getAdminKpis, getContactEmailsByStartup } from "@/server/data/admin";
+import { ADMIN_ROLES } from "@/shared/types/db";
+import { formatDate } from "@/shared/lib/utils";
 import { ResetPasswordButton } from "./reset-password-button";
 
 export const dynamic = "force-dynamic";

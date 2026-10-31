@@ -1,11 +1,11 @@
 import { Handshake, CalendarClock, XCircle, PhoneForwarded } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
-import { getOwnStartup, getOwnWeeklyReports } from "@/lib/data/founder";
-import { KpiCard, PageHeader, Card, CardBody, EmptyState, Note, type ChipTone, type DeltaTone } from "@/components/founder/ui";
-import { Stagger, Item, Reveal } from "@/components/founder/motion";
-import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
-import { formatDate } from "@/lib/utils";
-import type { WeeklyReport } from "@/lib/types/db";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnStartup, getOwnWeeklyReports } from "@/server/data/founder";
+import { KpiCard, PageHeader, Card, CardBody, EmptyState, Note, type ChipTone, type DeltaTone } from "@/client/components/founder/ui";
+import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
+import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
+import { formatDate } from "@/shared/lib/utils";
+import type { WeeklyReport } from "@/shared/types/db";
 
 export const dynamic = "force-dynamic";
 

@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, THead, TH, TBody, TR, TD, EmptyState } from "@/components/admin/ui/table";
-import { requireAdmin } from "@/lib/auth";
-import { listProfileSubmissions } from "@/lib/data/admin";
-import { profileProgress } from "@/lib/profile/fields";
-import { formatDateTime } from "@/lib/utils";
+import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
+import { Badge } from "@/client/components/ui/badge";
+import { Table, THead, TH, TBody, TR, TD, EmptyState } from "@/client/components/admin/ui/table";
+import { requireAdmin } from "@/server/auth/session";
+import { listProfileSubmissions } from "@/server/data/admin";
+import { profileProgress } from "@/shared/lib/profile-fields";
+import { formatDateTime } from "@/shared/lib/utils";
 import { PROFILE_STATUS_META as STATUS_META } from "./status";
 
 export const dynamic = "force-dynamic";

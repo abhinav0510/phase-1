@@ -1,7 +1,7 @@
-import { requireAdmin } from "@/lib/auth";
-import { AdminShell } from "@/components/admin/shell";
-import { ADMIN_NAV } from "@/components/layout/nav";
-import { getAnnouncementsForUser } from "@/lib/data/notifications";
+import { requireAdmin } from "@/server/auth/session";
+import { AdminShell } from "@/client/components/admin/shell";
+import { ADMIN_NAV } from "@/client/components/layout/nav";
+import { getAnnouncementsForUser } from "@/server/data/notifications";
 
 export default async function AdminLayout({
   children,

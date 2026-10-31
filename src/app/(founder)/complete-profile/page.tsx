@@ -1,10 +1,10 @@
 import { AlertCircle, CheckCircle2, Clock, Sparkles } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
-import { getOwnProfile, getOwnStartup } from "@/lib/data/founder";
-import { PageHeader, Card, CardBody } from "@/components/founder/ui";
-import { ProgressBar, Reveal } from "@/components/founder/motion";
-import { formatDateTime } from "@/lib/utils";
-import { PROFILE_FIELDS, isFilled, profileProgress, recordValue, type Answers } from "@/lib/profile/fields";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnProfile, getOwnStartup } from "@/server/data/founder";
+import { PageHeader, Card, CardBody } from "@/client/components/founder/ui";
+import { ProgressBar, Reveal } from "@/client/components/founder/motion";
+import { formatDateTime } from "@/shared/lib/utils";
+import { PROFILE_FIELDS, isFilled, profileProgress, recordValue, type Answers } from "@/shared/lib/profile-fields";
 import { ProfileForm } from "./profile-form";
 
 export const dynamic = "force-dynamic";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
-import type { ProfileStatus } from "@/lib/types/db";
-import { ProgressBar } from "@/components/founder/motion";
+import type { ProfileStatus } from "@/shared/types/db";
+import { ProgressBar } from "@/client/components/founder/motion";
 
 /**
  * Dashboard call-to-action asking the founder to complete their profile for

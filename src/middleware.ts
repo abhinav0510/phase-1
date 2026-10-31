@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { resilientFetch } from "@/lib/supabase/resilient-fetch";
+import { resilientFetch } from "@/server/integrations/supabase/resilient-fetch";
 
 // Public marketing site + auth entry points. /teamonly is intentionally
 // unlisted (never linked) but must be reachable without a session.

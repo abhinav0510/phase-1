@@ -1,7 +1,7 @@
 import { Target, Wallet, TrendingUp, Flame, PencilLine, CheckCircle2, CircleAlert } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
-import { getOwnStartup, getOwnFunding, getOwnProfile } from "@/lib/data/founder";
-import { PAST_YEARS, PROJECTED_YEARS, isFilled, type FinancialYear } from "@/lib/profile/fields";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnStartup, getOwnFunding, getOwnProfile } from "@/server/data/founder";
+import { PAST_YEARS, PROJECTED_YEARS, isFilled, type FinancialYear } from "@/shared/lib/profile-fields";
 import {
   KpiCard,
   PageHeader,
@@ -19,9 +19,9 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/founder/ui";
-import { Stagger, Item, Reveal, ProgressBar } from "@/components/founder/motion";
-import { formatCr, formatLakh, formatDate } from "@/lib/utils";
+} from "@/client/components/founder/ui";
+import { Stagger, Item, Reveal, ProgressBar } from "@/client/components/founder/motion";
+import { formatCr, formatLakh, formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

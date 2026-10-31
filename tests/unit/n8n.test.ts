@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { callN8nWebhook } from "@/lib/n8n";
+import { callN8nWebhook } from "@/server/integrations/n8n/client";
 
 describe("callN8nWebhook", () => {
   const url = "http://localhost:9/webhook/x";

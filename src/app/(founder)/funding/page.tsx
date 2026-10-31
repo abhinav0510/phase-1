@@ -1,6 +1,6 @@
 import { Handshake, Send, Hourglass, Sparkles, XCircle } from "lucide-react";
-import { requireFounder } from "@/lib/auth";
-import { getOwnMatches, getOwnReplies, type MailReply } from "@/lib/data/founder";
+import { requireFounder } from "@/server/auth/session";
+import { getOwnMatches, getOwnReplies, type MailReply } from "@/server/data/founder";
 import {
   KpiCard,
   PageHeader,
@@ -12,13 +12,13 @@ import {
   MATCH_STATE_TONE,
   label,
   type ChipTone,
-} from "@/components/founder/ui";
-import { Stagger, Item, Reveal } from "@/components/founder/motion";
-import { ListDetail, type ListItem, type DetailSpec } from "@/components/founder/list-detail";
-import { PassedList, type PassedItem } from "@/components/founder/passed-list";
-import { profileView } from "@/components/founder/investor-format";
+} from "@/client/components/founder/ui";
+import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
+import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
+import { PassedList, type PassedItem } from "@/client/components/founder/passed-list";
+import { profileView } from "@/client/components/founder/investor-format";
 import { TYPE_LABEL } from "../dashboard/_components/model";
-import { formatDate } from "@/lib/utils";
+import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

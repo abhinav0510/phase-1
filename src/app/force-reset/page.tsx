@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { requireUser, landingPathFor, isAdmin } from "@/lib/auth";
-import { AuthHeading, AuthShell } from "@/components/site/auth-shell";
+import { requireUser, landingPathFor, isAdmin } from "@/server/auth/session";
+import { AuthHeading, AuthShell } from "@/client/components/site/auth-shell";
 import { ForceResetForm } from "./force-reset-form";
 
 export const dynamic = "force-dynamic";

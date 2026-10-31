@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/server/integrations/supabase/server";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
 
 type ResetResult = { ok: true } | { ok: false; error: string };
 

@@ -7,7 +7,7 @@ import {
   isValidEmail,
   parseEmailList,
   renderBroadcast,
-} from "@/lib/email/render";
+} from "@/shared/lib/email-render";
 
 describe("email helpers", () => {
   it("escapes HTML", () => {

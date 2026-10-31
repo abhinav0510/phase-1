@@ -1,7 +1,7 @@
 "use server";
 
-import { getSessionUser } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getSessionUser } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
 
 /**
  * Mark announcements as seen for the signed-in user (founder or team). The user

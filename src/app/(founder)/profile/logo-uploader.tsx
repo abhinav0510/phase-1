@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, ImagePlus, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { cn } from "@/lib/utils";
-import { Avatar, buttonClass } from "@/components/founder/ui";
+import { cn } from "@/shared/lib/utils";
+import { Avatar, buttonClass } from "@/client/components/founder/ui";
 import { removeLogo, uploadLogo } from "./actions";
 
 const ACCEPT = ["image/png", "image/jpeg", "image/webp"];

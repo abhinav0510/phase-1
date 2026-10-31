@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { requireAdmin } from "@/lib/auth";
-import { Card, CardHeader, CardBody, StatCard } from "@/components/admin/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, THead, TH, TBody, TR, TD } from "@/components/admin/ui/table";
-import { AutoRefresh } from "@/components/ui/auto-refresh";
-import { getBroadcastDetail } from "@/lib/data/notifications";
-import { formatDateTime } from "@/lib/utils";
+import { requireAdmin } from "@/server/auth/session";
+import { Card, CardHeader, CardBody, StatCard } from "@/client/components/admin/ui/card";
+import { Badge } from "@/client/components/ui/badge";
+import { Table, THead, TH, TBody, TR, TD } from "@/client/components/admin/ui/table";
+import { AutoRefresh } from "@/client/components/ui/auto-refresh";
+import { getBroadcastDetail } from "@/server/data/notifications";
+import { formatDateTime } from "@/shared/lib/utils";
 import { AUDIENCE_LABEL, BroadcastStatusBadge } from "../status";
 
 export const dynamic = "force-dynamic";

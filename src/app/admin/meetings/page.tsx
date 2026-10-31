@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Card, CardBody } from "@/components/admin/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardBody } from "@/client/components/admin/ui/card";
+import { Badge } from "@/client/components/ui/badge";
 import {
   Table,
   THead,
@@ -9,11 +9,11 @@ import {
   TR,
   TD,
   EmptyState,
-} from "@/components/admin/ui/table";
-import { requireAdmin } from "@/lib/auth";
-import { listMeetings } from "@/lib/data/admin";
-import { JoinLink } from "@/components/ui/join-link";
-import { formatDateTime } from "@/lib/utils";
+} from "@/client/components/admin/ui/table";
+import { requireAdmin } from "@/server/auth/session";
+import { listMeetings } from "@/server/data/admin";
+import { JoinLink } from "@/client/components/ui/join-link";
+import { formatDateTime } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 

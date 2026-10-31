@@ -1,12 +1,12 @@
-import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
-import { SimpleBarChart } from "@/components/admin/ui/bar-chart";
-import { requireAdmin } from "@/lib/auth";
+import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
+import { SimpleBarChart } from "@/client/components/admin/ui/bar-chart";
+import { requireAdmin } from "@/server/auth/session";
 import {
   getStartupStatusDistribution,
   getBucketDistribution,
   getInvestorTypeDistribution,
   getMatchStateDistribution,
-} from "@/lib/data/admin";
+} from "@/server/data/admin";
 
 export const dynamic = "force-dynamic";
 

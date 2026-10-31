@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/client/lib/supabase";
 import {
   AuthError,
   AuthField,
@@ -13,7 +13,7 @@ import {
   AuthNotice,
   AuthShell,
   AuthSubmit,
-} from "@/components/site/auth-shell";
+} from "@/client/components/site/auth-shell";
 
 // Landing page for the password-reset email link. Supabase sets a short-lived
 // recovery session from the link; we then let the user choose a new password.

@@ -3,12 +3,12 @@
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, FlaskConical, Search, Send, X } from "lucide-react";
-import { Card, CardHeader, CardBody } from "@/components/admin/ui/card";
+import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
 import {
   cleanSubject,
   parseEmailList,
   renderBroadcast,
-} from "@/lib/email/render";
+} from "@/shared/lib/email-render";
 import { sendBroadcast, sendTestEmail, type ComposeInput } from "./actions";
 
 export interface ComposerStartup {

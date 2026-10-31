@@ -1,9 +1,9 @@
-import type { Match, Meeting, WeeklyReport } from "@/lib/types/db";
+import type { Match, Meeting, WeeklyReport } from "@/shared/types/db";
 import type { DonutSlice, WeekPoint } from "./charts";
 import { SERIES } from "./palette";
 
 // Pure view-model helpers for the founder dashboard. Everything here is derived
-// from the founder's own rows (already scoped by startupId in lib/data/founder).
+// from the founder's own rows (already scoped by startupId in server/data/founder).
 
 type MatchRow = Match & {
   investor: { id: number; name: string | null; type: string | null } | null;

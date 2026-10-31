@@ -11,8 +11,8 @@ import {
   AuthItem,
   AuthShell,
   AuthSubmit,
-} from "@/components/site/auth-shell";
-import { SITE } from "@/components/site/site-config";
+} from "@/client/components/site/auth-shell";
+import { SITE } from "@/client/components/site/site-config";
 
 // Set by requireUser / requireFounder when a signed-in account can't enter the portal.
 const ACCOUNT_ERRORS: Record<string, string> = {

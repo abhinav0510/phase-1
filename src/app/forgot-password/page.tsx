@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Mail } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/client/lib/supabase";
 import {
   AuthError,
   AuthField,
@@ -12,7 +12,7 @@ import {
   AuthNotice,
   AuthShell,
   AuthSubmit,
-} from "@/components/site/auth-shell";
+} from "@/client/components/site/auth-shell";
 
 // Email-based recovery — for Sidana team accounts (real inboxes).
 // Founders sign in with a Login ID mapped to a synthetic email, so they

@@ -1,7 +1,7 @@
-import { getSessionUser, isAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { getOwnBranding } from "@/lib/data/founder";
-import { LOGO_BUCKET } from "@/lib/branding";
+import { getSessionUser, isAdmin } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
+import { getOwnBranding } from "@/server/data/founder";
+import { LOGO_BUCKET } from "@/server/validators/logo";
 
 export const dynamic = "force-dynamic";
 

@@ -1,12 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { landingPathFor } from "@/lib/auth";
-import type { UserRole } from "@/lib/types/db";
-import { founderEmailForStartup, loginIdToStartupId } from "@/lib/provisioning";
-import { isValidEmail } from "@/lib/email/render";
+import { createClient } from "@/server/integrations/supabase/server";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
+import { landingPathFor } from "@/server/auth/session";
+import type { UserRole } from "@/shared/types/db";
+import { founderEmailForStartup, loginIdToStartupId } from "@/server/auth/provisioning";
+import { isValidEmail } from "@/shared/lib/email-render";
 
 type LoginResult = { error: string } | void;
 

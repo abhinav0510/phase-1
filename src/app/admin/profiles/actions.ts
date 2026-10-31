@@ -2,9 +2,9 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
-import { requireAdmin } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { startupTag } from "@/lib/cache-tags";
+import { requireAdmin } from "@/server/auth/session";
+import { createAdminClient } from "@/server/integrations/supabase/admin";
+import { startupTag } from "@/server/config/cache-tags";
 
 export type ReviewResult = { ok: true } | { ok: false; error: string };
 

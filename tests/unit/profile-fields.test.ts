@@ -9,8 +9,8 @@ import {
   isFilled,
   profileProgress,
   recordValue,
-} from "@/lib/profile/fields";
-import type { Startup } from "@/lib/types/db";
+} from "@/shared/lib/profile-fields";
+import type { Startup } from "@/shared/types/db";
 
 describe("profile fields", () => {
   it("has unique keys and every field in a known section", () => {

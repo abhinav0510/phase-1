@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { sniffImage, LOGO_MAX_BYTES } from "@/lib/branding";
-import { formatCr, formatDate, formatDateTime, formatLakh, initials } from "@/lib/utils";
-import { founderEmailForStartup, loginIdToStartupId } from "@/lib/provisioning";
+import { sniffImage, LOGO_MAX_BYTES } from "@/server/validators/logo";
+import { formatCr, formatDate, formatDateTime, formatLakh, initials } from "@/shared/lib/utils";
+import { founderEmailForStartup, loginIdToStartupId } from "@/server/auth/provisioning";
 
 describe("sniffImage", () => {
   const bytes = (...b: number[]) => new Uint8Array([...b, ...new Array(16).fill(0)]);
