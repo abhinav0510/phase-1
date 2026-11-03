@@ -1,3 +1,5 @@
+import { formatRupees, toRupees } from "@/shared/lib/currency";
+import { formatLakh } from "@/shared/lib/utils";
 import type { Startup } from "@/shared/types/db";
 
 // The founder profile Sidana uses for investor matchmaking. One list drives the
@@ -199,6 +201,66 @@ export const FIELD_BY_KEY: Record<string, ProfileField> = Object.fromEntries(
 
 export type Answers = Record<string, string | string[]>;
 
+export interface ArrDisplay {
+  value: string;
+  source: "record" | "note" | "founder" | "none";
+  /** The revenue text to show beside a number on record. */
+  note: string | null;
+}
+
+/** The sheet's revenue column also holds market sizes and usage figures, which aren't revenue. */
+const ABOUT_REVENUE = /\b(?:arr|mrr|revenue|run-?rate|turnover|annuali[sz]ed|pre-revenue)\b/i;
+
+/**
+ * What to show for annual revenue. The sync fills `revenue_note` from the sheet but not
+ * the number, so for many startups that text is the only figure. A founder's own answer
+ * is the fallback. Dollar amounts are shown in rupees.
+ */
+export function arrDisplay(
+  startup: Pick<Startup, "revenue_inr_l" | "revenue_note"> | null | undefined,
+  answers: Record<string, unknown> | null | undefined,
+): ArrDisplay {
+  const text = startup?.revenue_note?.trim();
+  const note = text && ABOUT_REVENUE.test(text) ? toRupees(text) : null;
+  if (startup?.revenue_inr_l != null) return { value: formatLakh(startup.revenue_inr_l), source: "record", note };
+  if (note) return { value: note, source: "note", note: null };
+  const own = answers?.revenue_inr_l;
+  if (isFilled(own) && !Number.isNaN(Number(own))) return { value: formatLakh(Number(own)), source: "founder", note: null };
+  return { value: "—", source: "none", note: null };
+}
+
+export interface MrrDisplay {
+  value: string;
+  source: "note" | "none";
+}
+
+const RUPEES = String.raw`(?:₹|INR|Rs\.?)\s*~?\s*(\d[\d,]*(?:\.\d+)?)\s*(cr|crores?|lakhs?|lacs?|l|k)?\b`;
+const RUPEE_UNIT: Record<string, number> = { cr: 1e7, crore: 1e7, crores: 1e7, lakh: 1e5, lakhs: 1e5, lac: 1e5, lacs: 1e5, l: 1e5, k: 1e3 };
+// "INR 6L MRR", "MRR INR 4 Cr", "~INR 1 Cr per month", "monthly run-rate ~INR 50K", "~INR 2.8 lakh in the last month".
+const MONTHLY = [
+  new RegExp(`~?\\s*${RUPEES}\\s*MRR\\b`, "i"),
+  new RegExp(`\\bMRR\\b[^;.\\d₹]{0,12}?~?\\s*${RUPEES}`, "i"),
+  new RegExp(`~?\\s*${RUPEES}\\s*(?:per|a|/)\\s*month\\b`, "i"),
+  new RegExp(`monthly run-?rate\\s*~?\\s*${RUPEES}`, "i"),
+  new RegExp(`~?\\s*${RUPEES}\\s*in the last month\\b`, "i"),
+];
+
+/**
+ * Monthly revenue, when Sidana's revenue text states one. Nothing stores MRR as a number,
+ * and ARR ÷ 12 would invent a figure for revenue that isn't recurring, so otherwise it's "—".
+ */
+export function mrrDisplay(startup: Pick<Startup, "revenue_note"> | null | undefined): MrrDisplay {
+  const text = toRupees(startup?.revenue_note?.trim());
+  if (!text) return { value: "—", source: "none" };
+  for (const pattern of MONTHLY) {
+    const m = pattern.exec(text);
+    if (!m) continue;
+    const inr = parseFloat(m[1].replace(/,/g, "")) * (m[2] ? RUPEE_UNIT[m[2].toLowerCase()] : 1);
+    return { value: `${m[0].includes("~") ? "~" : ""}${formatRupees(inr)}`, source: "note" };
+  }
+  return { value: "—", source: "none" };
+}
+
 export function isFilled(v: unknown): boolean {
   if (Array.isArray(v)) return v.some((x) => String(x).trim() !== "");
   return v !== null && v !== undefined && String(v).trim() !== "";
@@ -207,7 +269,7 @@ export function isFilled(v: unknown): boolean {
 /** The value on record for a field (null when nothing is on file). */
 export function recordValue(field: ProfileField, startup: Startup | null): string | null {
   if (!startup || !field.record) return null;
-  return field.record(startup);
+  return toRupees(field.record(startup));
 }
 
 export interface ProfileProgress {

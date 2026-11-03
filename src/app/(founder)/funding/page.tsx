@@ -1,7 +1,8 @@
-import { Handshake, Send, Hourglass, Sparkles, XCircle } from "lucide-react";
+import { Handshake, Send, Hourglass, XCircle } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnMatches, getOwnReplies, type MailReply } from "@/server/data/founder";
 import {
+  gainIf,
   KpiCard,
   PageHeader,
   Card,
@@ -53,7 +54,6 @@ export default async function FounderFunding() {
   const [matches, replies] = await Promise.all([getOwnMatches(startupId), getOwnReplies(startupId)]);
   const sent = matches.filter((m) => m.state === "sent").length;
   const queued = matches.filter((m) => m.state === "queued").length;
-  const strongFit = matches.filter((m) => m.stage_fit && m.cheque_fit).length;
 
   // replies arrive newest-first; keep the latest reply, and the latest pass, per investor.
   const latestByInvestor = new Map<number, MailReply>();
@@ -113,14 +113,11 @@ export default async function FounderFunding() {
           stats: [
             { label: "Cheque size", value: prof.cheque },
             { label: "Geography", value: prof.geography ?? "—" },
-            { label: "Stage fit", value: m.stage_fit === null ? "—" : m.stage_fit ? "Yes" : "No" },
-            { label: "Cheque fit", value: m.cheque_fit === null ? "—" : m.cheque_fit ? "Yes" : "No" },
-            { label: "Match type", value: m.type ? label(m.type) : "—" },
           ],
           quote: reply?.reply_gist ? { label: replyLabel(reply.reply_kind), text: reply.reply_gist } : undefined,
           tags: [
-            { label: "Sectors they invest in", items: prof.sectors },
-            { label: "Stages they back", items: prof.stages },
+            { label: "Sectors they invest in", items: prof.sectors.length ? prof.sectors : ["Not specified"] },
+            { label: "Stages they back", items: prof.stages.length ? prof.stages : ["Not specified"] },
           ],
           rows: [
             { label: "Matched on", value: formatDate(m.created_at) },
@@ -147,12 +144,12 @@ export default async function FounderFunding() {
         subtitle="Every investor Sidana's engine has matched to your startup, what they said, and where each one stands."
       />
 
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
+      <Stagger className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <Item>
           <KpiCard tone="accent" label="Matched investors" value={matches.length} icon={<Handshake className="h-4 w-4" />} hint="Fit by sector, stage and cheque" />
         </Item>
         <Item>
-          <KpiCard label="Reached out" value={sent} icon={<Send className="h-4 w-4" />} delta={{ text: matches.length ? `${Math.round((sent / matches.length) * 100)}%` : "0%", tone: sent ? "good" : "neutral", arrow: sent ? "up" : "flat", hint: "of matches contacted" }} />
+          <KpiCard label="Reached out" value={sent} icon={<Send className="h-4 w-4" />} delta={gainIf(sent > 0, { text: `${Math.round((sent / Math.max(1, matches.length)) * 100)}%`, hint: "of matches contacted" })} />
         </Item>
         <Item>
           <KpiCard label="In queue" value={queued} icon={<Hourglass className="h-4 w-4" />} hint="Waiting for the next wave" />
@@ -160,15 +157,12 @@ export default async function FounderFunding() {
         <Item>
           <KpiCard label="Passed" value={passed.length} icon={<XCircle className="h-4 w-4" />} hint={passed.length ? "See reasons below" : "None so far"} />
         </Item>
-        <Item>
-          <KpiCard label="Strong fit" value={strongFit} icon={<Sparkles className="h-4 w-4" />} hint="Both stage and cheque match" />
-        </Item>
       </Stagger>
 
       <Reveal>
         <ListDetail
           title="Investor matches"
-          subtitle="Select an investor to see the fit and what they said"
+          subtitle="Select an investor to see their details and what they said"
           listLabel="Investors"
           tabs={[
             { key: "all", label: "All" },

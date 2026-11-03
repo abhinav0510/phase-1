@@ -1,9 +1,10 @@
 import { Handshake, CalendarClock, XCircle, PhoneForwarded } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnStartup, getOwnWeeklyReports } from "@/server/data/founder";
-import { KpiCard, PageHeader, Card, CardBody, EmptyState, Note, type ChipTone, type DeltaTone } from "@/client/components/founder/ui";
+import { KpiCard, PageHeader, Card, CardBody, EmptyState, Note, type ChipTone } from "@/client/components/founder/ui";
 import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
+import { toRupees } from "@/shared/lib/currency";
 import { formatDate } from "@/shared/lib/utils";
 import type { WeeklyReport } from "@/shared/types/db";
 
@@ -33,24 +34,10 @@ const KIND_NOTE: Record<ReportKind, string | undefined> = {
     "Reconstructed from Sidana's pipeline activity for this week. No report email was sent at the time, and the figures reflect the pipeline as it stands today.",
 };
 
-function delta(cur: number, prev: number | undefined, upIsGood = true) {
-  if (prev === undefined) return { text: "First report", tone: "neutral" as DeltaTone, arrow: "flat" as const };
-  const d = cur - prev;
-  if (d === 0) return { text: "No change", tone: "neutral" as DeltaTone, arrow: "flat" as const, hint: "vs last week" };
-  const good = d > 0 === upIsGood;
-  return {
-    text: `${d > 0 ? "+" : ""}${d}`,
-    tone: (good ? "good" : "bad") as DeltaTone,
-    arrow: d > 0 ? ("up" as const) : ("down" as const),
-    hint: "vs last week",
-  };
-}
-
 export default async function WeeklyReportsPage() {
   const { startupId } = await requireFounder();
   const [startup, reports] = await Promise.all([getOwnStartup(startupId), getOwnWeeklyReports(startupId)]);
   const latest = reports[0];
-  const prev = reports[1];
 
   const items: ListItem[] = reports.map((r) => ({
     id: String(r.id),
@@ -76,9 +63,9 @@ export default async function WeeklyReportsPage() {
           { label: "Feedback notes", value: String(r.feedback_count ?? (r.feedback_list ?? []).length) },
         ],
         lists: [
-          { title: "Meetings scheduled with investors", items: (r.meeting_list ?? []).filter(Boolean), empty: "No meetings scheduled this week." },
-          { title: "Investors who passed", items: (r.passed_list ?? []).filter(Boolean), empty: "No investor passed this week." },
-          { title: "Feedback after meetings", items: (r.feedback_list ?? []).filter(Boolean), empty: "No post-meeting feedback this week." },
+          { title: "Meetings scheduled with investors", items: (r.meeting_list ?? []).filter(Boolean).map((x) => toRupees(x)), empty: "No meetings scheduled this week." },
+          { title: "Investors who passed", items: (r.passed_list ?? []).filter(Boolean).map((x) => toRupees(x)), empty: "No investor passed this week." },
+          { title: "Feedback after meetings", items: (r.feedback_list ?? []).filter(Boolean).map((x) => toRupees(x)), empty: "No post-meeting feedback this week." },
         ],
         chip: KIND_CHIP[reportKind(r)],
         rows: r.sent_to ? [{ label: "Emailed to", value: r.sent_to }] : undefined,
@@ -108,16 +95,16 @@ export default async function WeeklyReportsPage() {
         <>
           <Stagger className="grid grid-cols-2 gap-4 xl:grid-cols-4">
             <Item>
-              <KpiCard tone="accent" label="Investors reached" value={latest.reached} icon={<Handshake className="h-4 w-4" />} delta={delta(latest.reached, prev?.reached)} />
+              <KpiCard tone="accent" label="Investors reached" value={latest.reached} icon={<Handshake className="h-4 w-4" />} />
             </Item>
             <Item>
-              <KpiCard label="Follow-ups" value={latest.followups} icon={<PhoneForwarded className="h-4 w-4" />} delta={delta(latest.followups, prev?.followups)} />
+              <KpiCard label="Follow-ups" value={latest.followups} icon={<PhoneForwarded className="h-4 w-4" />} />
             </Item>
             <Item>
-              <KpiCard label="Meetings scheduled" value={latest.meetings} icon={<CalendarClock className="h-4 w-4" />} delta={delta(latest.meetings, prev?.meetings)} />
+              <KpiCard label="Meetings scheduled" value={latest.meetings} icon={<CalendarClock className="h-4 w-4" />} />
             </Item>
             <Item>
-              <KpiCard label="Passed deals" value={latest.passed} icon={<XCircle className="h-4 w-4" />} delta={delta(latest.passed, prev?.passed, false)} />
+              <KpiCard label="Passed deals" value={latest.passed} icon={<XCircle className="h-4 w-4" />} />
             </Item>
           </Stagger>
 

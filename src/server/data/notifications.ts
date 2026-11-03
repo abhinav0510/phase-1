@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/server/integrations/supabase/admin";
+import { toRupees } from "@/shared/lib/currency";
 import type {
   Announcement,
   AnnouncementAudience,
@@ -138,7 +139,7 @@ export async function getAnnouncementsForUser(
       .limit(20);
     if (error || !data?.length) return { items: [], unreadIds: [] };
 
-    const items = data as UserAnnouncements["items"];
+    const items = (data as UserAnnouncements["items"]).map((i) => ({ ...i, title: toRupees(i.title), body: toRupees(i.body) }));
     const { data: dismissed } = await admin
       .from("announcement_dismissals")
       .select("announcement_id")

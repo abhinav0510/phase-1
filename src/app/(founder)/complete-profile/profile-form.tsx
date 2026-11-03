@@ -15,6 +15,7 @@ import {
   type SectionKey,
 } from "@/shared/lib/profile-fields";
 import { saveProfile } from "./actions";
+import { MisUpload, type MisItem } from "./mis-upload";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -22,12 +23,15 @@ export function ProfileForm({
   initial,
   record,
   canSubmit,
+  mis,
 }: {
   initial: Answers;
   /** Value on record per field key (null when nothing is on file). */
   record: Record<string, string | null>;
   /** False while a submission is already with the team and unchanged. */
   canSubmit: boolean;
+  /** MIS spreadsheets already uploaded, shown beside the financial statements link. */
+  mis: { files: MisItem[]; ready: boolean };
 }) {
   const router = useRouter();
   const [values, setValues] = useState<Answers>(initial);
@@ -132,6 +136,7 @@ export function ProfileForm({
                   </h4>
                 ) : null}
                 <Field field={f} value={values[f.key]} record={record[f.key]} onChange={(v) => set(f.key, v)} />
+                {f.key === "financial_statements_link" ? <MisUpload files={mis.files} ready={mis.ready} /> : null}
               </Fragment>
             ))}
           </div>

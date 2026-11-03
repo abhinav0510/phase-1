@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import {
+  gainIf,
   Card,
   CardHeader,
   CardBody,
@@ -36,10 +37,11 @@ import {
   getOwnBranding,
   logoUrlFor,
 } from "@/server/data/founder";
-import { profileProgress } from "@/shared/lib/profile-fields";
+import { allocationDisplay, askDisplay } from "@/shared/lib/currency";
+import { arrDisplay, profileProgress } from "@/shared/lib/profile-fields";
 import { ProfileNudge } from "./_components/profile-nudge";
-import { cn, formatCr, formatLakh, formatDate } from "@/shared/lib/utils";
-import { ActivityBars, Donut } from "./_components/charts";
+import { cn, formatLakh, formatDate } from "@/shared/lib/utils";
+import { Donut } from "./_components/charts";
 import { SERIES } from "./_components/palette";
 import { Gauge, IconDisc, MeterRow, Ring } from "./_components/visuals";
 import {
@@ -48,7 +50,6 @@ import {
   matchStateSlices,
   pipelineStages,
   relativeTime,
-  weekPoints,
   type ActivityKind,
 } from "./_components/model";
 
@@ -96,19 +97,12 @@ export default async function FounderDashboard() {
   const slices = matchStateSlices(matches);
   const mix = investorMix(matches);
   const mixMax = Math.max(1, ...mix.map((m) => m.value));
-  const weeks = weekPoints(weeklyReports);
   const feed = activityFeed(matches, meetings, weeklyReports, 5, now);
   const reachedPct =
     overview.matchCount > 0 ? Math.round((overview.matchSent / overview.matchCount) * 100) : 0;
 
-  const askValue = s?.ask_as_written ?? formatCr(s?.ask_amount ?? s?.ask_current_cr);
-  const allocValue = s?.allocation_left_as_written ?? formatCr(s?.allocation_left_amount);
-  const todayLabel = now.toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const askValue = askDisplay(s);
+  const allocValue = allocationDisplay(s);
 
   const pipelineItems: ListItem[] = stages.map((st) => ({
     id: st.key,
@@ -152,8 +146,7 @@ export default async function FounderDashboard() {
             </Link>
           )}
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ocean-600">{todayLabel}</p>
-            <h1 className="mt-1 text-[26px] font-bold leading-tight tracking-tight text-tide md:text-[30px]">
+            <h1 className="text-[26px] font-bold leading-tight tracking-tight text-tide md:text-[30px]">
               Welcome back, {s?.name ?? "founder"}
             </h1>
             <p className="mt-1 text-sm text-navy-500">
@@ -205,7 +198,7 @@ export default async function FounderDashboard() {
             label="Investor matches"
             value={overview.matchCount}
             icon={<Handshake className="h-4 w-4" />}
-            delta={{ text: `${overview.matchSent} reached out`, tone: overview.matchSent ? "good" : "neutral", arrow: overview.matchSent ? "up" : "flat", hint: `${reachedPct}% contacted` }}
+            delta={gainIf(overview.matchSent > 0, { text: `${overview.matchSent} reached out`, hint: `${reachedPct}% contacted` })}
             visual={
               <div className="flex items-center gap-3">
                 <Ring pct={reachedPct} color={SERIES.navy} size={44} />
@@ -222,7 +215,11 @@ export default async function FounderDashboard() {
             label="Meetings"
             value={meetings.length}
             icon={<CalendarClock className="h-4 w-4" />}
-            delta={{ text: `${overview.meetingsUpcoming} upcoming`, tone: overview.meetingsUpcoming ? "good" : "neutral", arrow: overview.meetingsUpcoming ? "up" : "flat", hint: `${overview.meetingsHeld} held` }}
+            delta={gainIf(overview.meetingsUpcoming > 0, {
+              text: `${overview.meetingsUpcoming} upcoming`,
+              hint: overview.meetingsHeld > 0 ? `${overview.meetingsHeld} held` : undefined,
+            })}
+            hint={overview.meetingsHeld > 0 ? `${overview.meetingsHeld} held` : undefined}
             visual={
               upcoming[0] ? (
                 <p className="truncate text-xs text-tide/60">
@@ -248,7 +245,7 @@ export default async function FounderDashboard() {
         />
       </Reveal>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Reveal>
           <Card className="h-full">
             <CardHeader title="Matches by state" action={<ViewAll href="/funding" />} />
@@ -258,7 +255,7 @@ export default async function FounderDashboard() {
               ) : (
                 <div className="flex flex-col items-center gap-4">
                   <Donut slices={slices} total={matches.length} centerLabel="matches" />
-                  <ul className="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-1">
+                  <ul className="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                     {slices.map((sl) => (
                       <li key={sl.key} className="flex items-center gap-2 text-sm">
                         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: sl.color }} />
@@ -280,23 +277,6 @@ export default async function FounderDashboard() {
         </Reveal>
 
         <Reveal delay={0.08}>
-          <Card className="h-full">
-            <CardHeader
-              title="Weekly activity"
-              subtitle={latestReport ? `Latest week ${formatDate(latestReport.week_start)}` : "From your Saturday reports"}
-              action={<ViewAll href="/weekly-reports" />}
-            />
-            <CardBody className="pb-3">
-              {weeks.length === 0 ? (
-                <EmptyState title="No weekly reports yet" message="Your first report lands after the next Saturday run." />
-              ) : (
-                <ActivityBars data={weeks} />
-              )}
-            </CardBody>
-          </Card>
-        </Reveal>
-
-        <Reveal delay={0.16}>
           <Card className="h-full">
             <CardHeader title="Upcoming meetings" action={<ViewAll href="/meetings" />} />
             <CardBody className="p-2 pt-3">
@@ -399,7 +379,7 @@ export default async function FounderDashboard() {
             <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/financials" />} />
             <CardBody className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <Metric label="Annual revenue (ARR)" value={formatLakh(s?.revenue_inr_l)} />
+                <Metric label="Annual revenue (ARR)" value={arrDisplay(s, profile?.answers).value} />
                 <Metric label="Burn" value={formatLakh(s?.burn_inr_l)} />
                 <Metric label="Score" value={s?.score?.toString() ?? "—"} />
                 <Metric label="Rule tier" value={s?.rule_tier ?? "—"} />

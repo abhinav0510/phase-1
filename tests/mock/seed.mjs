@@ -3,7 +3,7 @@
 export const PASSWORD = "demo-password-1";
 
 export const STARTUP = { alpha: 101, beta: 102, gamma: 103, delta: 104, epsilon: 105, zeta: 106, eta: 107 };
-export const INVESTOR = { capital: 201, passed: 202, paused: 203, queued: 204, betaOnly: 205 };
+export const INVESTOR = { capital: 201, passed: 202, paused: 203, queued: 204, betaOnly: 205, dollar: 206 };
 
 /** Text that belongs only to Demo Beta. Founder Alpha must never see it. */
 export const BETA_SECRET = "BETA-SECRET-MARKER";
@@ -74,14 +74,17 @@ function report(id, startupId, weekStart, source, sentTo, extra = {}) {
 export function buildSeed() {
   const startups = [
     startup(STARTUP.alpha, "Demo Alpha Foods", {
-      revenue_inr_l: 250, burn_inr_l: 12, runway_months: 14, revenue_note: "Demo run-rate note",
+      revenue_inr_l: 250, burn_inr_l: 12, runway_months: 14, revenue_note: "Demo run-rate note; INR 6L MRR",
       allocation_left_as_written: "INR 2 Cr", score: 80, rule_tier: "A",
     }),
     startup(STARTUP.beta, "Demo Beta Labs", { sector: "HealthTech", notes: BETA_SECRET, revenue_note: BETA_SECRET, status: "blocked", ask_as_written: "INR 99 Cr" }),
     startup(STARTUP.gamma, "Demo Gamma Robotics", { sector: "DeepTech" }),
     startup(STARTUP.delta, "Demo Delta Retail", { sector: "D2C" }),
     startup(STARTUP.epsilon, "Demo Epsilon Fintech", { sector: "FinTech", stage: "Series A" }),
-    startup(STARTUP.zeta, "Demo Zeta Mobility", { sector: "Mobility" }),
+    startup(STARTUP.zeta, "Demo Zeta Mobility", {
+      sector: "Mobility", ask_currency: "USD", ask_amount: 1.5, ask_as_written: "US$1.5M", allocation_left_as_written: "US$500K",
+      revenue_note: "ARR US$250K", notes: "Raising alongside a US$2M note",
+    }),
     startup(STARTUP.eta, "Demo Eta Empty", { sector: null, stage: null, owner_name: null, ask_as_written: null, ask_amount: null, ask_current_cr: null, ask_updated_on: null }),
   ];
 
@@ -122,12 +125,14 @@ export function buildSeed() {
         investor(INVESTOR.paused, "Paused Fund Internal"),
         investor(INVESTOR.queued, "Queue Ventures"),
         investor(INVESTOR.betaOnly, `Beta Only Ventures`),
+        investor(INVESTOR.dollar, "Demo Dollar Fund", { cheque_min_cr: 8.5, cheque_max_cr: 17, cheque_as_written: "US$1-2M (INR 8.5-17 Cr)" }),
       ],
       matches: [
         { id: 1, startup_id: STARTUP.alpha, investor_id: INVESTOR.capital, type: "exact", state: "sent", score: 90, stage_fit: true, cheque_fit: true, priority: 1, created_at: NOW },
         { id: 2, startup_id: STARTUP.alpha, investor_id: INVESTOR.passed, type: "exact", state: "sent", score: 70, stage_fit: true, cheque_fit: false, priority: 2, created_at: NOW },
         { id: 3, startup_id: STARTUP.alpha, investor_id: INVESTOR.paused, type: "stage_off", state: "paused", score: 40, stage_fit: false, cheque_fit: false, priority: 3, created_at: NOW },
         { id: 4, startup_id: STARTUP.alpha, investor_id: INVESTOR.queued, type: "exact", state: "queued", score: 60, stage_fit: true, cheque_fit: true, priority: 4, created_at: NOW },
+        { id: 6, startup_id: STARTUP.zeta, investor_id: INVESTOR.dollar, type: "exact", state: "sent", score: 75, stage_fit: true, cheque_fit: true, priority: 1, created_at: NOW },
         { id: 5, startup_id: STARTUP.beta, investor_id: INVESTOR.betaOnly, type: "exact", state: "sent", score: 60, stage_fit: true, cheque_fit: true, priority: 1, created_at: NOW },
       ],
       mail_log: [
@@ -190,7 +195,9 @@ export function buildSeed() {
         },
       ],
       startup_branding: [],
+      startup_mis_files: [],
       funding_rounds: [
+        { id: 3, startup_id: STARTUP.zeta, closed_on: "2025-06-01", amount: 2, currency: "USD", as_written: "US$2M", instrument: "SAFE", round_name: "Zeta seed", lead_investor_id: null, lead_investor_name: null, notes: null, source: "demo", created_at: NOW },
         { id: 1, startup_id: STARTUP.alpha, closed_on: "2025-06-01", amount: 1, currency: "INR", as_written: "INR 1 Cr", instrument: "SAFE", round_name: "Pre-seed", lead_investor_id: null, lead_investor_name: "Demo Lead Angel", notes: null, source: "demo", created_at: NOW },
         { id: 2, startup_id: STARTUP.beta, closed_on: "2025-06-01", amount: 9, currency: "INR", as_written: BETA_SECRET, instrument: "SAFE", round_name: "Beta round", lead_investor_id: null, lead_investor_name: null, notes: null, source: "demo", created_at: NOW },
       ],

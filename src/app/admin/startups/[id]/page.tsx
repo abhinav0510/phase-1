@@ -14,8 +14,11 @@ import {
 } from "@/client/components/admin/ui/table";
 import { requireAdmin } from "@/server/auth/session";
 import { getStartupDetail } from "@/server/data/admin";
+import { listMisFiles } from "@/server/data/mis";
+import { MisFiles } from "@/client/components/admin/mis-files";
+import { allocationDisplay, askDisplay, fundingDisplay, toRupees } from "@/shared/lib/currency";
 import { JoinLink } from "@/client/components/ui/join-link";
-import { formatCr, formatLakh, formatDate, formatDateTime } from "@/shared/lib/utils";
+import { formatLakh, formatDate, formatDateTime } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -29,8 +32,10 @@ export default async function StartupDetailPage({
   const startupId = Number(id);
   if (!Number.isInteger(startupId)) notFound();
 
-  const { startup, matches, meetings, funding, docs } =
-    await getStartupDetail(startupId);
+  const [{ startup, matches, meetings, funding, docs }, mis] = await Promise.all([
+    getStartupDetail(startupId),
+    listMisFiles(startupId),
+  ]);
   if (!startup) notFound();
 
   return (
@@ -76,11 +81,11 @@ export default async function StartupDetailPage({
           <CardBody className="space-y-2 text-sm">
             <Row
               label="Ask"
-              value={startup.ask_as_written ?? formatCr(startup.ask_amount ?? startup.ask_current_cr)}
+              value={askDisplay(startup)}
             />
             <Row
               label="Allocation left"
-              value={startup.allocation_left_as_written ?? formatCr(startup.allocation_left_amount)}
+              value={allocationDisplay(startup)}
             />
             <Row label="Revenue" value={formatLakh(startup.revenue_inr_l)} />
             <Row label="Burn" value={formatLakh(startup.burn_inr_l)} />
@@ -89,7 +94,7 @@ export default async function StartupDetailPage({
               value={startup.runway_months ? `${startup.runway_months} mo` : null}
             />
             {startup.revenue_note ? (
-              <p className="pt-1 text-xs text-navy-500">{startup.revenue_note}</p>
+              <p className="pt-1 text-xs text-navy-500">{toRupees(startup.revenue_note)}</p>
             ) : null}
           </CardBody>
         </Card>
@@ -97,7 +102,7 @@ export default async function StartupDetailPage({
           <CardHeader title="Notes" />
           <CardBody className="text-sm text-navy-600">
             {startup.notes ? (
-              <p className="whitespace-pre-wrap">{startup.notes}</p>
+              <p className="whitespace-pre-wrap">{toRupees(startup.notes)}</p>
             ) : (
               <p className="text-navy-400">No notes recorded.</p>
             )}
@@ -214,7 +219,7 @@ export default async function StartupDetailPage({
                         {f.round_name ?? f.instrument ?? "Round"}
                       </span>
                       <span className="text-navy-500">
-                        {f.as_written ?? formatCr(f.amount)} ·{" "}
+                        {fundingDisplay(f)} ·{" "}
                         {formatDate(f.closed_on)}
                       </span>
                     </li>
@@ -242,6 +247,12 @@ export default async function StartupDetailPage({
                   ))}
                 </ul>
               )}
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">
+                MIS from the founder
+              </p>
+              <MisFiles files={mis.files} ready={mis.ready} />
             </div>
           </CardBody>
         </Card>

@@ -5,8 +5,10 @@ import {
   PROFILE_FIELDS,
   PROJECTED_YEARS,
   SECTIONS,
+  arrDisplay,
   displayValue,
   isFilled,
+  mrrDisplay,
   profileProgress,
   recordValue,
 } from "@/shared/lib/profile-fields";
@@ -110,5 +112,54 @@ describe("profileProgress", () => {
     const p = profileProgress(null, null);
     const sum = Object.values(p.bySection).reduce((n, s) => n + s.total, 0);
     expect(sum).toBe(p.total);
+  });
+});
+
+// Every value here is a form found in the Pilot sheet's revenue column.
+describe("mrrDisplay", () => {
+  it.each([
+    ["US$10K MRR / US$120K ARR", "₹10 L"],
+    ["Current MRR INR 4 Cr; FY26 ARR INR 12 Cr; FY27 closing ARR projected ~INR 48 Cr", "₹4 Cr"],
+    ["ARR INR 70 lakh; INR 6L MRR growing 20% MoM", "₹6 L"],
+    ["ARR INR 67.8 Cr (MRR INR 5.65 Cr, Jul 2026; gross revenue)", "₹5.65 Cr"],
+    ["Combined MRR $84.1K ($20.9K SaaS + $63.2K managed); 30+ enterprise clients", "₹84.1 L"],
+    ["Current revenue ~INR 1 Cr per month (~INR 12 Cr annualised, Sep 2026)", "~₹1 Cr"],
+    ["Revenue ~INR 2.8 lakh in the last month, ~INR 33 lakh annualised (founder, 3 Sep 2026); monthly burn cut to INR 1.5 lakh", "~₹2.8 L"],
+    ["INR 3.5-4 lakh over the past 6-7 months; monthly run-rate ~INR 50K for the last 3 months", "~₹50,000"],
+    ["Revenue run-rate INR 4.8 Lakh (INR 40,000 a month, ~300 paid sessions)", "₹40,000"],
+  ])("%s shows %s", (note, value) => {
+    expect(mrrDisplay({ revenue_note: note })).toEqual({ value, source: "note" });
+  });
+  it("shows a dash when no monthly figure is stated, without working one out from ARR", () => {
+    for (const note of ["ARR INR 2.5 Cr", "Revenue run-rate INR 1.20 Cr", "FY26 ARR INR 66.2 lakh", "Pre-revenue with validated LOIs", "40+ bookings/day", null]) {
+      expect(mrrDisplay({ revenue_note: note })).toEqual({ value: "—", source: "none" });
+    }
+    expect(mrrDisplay(null)).toEqual({ value: "—", source: "none" });
+  });
+});
+
+describe("arrDisplay", () => {
+  const blank = { revenue_inr_l: null, revenue_note: null };
+  it("prefers the number on record, keeping revenue text as its note", () => {
+    expect(arrDisplay({ revenue_inr_l: 250, revenue_note: "ARR note" }, { revenue_inr_l: "75" })).toEqual({ value: "₹2.50 Cr", source: "record", note: "ARR note" });
+  });
+  it("shows the sheet's revenue text in rupees when there's no number", () => {
+    expect(arrDisplay({ ...blank, revenue_note: " ARR US$1M " }, {})).toEqual({ value: "ARR ₹10 Cr", source: "note", note: null });
+    expect(arrDisplay({ ...blank, revenue_note: "Revenue run-rate INR 40 lakh" }, {}).value).toBe("Revenue run-rate INR 40 lakh");
+    expect(arrDisplay({ ...blank, revenue_note: "Pre-revenue with validated LOIs" }, {}).source).toBe("note");
+  });
+  it("never shows a market size or usage figure as revenue", () => {
+    for (const text of ["Global education consulting market US$67.9B", "70%+ repeat usage across pilot institutions", "40+ bookings/day"]) {
+      expect(arrDisplay({ ...blank, revenue_note: text }, {})).toEqual({ value: "—", source: "none", note: null });
+      expect(arrDisplay({ revenue_inr_l: 250, revenue_note: text }, {}).note).toBeNull();
+    }
+  });
+  it("falls back to the founder's own answer", () => {
+    expect(arrDisplay(blank, { revenue_inr_l: "75" })).toEqual({ value: "₹75.00 L", source: "founder", note: null });
+    expect(arrDisplay({ ...blank, revenue_note: "40+ bookings/day" }, { revenue_inr_l: "75" }).source).toBe("founder");
+  });
+  it("shows a dash when there's nothing, or the answer isn't a number", () => {
+    expect(arrDisplay(blank, {})).toEqual({ value: "—", source: "none", note: null });
+    expect(arrDisplay(null, { revenue_inr_l: "lots" })).toEqual({ value: "—", source: "none", note: null });
   });
 });

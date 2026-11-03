@@ -1,7 +1,7 @@
 import { CalendarClock, CheckCircle2, Repeat, Video } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnMeetings } from "@/server/data/founder";
-import { KpiCard, PageHeader, Note } from "@/client/components/founder/ui";
+import { KpiCard, PageHeader, Note, gainIf } from "@/client/components/founder/ui";
 import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
 import { formatDateTime } from "@/shared/lib/utils";
@@ -79,7 +79,7 @@ export default async function FounderMeetings() {
           <KpiCard tone="accent" label="Upcoming" value={upcoming.length} icon={<CalendarClock className="h-4 w-4" />} hint={upcoming[0] ? `Next ${formatDateTime(upcoming[0].scheduled_at)}` : "Nothing scheduled yet"} />
         </Item>
         <Item>
-          <KpiCard label="Held" value={held} icon={<CheckCircle2 className="h-4 w-4" />} delta={{ text: `${meetings.length ? Math.round((held / Math.max(1, meetings.length)) * 100) : 0}%`, tone: held ? "good" : "neutral", arrow: held ? "up" : "flat", hint: "of all meetings" }} />
+          <KpiCard label="Held" value={held} icon={<CheckCircle2 className="h-4 w-4" />} delta={gainIf(held > 0, { text: `${Math.round((held / Math.max(1, meetings.length)) * 100)}%`, hint: "of all meetings" })} />
         </Item>
         <Item>
           <KpiCard label="Second meetings" value={second} icon={<Repeat className="h-4 w-4" />} hint="Investors who came back" />
