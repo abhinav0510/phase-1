@@ -12,7 +12,8 @@ import {
 } from "@/client/components/admin/ui/table";
 import { requireAdmin } from "@/server/auth/session";
 import { listStartups } from "@/server/data/admin";
-import { formatCr, formatDate } from "@/shared/lib/utils";
+import { askDisplay } from "@/shared/lib/currency";
+import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -148,7 +149,7 @@ export default async function AdminStartups({
                       <StatusBadge value={s.status} kind="startup" />
                     </TD>
                     <TD className="text-navy-600">
-                      {s.ask_as_written ?? formatCr(s.ask_amount ?? s.ask_current_cr)}
+                      {askDisplay(s)}
                     </TD>
                     <TD className="text-navy-500">{formatDate(s.updated_at)}</TD>
                   </TR>

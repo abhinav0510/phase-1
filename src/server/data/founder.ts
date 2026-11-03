@@ -6,6 +6,7 @@ import { createAdminClient } from "@/server/integrations/supabase/admin";
 import { FOUNDER_TTL_SECONDS, startupTag } from "@/server/config/cache-tags";
 import { freshOrRefetch } from "@/server/data/cached-read";
 import { toFounderMeetings } from "@/server/data/meetings";
+import { toRupees } from "@/shared/lib/currency";
 import type {
   Match,
   Meeting,
@@ -280,8 +281,8 @@ export const getOwnReplies = cache((startupId: number): Promise<MailReply[]> =>
       investor: profiles.get(r.investor_id) ?? null,
       sent_at: r.sent_at,
       reply_kind: r.reply_kind,
-      reply_gist: redactContacts(r.reply_gist),
-      subject: redactContacts(r.subject),
+      reply_gist: toRupees(redactContacts(r.reply_gist)),
+      subject: toRupees(redactContacts(r.subject)),
     }));
   }),
 );

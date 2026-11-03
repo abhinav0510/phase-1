@@ -1,6 +1,7 @@
 import { AlertCircle, CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnProfile, getOwnStartup } from "@/server/data/founder";
+import { listMisFiles } from "@/server/data/mis";
 import { PageHeader, Card, CardBody } from "@/client/components/founder/ui";
 import { ProgressBar, Reveal } from "@/client/components/founder/motion";
 import { formatDateTime } from "@/shared/lib/utils";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CompleteProfilePage() {
   const { startupId } = await requireFounder();
-  const [startup, profile] = await Promise.all([getOwnStartup(startupId), getOwnProfile(startupId)]);
+  const [startup, profile, mis] = await Promise.all([getOwnStartup(startupId), getOwnProfile(startupId), listMisFiles(startupId)]);
 
   const answers: Answers = profile?.answers ?? {};
   const record: Record<string, string | null> = {};
@@ -75,7 +76,15 @@ export default async function CompleteProfilePage() {
         </Card>
       </Reveal>
 
-      <ProfileForm initial={initial} record={record} canSubmit={profile?.status !== "submitted"} />
+      <ProfileForm
+        initial={initial}
+        record={record}
+        canSubmit={profile?.status !== "submitted"}
+        mis={{
+          ready: mis.ready,
+          files: mis.files.map((f) => ({ id: f.id, file_name: f.file_name, size_bytes: f.size_bytes, created_at: f.created_at })),
+        }}
+      />
     </div>
   );
 }

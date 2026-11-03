@@ -1,7 +1,8 @@
-import { Target, Wallet, TrendingUp, Flame, PencilLine, CheckCircle2, CircleAlert } from "lucide-react";
+import { Target, Wallet, TrendingUp, Repeat, PencilLine, CheckCircle2, CircleAlert } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnStartup, getOwnFunding, getOwnProfile } from "@/server/data/founder";
-import { PAST_YEARS, PROJECTED_YEARS, isFilled, type FinancialYear } from "@/shared/lib/profile-fields";
+import { allocationDisplay, askDisplay, fundingDisplay } from "@/shared/lib/currency";
+import { PAST_YEARS, PROJECTED_YEARS, arrDisplay, isFilled, mrrDisplay, type ArrDisplay, type FinancialYear } from "@/shared/lib/profile-fields";
 import {
   KpiCard,
   PageHeader,
@@ -9,7 +10,6 @@ import {
   CardHeader,
   CardBody,
   Chip,
-  FieldRow,
   Note,
   ButtonLink,
   Table,
@@ -20,8 +20,8 @@ import {
   TD,
   EmptyState,
 } from "@/client/components/founder/ui";
-import { Stagger, Item, Reveal, ProgressBar } from "@/client/components/founder/motion";
-import { formatCr, formatLakh, formatDate } from "@/shared/lib/utils";
+import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
+import { formatLakh, formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +40,12 @@ function ChecklistItem({ done, title, detail }: { done: boolean; title: string; 
   );
 }
 
+const ARR_HINT: Partial<Record<ArrDisplay["source"], string>> = {
+  note: "From Sidana's records",
+  founder: "As you entered it",
+  none: "Not added yet",
+};
+
 export default async function Financials() {
   const { startupId } = await requireFounder();
   const [s, funding, profile] = await Promise.all([
@@ -48,17 +54,16 @@ export default async function Financials() {
     getOwnProfile(startupId),
   ]);
   const answers = profile?.answers ?? {};
+  const arr = arrDisplay(s, answers);
   const filled = (years: FinancialYear[]) => years.filter((y) => isFilled(answers[y.key])).length;
-  const hasArr = isFilled(answers.revenue_inr_l) || isFilled(s?.revenue_inr_l);
+  const hasArr = arr.source !== "none";
   const pastDone = filled(PAST_YEARS);
   const projectedDone = filled(PROJECTED_YEARS);
   const yearRows = [
     ...PAST_YEARS.map((y) => ({ ...y, kind: "Actual" as const })),
     ...PROJECTED_YEARS.map((y) => ({ ...y, kind: "Projected" as const })),
   ];
-  const runway = s?.runway_months ?? null;
-  const runwayPct = runway ? Math.max(4, Math.min(100, Math.round((runway / 24) * 100))) : 0;
-  const runwayTone = runway === null ? "neutral" : runway >= 12 ? "good" : runway >= 6 ? "neutral" : "bad";
+  const mrr = mrrDisplay(s);
 
   return (
     <div className="space-y-5">
@@ -112,7 +117,7 @@ export default async function Financials() {
           <KpiCard
             tone="accent"
             label="Current ask"
-            value={s?.ask_as_written ?? formatCr(s?.ask_amount ?? s?.ask_current_cr)}
+            value={askDisplay(s)}
             icon={<Target className="h-4 w-4" />}
             hint={s?.ask_updated_on ? `Updated ${formatDate(s.ask_updated_on)}` : "As recorded with Sidana"}
           />
@@ -120,39 +125,28 @@ export default async function Financials() {
         <Item>
           <KpiCard
             label="Allocation left"
-            value={s?.allocation_left_as_written ?? formatCr(s?.allocation_left_amount)}
+            value={allocationDisplay(s)}
             icon={<Wallet className="h-4 w-4" />}
             hint={s?.allocation_updated_on ? `Updated ${formatDate(s.allocation_updated_on)}` : "Of the current round"}
           />
         </Item>
         <Item>
-          <KpiCard label="Annual revenue (ARR)" value={formatLakh(s?.revenue_inr_l)} icon={<TrendingUp className="h-4 w-4" />} hint={s?.revenue_note ? "See note below" : "Latest on record"} />
+          <KpiCard
+            label="Annual revenue (ARR)"
+            value={arr.source === "note" ? <span className="block whitespace-normal text-lg font-semibold leading-snug">{arr.value}</span> : arr.value}
+            icon={<TrendingUp className="h-4 w-4" />}
+            hint={ARR_HINT[arr.source] ?? arr.note ?? "Latest on record"}
+          />
         </Item>
         <Item>
           <KpiCard
-            label="Monthly burn"
-            value={formatLakh(s?.burn_inr_l)}
-            icon={<Flame className="h-4 w-4" />}
-            delta={{ text: runway ? `${runway} mo runway` : "Runway unknown", tone: runwayTone, arrow: runway ? (runway >= 12 ? "up" : "down") : "flat" }}
-            visual={<ProgressBar pct={runwayPct} className="h-1.5 w-full overflow-hidden rounded-full bg-navy-100" barClassName={`h-full rounded-full ${runway === null ? "bg-navy-200" : runway >= 12 ? "bg-emerald-500" : runway >= 6 ? "bg-amber-500" : "bg-red-500"}`} />}
+            label="Monthly revenue (MRR)"
+            value={mrr.value}
+            icon={<Repeat className="h-4 w-4" />}
+            hint={mrr.source === "note" ? "From Sidana's records" : "Not on record"}
           />
         </Item>
       </Stagger>
-
-      <Reveal>
-        <Card>
-          <CardHeader title="Financial indicators" subtitle="Sources and timestamps for each figure" />
-          <CardBody className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-2 lg:grid-cols-3">
-            <FieldRow label="Runway" value={runway ? `${runway} months` : "—"} />
-            <FieldRow label="Ask source" value={s?.ask_source} />
-            <FieldRow label="Ask updated" value={formatDate(s?.ask_updated_on)} />
-            <FieldRow label="Allocation source" value={s?.allocation_source} />
-            <FieldRow label="Allocation updated" value={formatDate(s?.allocation_updated_on)} />
-            <FieldRow label="Score" value={s?.score?.toString()} />
-            <FieldRow label="Revenue note" value={<span className="whitespace-pre-wrap font-normal text-navy-700">{s?.revenue_note || "—"}</span>} wide />
-          </CardBody>
-        </Card>
-      </Reveal>
 
       <Reveal>
         <Card>
@@ -215,7 +209,7 @@ export default async function Financials() {
                   {funding.map((f: any) => (
                     <TR key={f.id}>
                       <TD className="font-semibold text-tide">{f.round_name ?? f.instrument ?? "Round"}</TD>
-                      <TD className="text-navy-700">{f.as_written ?? formatCr(f.amount)}</TD>
+                      <TD className="text-navy-700">{fundingDisplay(f)}</TD>
                       <TD className="text-navy-500">{f.lead_investor_name ?? "—"}</TD>
                       <TD className="text-navy-500">{formatDate(f.closed_on)}</TD>
                     </TR>

@@ -90,10 +90,12 @@ test.describe("financials", () => {
     await expect(page).toHaveURL(/complete-profile#section-financials/);
     await expect(page.getByRole("heading", { name: "Financials", exact: true })).toBeVisible();
   });
-  test("shows figures on record, runway and funding rounds", async ({ page }) => {
+  test("shows figures on record, monthly revenue and funding rounds", async ({ page }) => {
     await expect(page.getByText("Annual revenue (ARR)").first()).toBeVisible();
     await expect(page.getByText("₹2.50 Cr")).toBeVisible();
-    await expect(page.getByText("14 mo runway")).toBeVisible();
+    await expect(page.getByText("Monthly revenue (MRR)")).toBeVisible();
+    await expect(page.getByText("₹6 L", { exact: true })).toBeVisible();
+    await expect(page.getByText("Monthly burn")).toHaveCount(0);
     await expect(page.getByText("Pre-seed")).toBeVisible();
     await expect(page.getByText("Demo Lead Angel")).toBeVisible();
     await expect(page.getByText("Demo run-rate note")).toBeVisible();

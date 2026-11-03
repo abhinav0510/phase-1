@@ -58,10 +58,10 @@ const nextConfig = {
       dynamic: 30,
       static: 300,
     },
-    // Logo uploads go through a server action; the app caps files at 2 MB, so
-    // allow a little headroom over the 1 MB default for the multipart body.
+    // Logo and MIS uploads go through server actions; the app caps files at 2 MB and
+    // 3 MB, so allow a little headroom for the multipart body. nginx allows 4 MB.
     serverActions: {
-      bodySizeLimit: "3mb",
+      bodySizeLimit: "4mb",
     },
   },
 };

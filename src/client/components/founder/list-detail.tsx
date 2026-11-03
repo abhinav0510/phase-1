@@ -221,7 +221,7 @@ export function ListDetail({
                   <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {detail.stats.map((s) => (
                       <div key={s.label} className="rounded-2xl bg-ocean-50 px-4 py-3">
-                        <p className="truncate text-lg font-bold">{s.value}</p>
+                        <p className="break-words text-lg font-bold">{s.value}</p>
                         <p className="text-[11px] text-navy-500">{s.label}</p>
                       </div>
                     ))}

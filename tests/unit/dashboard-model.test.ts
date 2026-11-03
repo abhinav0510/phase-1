@@ -80,6 +80,16 @@ describe("activityFeed", () => {
   });
 });
 
+describe("activityFeed weekly reports", () => {
+  const report = { id: 1, reached: 1, meetings: 2, week_start: "2026-10-05", week_end: "2026-10-09", created_at: "2026-10-29T20:00:00Z" } as never;
+  it("dates a report by its week, not by when the row was saved, and names the week", () => {
+    const [e] = activityFeed([], [], [report], 5, new Date("2026-10-30T00:00:00Z"));
+    expect(e.at.toISOString().slice(0, 10)).toBe("2026-10-09");
+    expect(e.title).toBe("Weekly report, week of 05 Oct 2026");
+    expect(e.detail).toBe("1 investor reached, 2 meetings");
+  });
+});
+
 describe("relativeTime", () => {
   const now = new Date("2026-10-30T12:00:00Z");
   const ago = (ms: number) => new Date(now.getTime() - ms);

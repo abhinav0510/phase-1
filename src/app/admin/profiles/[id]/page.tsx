@@ -5,6 +5,9 @@ import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
 import { Badge } from "@/client/components/ui/badge";
 import { requireAdmin } from "@/server/auth/session";
 import { getProfileForReview } from "@/server/data/admin";
+import { listMisFiles } from "@/server/data/mis";
+import { MisFiles } from "@/client/components/admin/mis-files";
+import { toRupees } from "@/shared/lib/currency";
 import {
   PROFILE_FIELDS,
   SECTIONS,
@@ -28,7 +31,7 @@ export default async function AdminProfileReview({
   const { id } = await params;
   const startupId = Number(id);
   if (!Number.isInteger(startupId) || startupId <= 0) notFound();
-  const { startup, profile } = await getProfileForReview(startupId);
+  const [{ startup, profile }, mis] = await Promise.all([getProfileForReview(startupId), listMisFiles(startupId)]);
   if (!profile) notFound();
 
   const meta = PROFILE_STATUS_META[profile.status];
@@ -84,7 +87,7 @@ export default async function AdminProfileReview({
                 <span>On record</span>
               </div>
               {PROFILE_FIELDS.filter((f) => f.section === s.key).map((f) => {
-                const answer = displayValue(profile.answers[f.key]);
+                const answer = toRupees(displayValue(profile.answers[f.key]));
                 const rec = recordValue(f, startup) ?? "";
                 const changed = isFilled(answer) && isFilled(rec) && answer !== rec;
                 const added = isFilled(answer) && !isFilled(rec);
@@ -118,6 +121,13 @@ export default async function AdminProfileReview({
           </CardBody>
         </Card>
       ))}
+
+      <Card>
+        <CardHeader title="MIS from the founder" subtitle="Uploaded from Complete Profile. These don't wait for review." />
+        <CardBody>
+          <MisFiles files={mis.files} ready={mis.ready} />
+        </CardBody>
+      </Card>
 
       <Card>
         <CardHeader

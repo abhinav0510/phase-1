@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowDownRight, ArrowLeft, ArrowUpRight, Minus } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { cn, initials } from "@/shared/lib/utils";
 
 // Server-safe founder UI kit (no hooks). Animated pieces live in motion.tsx.
@@ -76,28 +76,25 @@ export function PageHeader({
   );
 }
 
-export type DeltaTone = "good" | "bad" | "neutral";
-
-export function Delta({
-  text,
-  tone = "neutral",
-  arrow,
-  hint,
-  onTint,
-}: {
+/**
+ * A green "up" beside a figure. Testers warned that red or flat trends upset founders, so
+ * there is deliberately no down or zero version: pass a delta only when the figure is good news.
+ */
+export interface Gain {
   text: string;
-  tone?: DeltaTone;
-  arrow?: "up" | "down" | "flat";
   hint?: string;
-  onTint?: boolean;
-}) {
-  const Icon = arrow === "up" ? ArrowUpRight : arrow === "down" ? ArrowDownRight : Minus;
-  const color =
-    tone === "good" ? "text-emerald-500" : tone === "bad" ? "text-red-500" : onTint ? "text-tide/70" : "text-navy-500";
+}
+
+/** The gain to show for a figure, or nothing when it isn't positive. */
+export function gainIf(positive: boolean, gain: Gain): Gain | undefined {
+  return positive ? gain : undefined;
+}
+
+export function Delta({ text, hint, onTint }: Gain & { onTint?: boolean }) {
   return (
-    <p className="mt-1.5 flex items-center gap-1.5 text-xs">
-      <span className={cn("inline-flex items-center gap-0.5 font-semibold", color)}>
-        <Icon className="h-3.5 w-3.5" />
+    <p data-gain className="mt-1.5 flex items-center gap-1.5 text-xs">
+      <span className="inline-flex items-center gap-0.5 font-semibold text-emerald-500">
+        <ArrowUpRight className="h-3.5 w-3.5" />
         {text}
       </span>
       {hint ? <span className={onTint ? "text-tide/50" : "text-navy-400"}>{hint}</span> : null}
@@ -127,7 +124,8 @@ export function KpiCard({
   label: string;
   value: React.ReactNode;
   icon?: React.ReactNode;
-  delta?: { text: string; tone?: DeltaTone; arrow?: "up" | "down" | "flat"; hint?: string };
+  /** Shown only when given; build it with gainIf so a zero or fall never shows. */
+  delta?: Gain;
   hint?: string;
   visual?: React.ReactNode;
   tone?: KpiTone;

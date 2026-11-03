@@ -1,4 +1,5 @@
 import { PencilLine } from "lucide-react";
+import { toRupees } from "@/shared/lib/currency";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnBranding, getOwnStartup, logoUrlFor } from "@/server/data/founder";
 import {
@@ -56,7 +57,7 @@ export default async function BusinessDetails() {
             <FieldRow label="Stage" value={s?.stage} />
             <FieldRow label="Sidana relationship owner" value={s?.owner_name} />
             <FieldRow label="Mandate signed" value={formatDate(s?.mandate_signed_on)} />
-            <FieldRow label="Notes" value={<span className="whitespace-pre-wrap font-normal text-navy-700">{s?.notes || "—"}</span>} wide />
+            <FieldRow label="Notes" value={<span className="whitespace-pre-wrap font-normal text-navy-700">{toRupees(s?.notes) || "—"}</span>} wide />
           </CardBody>
         </Card>
       </Reveal>

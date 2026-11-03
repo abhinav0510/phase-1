@@ -1,3 +1,4 @@
+import { hasDollars, toRupees } from "@/shared/lib/currency";
 import type { InvestorProfile } from "@/shared/types/db";
 
 /** Plain, serialisable investor profile for founder UI (no contact details). */
@@ -46,6 +47,8 @@ function num(n: number): string {
 export function chequeLabel(
   p: Pick<InvestorProfile, "cheque_min_cr" | "cheque_max_cr" | "cheque_as_written"> | null | undefined,
 ): string {
+  // The numbers were worked out at older rates, so a dollar cheque uses its own text.
+  if (hasDollars(p?.cheque_as_written)) return toRupees(p!.cheque_as_written as string).trim();
   const min = p?.cheque_min_cr ?? null;
   const max = p?.cheque_max_cr ?? null;
   if (min != null && max != null) return min === max ? `₹${num(min)} Cr` : `₹${num(min)}–${num(max)} Cr`;

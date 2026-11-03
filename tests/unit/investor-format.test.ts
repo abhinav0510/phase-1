@@ -25,6 +25,10 @@ describe("listOf", () => {
 });
 
 describe("chequeLabel", () => {
+  it("works out a dollar cheque at 100 rupees, not from the older numbers", () => {
+    expect(chequeLabel({ cheque_min_cr: 8.5, cheque_max_cr: 17, cheque_as_written: "US$1-2M (INR 8.5-17 Cr)" })).toBe("₹10–20 Cr");
+    expect(chequeLabel({ cheque_min_cr: null, cheque_max_cr: null, cheque_as_written: "$1M to $50M" })).toBe("₹10–500 Cr");
+  });
   it("formats a range, a single value and open ends", () => {
     expect(chequeLabel({ cheque_min_cr: 2, cheque_max_cr: 10, cheque_as_written: null })).toBe("₹2–10 Cr");
     expect(chequeLabel({ cheque_min_cr: 5, cheque_max_cr: 5, cheque_as_written: null })).toBe("₹5 Cr");

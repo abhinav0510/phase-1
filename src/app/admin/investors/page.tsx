@@ -12,6 +12,7 @@ import {
 } from "@/client/components/admin/ui/table";
 import { requireAdmin } from "@/server/auth/session";
 import { listInvestors } from "@/server/data/admin";
+import { hasDollars, toRupees } from "@/shared/lib/currency";
 import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -118,9 +119,11 @@ export default async function AdminInvestors({
                       <StatusBadge value={inv.status} kind="investor" />
                     </TD>
                     <TD className="text-navy-600">
-                      {inv.cheque_min_cr || inv.cheque_max_cr
-                        ? `${inv.cheque_min_cr ?? "?"}–${inv.cheque_max_cr ?? "?"}`
-                        : inv.cheque_as_written ?? "—"}
+                      {hasDollars(inv.cheque_as_written)
+                        ? toRupees(inv.cheque_as_written)
+                        : inv.cheque_min_cr || inv.cheque_max_cr
+                          ? `${inv.cheque_min_cr ?? "?"}–${inv.cheque_max_cr ?? "?"}`
+                          : inv.cheque_as_written ?? "—"}
                     </TD>
                     <TD className="text-navy-500">{inv.geography ?? "—"}</TD>
                     <TD className="text-navy-500">

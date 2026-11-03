@@ -1,3 +1,4 @@
+import { formatDate } from "@/shared/lib/utils";
 import type { Match, Meeting, WeeklyReport } from "@/shared/types/db";
 import type { DonutSlice, WeekPoint } from "./charts";
 import { SERIES } from "./palette";
@@ -153,12 +154,13 @@ export function activityFeed(
     });
   }
   for (const r of reports) {
-    const when = r.created_at ?? r.week_end ?? r.week_start;
+    // The week it covers, not when the row was saved: a backfill re-saves old weeks.
+    const when = r.week_end ?? r.week_start ?? r.created_at;
     events.push({
       id: `r${r.id}`,
       kind: "report",
-      title: "Weekly report",
-      detail: `${r.reached} reached · ${r.meetings} meetings`,
+      title: `Weekly report, week of ${formatDate(r.week_start)}`,
+      detail: `${r.reached} ${r.reached === 1 ? "investor" : "investors"} reached, ${r.meetings} ${r.meetings === 1 ? "meeting" : "meetings"}`,
       at: new Date(when),
     });
   }
