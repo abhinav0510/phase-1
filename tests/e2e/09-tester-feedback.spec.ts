@@ -11,13 +11,13 @@ test.describe("tester feedback", () => {
   });
 
   test("the current round has no weekly activity chart", async ({ page }) => {
-    await page.goto("/current-round");
+    await page.goto("/overview");
     await expect(page.getByText("Upcoming meetings")).toBeVisible();
     await expect(page.getByText("Weekly activity")).toHaveCount(0);
   });
 
   test("the current round has no weekly report sections", async ({ page }) => {
-    await page.goto("/current-round");
+    await page.goto("/overview");
     await expect(page.getByText("Recent activity")).toBeVisible();
     await expect(page.getByText("Matches and meetings as they happen")).toBeVisible();
     const main = page.locator("main");
@@ -25,7 +25,7 @@ test.describe("tester feedback", () => {
   });
 
   test("investors show their details, not match labels", async ({ page }) => {
-    await page.goto("/funding");
+    await page.goto("/dashboard");
     const main = page.locator("main");
     await expect(main.getByText("Cheque size").first()).toBeVisible();
     await expect(main.getByText("Geography").first()).toBeVisible();
@@ -55,7 +55,7 @@ test.describe("trend arrows appear only for good news", () => {
   test("a startup with progress sees its gains", async ({ page }) => {
     await asFounder(page, ID.alpha);
     // No "% of matches contacted" tag on any account, even when it would be good news.
-    for (const path of ["/funding", "/current-round"]) {
+    for (const path of ["/dashboard", "/overview"]) {
       await page.goto(path);
       await expect(page.locator("main").getByText("Reached out").first()).toBeVisible();
       await expect(page.locator("main")).not.toContainText(/% (of matches )?contacted|\d+ reached out/);
@@ -68,7 +68,7 @@ test.describe("trend arrows appear only for good news", () => {
 
   test("a startup with nothing yet sees no zero trends", async ({ page }) => {
     await asFounder(page, ID.delta);
-    for (const path of ["/dashboard", "/current-round", "/funding", "/meetings"]) {
+    for (const path of ["/dashboard", "/overview", "/financials", "/meetings"]) {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();
       for (const zero of ["0%", "0 reached out", "0 upcoming", "0 held", "of matches contacted", "of all meetings"]) {
@@ -87,17 +87,17 @@ test.describe("dollar amounts show in rupees at 100 rupees to the dollar", () =>
   test("for founders", async ({ page }) => {
     await asFounder(page, ID.zeta);
 
-    await page.goto("/current-round");
+    await page.goto("/overview");
     await expect(page.getByText("₹15 Cr").first()).toBeVisible();
     await expect(page.getByText("₹5 Cr").first()).toBeVisible();
     await noDollars(page);
 
-    await page.goto("/dashboard");
+    await page.goto("/financials");
     await expect(page.getByText("ARR ₹2.5 Cr").first()).toBeVisible();
     await expect(page.getByText("₹20 Cr")).toBeVisible();
     await noDollars(page);
 
-    await page.goto("/funding");
+    await page.goto("/dashboard");
     await expect(page.getByText("₹10–20 Cr").first()).toBeVisible();
     await expect(page.locator("main")).not.toContainText("8.5");
     await noDollars(page);
@@ -134,7 +134,7 @@ test("complete profile doesn't ask for stage, traction, burn, runway or investor
   await expect(page.getByText("Investor preferences")).toHaveCount(0);
   await expect(page.getByText(/Investor types you prefer|Investors to skip/)).toHaveCount(0);
 
-  await page.goto("/current-round");
+  await page.goto("/overview");
   await expect(page.getByText("Snapshot")).toBeVisible();
   await expect(page.locator("main").getByText("Burn", { exact: true })).toHaveCount(0);
 });

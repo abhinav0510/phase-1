@@ -34,7 +34,7 @@ test.describe("financials template", () => {
 
   test("a filled-in template draws the charts and the year table", async ({ page }) => {
     await asFounder(page, ID.zeta);
-    await page.goto("/dashboard");
+    await page.goto("/financials");
     await expect(page.getByRole("link", { name: /Download template/ })).toHaveAttribute("href", "/templates/sidana-financials-template.xlsx");
     await pickFile(page, "#financials-file", 
       file("Zeta financials.xlsx", {
@@ -62,7 +62,7 @@ test.describe("financials template", () => {
 
   test("a file with mistakes is explained and saves nothing", async ({ page }) => {
     await asFounder(page, ID.zeta);
-    await page.goto("/dashboard");
+    await page.goto("/financials");
     const before = JSON.stringify([await months(), await years()]);
     await pickFile(page, "#financials-file", 
       file("bad.xlsx", { Monthly: [MONTH_HEAD, ["next quarter", 10, "", ""], [monthsAgo(1), "lots", "", ""]] }),
@@ -76,7 +76,7 @@ test.describe("financials template", () => {
 
   test("uploading again replaces the earlier figures, and a fall shows no arrow", async ({ page }) => {
     await asFounder(page, ID.zeta);
-    await page.goto("/dashboard");
+    await page.goto("/financials");
     await pickFile(page, "#financials-file", 
       file("Zeta financials v2.xlsx", { Monthly: [MONTH_HEAD, [monthsAgo(2), 300, 300, 200], [monthsAgo(1), 280, 270, 210]] }),
     );
@@ -96,7 +96,7 @@ test.describe("financials template", () => {
 
   test("another founder never sees them", async ({ page }) => {
     await asFounder(page, ID.eta);
-    await page.goto("/dashboard");
+    await page.goto("/financials");
     await expect(page.getByText("₹2.70 Cr")).toHaveCount(0);
     await expect(page.getByText("Monthly revenue vs expenses")).toHaveCount(0);
   });

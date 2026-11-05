@@ -1,6 +1,6 @@
 import { asFounder, asTeam, BETA_SECRET, expect, ID, INVESTOR_CONTACTS, pageSource, test } from "./helpers";
 
-const FOUNDER_PAGES = ["/dashboard", "/business-details", "/complete-profile", "/pitch-deck", "/financials", "/current-round", "/funding", "/meetings", "/profile", "/settings"];
+const FOUNDER_PAGES = ["/dashboard", "/business-details", "/complete-profile", "/pitch-deck", "/financials", "/overview", "/funding", "/meetings", "/profile", "/settings"];
 
 test.describe("roles", () => {
   test("a founder is kept out of every admin page", async ({ page }) => {
@@ -33,7 +33,7 @@ test.describe("one startup can't see another's data", () => {
 
   test("the other founder sees their own data", async ({ page }) => {
     await asFounder(page, ID.beta);
-    await page.goto("/funding");
+    await page.goto("/dashboard");
     await expect(page.getByText("Beta Only Ventures").first()).toBeVisible();
     await expect(page.locator("body")).not.toContainText("Demo Capital");
     await expect(page.locator("body")).not.toContainText("Demo Alpha Foods");
@@ -61,14 +61,14 @@ test.describe("investor contact details", () => {
 test.describe("internal fields", () => {
   test("founders never see the bucket or HOT10", async ({ page }) => {
     await asFounder(page, ID.alpha);
-    for (const path of ["/dashboard", "/current-round", "/profile"]) {
+    for (const path of ["/dashboard", "/overview", "/profile"]) {
       await page.goto(path);
       await expect(page.locator("body"), path).not.toContainText("HOT10");
     }
   });
   test("paused investors are hidden from founders", async ({ page }) => {
     await asFounder(page, ID.alpha);
-    for (const path of ["/dashboard", "/current-round", "/funding"]) {
+    for (const path of ["/dashboard", "/overview", "/financials"]) {
       const html = await pageSource(page, path);
       expect(html, path).not.toContain("Paused Fund Internal");
     }

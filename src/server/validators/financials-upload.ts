@@ -173,3 +173,43 @@ export function parseFinancialsWorkbook(bytes: Uint8Array, now = new Date()): Fi
   years.sort((a, b) => a.fy_start - b.fy_start);
   return { ok: true, months, years };
 }
+
+export type MonthEntry =
+  | { ok: true; month: MonthRow | null; year: YearRow | null }
+  | { ok: false; errors: string[] };
+
+/**
+ * Check one month (and optionally one closed year's total) typed into the monthly prompt.
+ * Same rules as the template: ₹ lakh, numbers from 0 up, no future month, no open year.
+ */
+export function parseMonthEntry(
+  input: { month?: string; revenue?: string; mrr?: string; expenses?: string; fy?: string; fyRevenue?: string },
+  now = new Date(),
+): MonthEntry {
+  const errors: string[] = [];
+  let monthRow: MonthRow | null = null;
+  let yearRow: YearRow | null = null;
+
+  if (input.month) {
+    const month = parseMonth(input.month);
+    if (!month) errors.push("That month isn't valid.");
+    else if (month >= currentMonth(now)) errors.push(`${month} hasn't finished yet.`);
+    else {
+      const v = { revenue: amount(input.revenue ?? ""), mrr: amount(input.mrr ?? ""), expenses: amount(input.expenses ?? "") };
+      const bad = Object.entries(v).filter(([, x]) => x === "bad").map(([k]) => (k === "mrr" ? "MRR" : k[0].toUpperCase() + k.slice(1)));
+      if (bad.length) errors.push(`${bad.join(", ")} must be a number in ₹ lakh, like 12.5.`);
+      else if (v.revenue === null && v.mrr === null && v.expenses === null) errors.push("Add at least one amount for the month.");
+      else monthRow = { month, revenue_inr_l: v.revenue as number | null, mrr_inr_l: v.mrr as number | null, expenses_inr_l: v.expenses as number | null };
+    }
+  }
+  if (input.fy && (input.fyRevenue ?? "").trim()) {
+    const start = Number(input.fy);
+    const rev = amount(input.fyRevenue ?? "");
+    if (!Number.isInteger(start) || start >= fyStartOf(now)) errors.push("That financial year hasn't finished yet.");
+    else if (rev === "bad" || rev === null) errors.push(`${fyLabel(start)} revenue must be a number in ₹ lakh, like 180.`);
+    else yearRow = { fy_start: start, kind: "actual", revenue_inr_l: rev };
+  }
+  if (errors.length) return { ok: false, errors };
+  if (!monthRow && !yearRow) return { ok: false, errors: ["Add your figures, then save."] };
+  return { ok: true, month: monthRow, year: yearRow };
+}

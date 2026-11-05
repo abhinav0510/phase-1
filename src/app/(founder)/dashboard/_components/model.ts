@@ -80,13 +80,7 @@ export function pipelineStages(
   const scheduled = meetings.filter((m) => !!m.scheduled_at);
   const held = meetings.filter((m) => m.held === true);
   return [
-    { key: "matched", label: "Matched", count: matches.length, names: names(matches) },
-    {
-      key: "sent",
-      label: "Reached out",
-      count: matches.filter((m) => m.state === "sent").length,
-      names: names(matches.filter((m) => m.state === "sent")),
-    },
+    { key: "matched", label: "Investors Outreached", count: matches.length, names: names(matches) },
     { key: "meetings", label: "Meetings", count: scheduled.length, names: meetingNames(scheduled) },
     { key: "held", label: "Held", count: held.length, names: meetingNames(held) },
   ];

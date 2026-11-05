@@ -3,7 +3,7 @@
 import { requireFounder } from "@/server/auth/session";
 import { createAdminClient } from "@/server/integrations/supabase/admin";
 import { isMisNotReady } from "@/server/data/mis";
-import { parseFinancialsWorkbook } from "@/server/validators/financials-upload";
+import { parseFinancialsWorkbook, parseMonthEntry } from "@/server/validators/financials-upload";
 import { MIS_BUCKET, MIS_MAX_BYTES, cleanFileName, sniffSpreadsheet } from "@/server/validators/mis";
 
 export type FinancialsUploadResult =
@@ -83,4 +83,48 @@ export async function uploadFinancials(formData: FormData): Promise<FinancialsUp
 
   // No revalidatePath: the upload card reloads the page, and every founder page is dynamic.
   return { ok: true, months: parsed.months.length, years: parsed.years.length };
+}
+
+export type MonthlyFiguresResult = { ok: true } | { ok: false; errors: string[] };
+
+/**
+ * Save the figures typed into the monthly prompt: one month, and a closed year's total
+ * when it was asked for. Only those rows change; every other month and year stays.
+ * The startup comes from the verified session only. Never writes public.startups.
+ */
+export async function saveMonthlyFigures(formData: FormData): Promise<MonthlyFiguresResult> {
+  const session = await requireFounder();
+  const field = (k: string) => {
+    const v = formData.get(k);
+    return typeof v === "string" ? v.slice(0, 40) : undefined;
+  };
+  const entry = parseMonthEntry({
+    month: field("month"),
+    revenue: field("revenue"),
+    mrr: field("mrr"),
+    expenses: field("expenses"),
+    fy: field("fy"),
+    fyRevenue: field("fyRevenue"),
+  });
+  if (!entry.ok) return entry;
+
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+  const saveFailed = (code?: string, message?: string): MonthlyFiguresResult => ({
+    ok: false,
+    errors: [isMisNotReady(message ?? "", code) ? NOT_READY : "Could not save your figures. Please try again."],
+  });
+  if (entry.month) {
+    const { error } = await admin
+      .from("startup_financial_months")
+      .upsert({ ...entry.month, startup_id: session.startupId, updated_at: now }, { onConflict: "startup_id,month" });
+    if (error) return saveFailed(error.code, error.message);
+  }
+  if (entry.year) {
+    const { error } = await admin
+      .from("startup_financial_years")
+      .upsert({ ...entry.year, startup_id: session.startupId, updated_at: now }, { onConflict: "startup_id,fy_start,kind" });
+    if (error) return saveFailed(error.code, error.message);
+  }
+  return { ok: true };
 }
