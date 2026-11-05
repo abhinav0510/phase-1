@@ -1,4 +1,4 @@
-import { asFounder, asTeam, expect, ID, state, test } from "./helpers";
+import { asFounder, asTeam, expect, ID, pickFile, state, test } from "./helpers";
 
 const profile = async (id: number) => (await state("startup_profiles")).find((p) => p.startup_id === id);
 const saveDraft = (page: any) => page.getByRole("button", { name: "Save draft" }).click();
@@ -116,7 +116,7 @@ test.describe("company logo", () => {
   test("a text file pretending to be an image is refused", async ({ page }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/profile");
-    await page.locator('input[type="file"]').setInputFiles({ name: "evil.png", mimeType: "image/png", buffer: Buffer.from("<svg onload=alert(1)>") });
+    await pickFile(page, 'input[type="file"]', { name: "evil.png", mimeType: "image/png", buffer: Buffer.from("<svg onload=alert(1)>") });
     await expect(page.locator("#logo")).toContainText(/image|PNG|couldn|read/i);
     expect((await state("startup_branding")).filter((b) => b.startup_id === ID.zeta)).toHaveLength(0);
   });
@@ -124,7 +124,7 @@ test.describe("company logo", () => {
   test("upload, show on the dashboard, then remove", async ({ page }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/profile");
-    await page.locator('input[type="file"]').setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: PNG });
+    await pickFile(page, 'input[type="file"]', { name: "logo.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: /Save logo/i }).click();
     await expect.poll(async () => (await state("startup_branding")).filter((b) => b.startup_id === ID.zeta).length).toBe(1);
 

@@ -1,6 +1,6 @@
 import { readXlsxSheets } from "../../src/server/validators/xlsx-reader.mjs";
 import { writeXlsx } from "../../scripts/lib/xlsx-writer.mjs";
-import { asFounder, asTeam, expect, ID, state, test } from "./helpers";
+import { asFounder, asTeam, expect, ID, pickFile, state, test } from "./helpers";
 
 // Months and years relative to today, so the files stay valid as time passes.
 const ist = new Date(Date.now() + 5.5 * 3600 * 1000);
@@ -36,7 +36,7 @@ test.describe("financials template", () => {
     await asFounder(page, ID.zeta);
     await page.goto("/financials");
     await expect(page.getByRole("link", { name: /Download template/ })).toHaveAttribute("href", "/templates/sidana-financials-template.xlsx");
-    await page.locator("#financials-file").setInputFiles(
+    await pickFile(page, "#financials-file", 
       file("Zeta financials.xlsx", {
         Monthly: [MONTH_HEAD, [monthsAgo(3), 300, 280, 250], [monthsAgo(2), 320, 300, 255], [monthsAgo(1), 380, 363, 260]],
         Yearly: [["Financial year", "Revenue (₹ lakh)"], [fy(FY - 2), 1000], [fy(FY - 1), 2500]],
@@ -63,7 +63,7 @@ test.describe("financials template", () => {
     await asFounder(page, ID.zeta);
     await page.goto("/financials");
     const before = JSON.stringify([await months(), await years()]);
-    await page.locator("#financials-file").setInputFiles(
+    await pickFile(page, "#financials-file", 
       file("bad.xlsx", { Monthly: [MONTH_HEAD, ["next quarter", 10, "", ""], [monthsAgo(1), "lots", "", ""]] }),
     );
     const box = page.locator("#financials-upload");
@@ -76,7 +76,7 @@ test.describe("financials template", () => {
   test("uploading again replaces the earlier figures, and a fall shows no arrow", async ({ page }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/financials");
-    await page.locator("#financials-file").setInputFiles(
+    await pickFile(page, "#financials-file", 
       file("Zeta financials v2.xlsx", { Monthly: [MONTH_HEAD, [monthsAgo(2), 300, 300, 200], [monthsAgo(1), 280, 270, 210]] }),
     );
     await expect(page.locator("#financials-upload")).toContainText("Saved 2 months of figures");
