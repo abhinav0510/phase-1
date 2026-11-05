@@ -207,9 +207,12 @@ test.describe("investors and matches", () => {
     await expect(dialog).toBeHidden();
   });
   test("the tabs filter the list", async ({ page }) => {
-    await page.getByRole("tab", { name: /Not contacted yet/ }).click();
-    await expect(page.getByRole("button", { name: /Queue Ventures/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /^DC Demo Capital/ })).toHaveCount(0);
+    // Only All and Reached out: no "Not contacted yet" tab.
+    await expect(page.getByRole("tab")).toHaveCount(2);
+    await expect(page.getByRole("tab", { name: /Not contacted yet/ })).toHaveCount(0);
+    await page.getByRole("tab", { name: /Reached out/ }).click();
+    await expect(page.getByRole("button", { name: /^DC Demo Capital/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Queue Ventures/ })).toHaveCount(0);
   });
   test("nothing about Sidana's outreach queue is shown", async ({ page }) => {
     const main = page.locator("main");
