@@ -9,8 +9,8 @@ test("a founder can sign in, read pages and save through nginx", async ({ page, 
   const session = (await context.cookies()).find((c) => c.name.includes("auth-token"));
   expect(session, "session cookie").toBeTruthy();
 
-  await page.goto("/weekly-reports");
-  await expect(page.getByRole("heading", { name: "Weekly Reports" })).toBeVisible();
+  await page.goto("/meetings");
+  await expect(page.getByRole("heading", { level: 1, name: "Meetings" })).toBeVisible();
 
   await page.goto("/complete-profile");
   await page.getByRole("button", { name: "Save draft" }).click();

@@ -7,6 +7,27 @@ test.describe("public pages", () => {
     await expect(page.locator('a[href="/login"]').first()).toBeAttached();
   });
 
+  test("homepage shows the headline, key features, real screens and the FAQ, with no menu", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("We do the Match.");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("You Get the Fund.");
+    for (const feature of ["Real-time updates", "Exact thesis matching", "Email notifications", "Meeting invites", "Financial track for investors"]) {
+      await expect(page.getByRole("heading", { name: feature }).first()).toBeVisible();
+    }
+    await expect(page.locator('main img[src*="/images/portal/"]')).toHaveCount(4);
+    await expect(page.locator("details")).toHaveCount(5);
+    await expect(page.getByText("Our standard agreement is for 24 months")).toBeVisible();
+    await expect(page.getByRole("button", { name: /menu/i })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Founder login/ })).toHaveCount(2);
+  });
+
+  test("the sign-in page shows the form beside the product panel", async ({ page }) => {
+    await page.goto("/login");
+    await expect(page.getByRole("heading", { level: 1, name: "Welcome back." })).toBeVisible();
+    await expect(page.getByText("We do the Match.")).toBeVisible();
+    await expect(page.getByRole("link", { name: /Back to site/ })).toHaveAttribute("href", "/");
+  });
+
   test("homepage never links to the team login", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator('a[href="/teamonly"]')).toHaveCount(0);

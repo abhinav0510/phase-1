@@ -19,7 +19,7 @@ export default function TeamOnlyLogin() {
   const [state, action, pending] = useActionState(signInTeam, undefined);
 
   return (
-    <AuthShell portalLabel="Team Access" variant="team" tagline={["Sidana", "operations", "desk"]}>
+    <AuthShell portalLabel="Team Access" variant="team">
       <AuthHeading eyebrow="Team access" title="Welcome back." sub="For Sidana operations and administrators." />
 
       <form action={action} className="auth-form">

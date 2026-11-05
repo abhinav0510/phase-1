@@ -195,7 +195,17 @@ export function buildSeed() {
         },
       ],
       startup_branding: [],
+      // What `npm run import:prefill` loads from the Sidana team's spreadsheet.
+      startup_profile_prefill: [
+        {
+          startup_id: STARTUP.eta, source: "demo.xlsx", imported_at: NOW,
+          answers: { one_liner: "Eta team pitch", website: "https://eta.example.test", sector: "Fintech", founders: "Eta Founder (CEO)", business_model: "Not a real model" },
+        },
+        { startup_id: STARTUP.epsilon, source: "demo.xlsx", imported_at: NOW, answers: { one_liner: "Team pitch for Epsilon", hq_city: "Pune" } },
+      ],
       startup_mis_files: [],
+      startup_financial_months: [],
+      startup_financial_years: [],
       funding_rounds: [
         { id: 3, startup_id: STARTUP.zeta, closed_on: "2025-06-01", amount: 2, currency: "USD", as_written: "US$2M", instrument: "SAFE", round_name: "Zeta seed", lead_investor_id: null, lead_investor_name: null, notes: null, source: "demo", created_at: NOW },
         { id: 1, startup_id: STARTUP.alpha, closed_on: "2025-06-01", amount: 1, currency: "INR", as_written: "INR 1 Cr", instrument: "SAFE", round_name: "Pre-seed", lead_investor_id: null, lead_investor_name: "Demo Lead Angel", notes: null, source: "demo", created_at: NOW },

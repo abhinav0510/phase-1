@@ -47,7 +47,11 @@ export function Item({ children, className }: { children: ReactNode; className?:
   );
 }
 
-/** Reveals once when scrolled into view. */
+/**
+ * Fades a block in when the page appears. It used to wait until the block scrolled into
+ * view, but Safari sometimes never reported that after switching tabs, which left whole
+ * sections blank until a reload.
+ */
 export function Reveal({
   children,
   className,
@@ -60,8 +64,7 @@ export function Reveal({
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: EASE, delay }}
       className={className}
     >

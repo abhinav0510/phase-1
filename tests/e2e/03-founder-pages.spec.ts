@@ -39,7 +39,6 @@ test.describe("navigation", () => {
       ["/financials", /financials/, /Financials/],
       ["/funding", /funding/, /Investors & Matches/],
       ["/meetings", /meetings/, /Meetings/],
-      ["/weekly-reports", /weekly-reports/, /Weekly Reports/],
       ["/dashboard", /dashboard/, /Welcome back/],
     ];
     for (const [href, url, heading] of tabs) {
@@ -80,10 +79,10 @@ test.describe("financials", () => {
     await expect(page.getByText(/not a monthly one/)).toBeVisible();
     await expect(page.getByText(/multiply by 12/)).toBeVisible();
   });
-  test("asks for previous years and projections", async ({ page }) => {
-    await expect(page.getByText("Previous years' records", { exact: true })).toBeVisible();
-    await expect(page.getByText("Projections", { exact: true })).toBeVisible();
-    await expect(page.getByText(/0 of 3 added/)).toHaveCount(2);
+  test("asks for last year's revenue, and no projections", async ({ page }) => {
+    await expect(page.getByText("Previous year's record", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Not added yet: FY \d{4}-\d{2}$/)).toBeVisible();
+    await expect(page.getByText("Projections", { exact: true })).toHaveCount(0);
   });
   test("the button goes straight to the financials form", async ({ page }) => {
     await page.getByRole("link", { name: "Add your financials" }).click();
@@ -205,35 +204,18 @@ test.describe("pitch deck", () => {
 });
 
 test.describe("weekly reports", () => {
-  test.beforeEach(async ({ page }) => {
+  test("aren't shown to founders: no tab, and the old page goes to the dashboard", async ({ page }) => {
     await asFounder(page, ID.alpha);
+    await expect(page.locator('nav a[href="/weekly-reports"]')).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /Weekly Reports/ })).toHaveCount(0);
     await page.goto("/weekly-reports");
-  });
-
-  test("shows emailed and reconstructed weeks, not quiet un-emailed ones", async ({ page }) => {
-    await expect(page.getByText("Emailed").first()).toBeVisible();
-    await expect(page.getByText("Reconstructed").first()).toBeVisible();
-    const body = page.locator("body");
-    await expect(body).not.toContainText("999");
-    await expect(body).not.toContainText("998");
-  });
-  test("opens a report with its lists", async ({ page }) => {
-    await page.getByRole("button", { name: /Week of/ }).first().click();
-    await expect(page.getByText("Liked the traction")).toBeVisible();
-    await expect(page.getByText("Passed Partners")).toBeVisible();
-    await expect(page.getByText("alpha.founder@demo.test")).toBeVisible();
-  });
-  test("explains a reconstructed week", async ({ page }) => {
-    await page.getByRole("button", { name: /Week of/ }).last().click();
-    await expect(page.getByText(/Reconstructed from Sidana's pipeline/)).toBeVisible();
-  });
-  test("the summary cards show the latest week", async ({ page }) => {
-    await expect(page.getByText("12", { exact: true }).first()).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole("heading", { level: 1, name: /Welcome back/ })).toBeVisible();
   });
 });
 
 test.describe("a startup with almost no data", () => {
-  for (const path of ["/dashboard", "/business-details", "/financials", "/funding", "/meetings", "/pitch-deck", "/weekly-reports", "/profile", "/complete-profile"]) {
+  for (const path of ["/dashboard", "/business-details", "/financials", "/funding", "/meetings", "/pitch-deck", "/profile", "/complete-profile"]) {
     test(`${path} still loads`, async ({ page }) => {
       await asFounder(page, ID.eta);
       const res = await page.goto(path);
@@ -255,4 +237,23 @@ test.describe("announcements", () => {
     const body = page.locator("body");
     for (const hidden of ["Demo expired announcement", "Demo team-only announcement", "Demo inactive announcement"]) await expect(body).not.toContainText(hidden);
   });
+});
+
+// Sections used to wait until they scrolled into view, and Safari could leave them blank
+// after a tab switch until the page was reloaded.
+test("switching tabs never leaves a section invisible", async ({ page }) => {
+  await asFounder(page, ID.alpha);
+  for (const href of ["/complete-profile", "/funding", "/financials", "/meetings", "/business-details", "/dashboard", "/funding"]) {
+    await page.locator(`nav[aria-label="Portal sections"] a[href="${href}"]`).click();
+    await expect(page).toHaveURL(new RegExp(href));
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => [...document.querySelectorAll("main [style*='opacity']")].filter((el) => getComputedStyle(el).opacity === "0").length,
+          ),
+        { message: `${href} has invisible sections`, timeout: 5000 },
+      )
+      .toBe(0);
+  }
 });

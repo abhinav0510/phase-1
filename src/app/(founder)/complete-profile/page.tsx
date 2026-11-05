@@ -1,27 +1,38 @@
 import { AlertCircle, CheckCircle2, Clock, Sparkles } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
-import { getOwnProfile, getOwnStartup } from "@/server/data/founder";
+import { getOwnPrefill, getOwnProfile, getOwnStartup } from "@/server/data/founder";
 import { listMisFiles } from "@/server/data/mis";
 import { PageHeader, Card, CardBody } from "@/client/components/founder/ui";
 import { ProgressBar, Reveal } from "@/client/components/founder/motion";
 import { formatDateTime } from "@/shared/lib/utils";
-import { PROFILE_FIELDS, isFilled, profileProgress, recordValue, type Answers } from "@/shared/lib/profile-fields";
+import { PROFILE_FIELDS, isFilled, prefillValue, profileProgress, recordValue, type Answers } from "@/shared/lib/profile-fields";
 import { ProfileForm } from "./profile-form";
 
 export const dynamic = "force-dynamic";
 
 export default async function CompleteProfilePage() {
   const { startupId } = await requireFounder();
-  const [startup, profile, mis] = await Promise.all([getOwnStartup(startupId), getOwnProfile(startupId), listMisFiles(startupId)]);
+  const [startup, profile, mis, prefill] = await Promise.all([
+    getOwnStartup(startupId),
+    getOwnProfile(startupId),
+    listMisFiles(startupId),
+    getOwnPrefill(startupId),
+  ]);
 
   const answers: Answers = profile?.answers ?? {};
   const record: Record<string, string | null> = {};
   const initial: Answers = {};
+  // Questions filled from the Sidana team's details, until the founder saves their own answer.
+  const fromTeam: string[] = [];
   for (const f of PROFILE_FIELDS) {
     const rec = recordValue(f, startup);
     record[f.key] = rec;
+    const team = prefillValue(f, prefill?.[f.key]);
     if (isFilled(answers[f.key])) {
       initial[f.key] = answers[f.key];
+    } else if (team) {
+      initial[f.key] = team;
+      fromTeam.push(f.key);
     } else if (rec && (f.type !== "select" || (f.options ?? []).includes(rec))) {
       // Pre-fill from what is already on file so the founder only confirms it.
       initial[f.key] = rec;
@@ -80,6 +91,7 @@ export default async function CompleteProfilePage() {
         initial={initial}
         record={record}
         canSubmit={profile?.status !== "submitted"}
+        fromTeam={fromTeam}
         mis={{
           ready: mis.ready,
           files: mis.files.map((f) => ({ id: f.id, file_name: f.file_name, size_bytes: f.size_bytes, created_at: f.created_at })),

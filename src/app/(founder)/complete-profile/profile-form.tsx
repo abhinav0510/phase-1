@@ -23,6 +23,7 @@ export function ProfileForm({
   initial,
   record,
   canSubmit,
+  fromTeam = [],
   mis,
 }: {
   initial: Answers;
@@ -30,6 +31,8 @@ export function ProfileForm({
   record: Record<string, string | null>;
   /** False while a submission is already with the team and unchanged. */
   canSubmit: boolean;
+  /** Questions pre-filled from the Sidana team's details, for the founder to check. */
+  fromTeam?: string[];
   /** MIS spreadsheets already uploaded, shown beside the financial statements link. */
   mis: { files: MisItem[]; ready: boolean };
 }) {
@@ -71,7 +74,9 @@ export function ProfileForm({
           ok: true,
           text: submit
             ? "Sent to the Sidana team. We'll review it and use it for your investor matching."
-            : "Draft saved. You can come back and finish any time.",
+            : !canSubmit
+              ? "Saved. Your submission is still with the Sidana team, now with these changes."
+              : "Draft saved. You can come back and finish any time.",
         });
         router.refresh();
       } else {
@@ -112,9 +117,9 @@ export function ProfileForm({
         <motion.section
           key={s.key}
           id={`section-${s.key}`}
+          // Animates on load, not on scroll: Safari could leave a scroll-triggered section blank.
           initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: EASE, delay: Math.min(i * 0.05, 0.2) }}
           className="scroll-mt-28 rounded-[20px] border border-navy-100/70 bg-white shadow-soft"
         >
@@ -135,7 +140,13 @@ export function ProfileForm({
                     {f.heading}
                   </h4>
                 ) : null}
-                <Field field={f} value={values[f.key]} record={record[f.key]} onChange={(v) => set(f.key, v)} />
+                <Field
+                  field={f}
+                  value={values[f.key]}
+                  record={record[f.key]}
+                  fromTeam={fromTeam.includes(f.key) && JSON.stringify(values[f.key]) === JSON.stringify(initial[f.key])}
+                  onChange={(v) => set(f.key, v)}
+                />
                 {f.key === "financial_statements_link" ? <MisUpload files={mis.files} ready={mis.ready} /> : null}
               </Fragment>
             ))}
@@ -193,11 +204,13 @@ function Field({
   field: f,
   value,
   record,
+  fromTeam,
   onChange,
 }: {
   field: ProfileField;
   value: string | string[] | undefined;
   record: string | null;
+  fromTeam: boolean;
   onChange: (v: string | string[]) => void;
 }) {
   const id = `pf-${f.key}`;
@@ -280,6 +293,9 @@ function Field({
         />
       )}
 
+      {fromTeam ? (
+        <p className="mt-1 text-xs text-ocean-700">Filled in by the Sidana team. Please check it, then save.</p>
+      ) : null}
       {showRecord ? (
         <p className="mt-1 text-xs text-navy-400">
           On record with Sidana: <span className="text-navy-600">{record}</span>

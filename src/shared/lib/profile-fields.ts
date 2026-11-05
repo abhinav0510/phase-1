@@ -13,7 +13,7 @@ import type { Startup } from "@/shared/types/db";
 
 export type FieldType = "text" | "textarea" | "url" | "number" | "select" | "multi";
 
-export type SectionKey = "company" | "team" | "traction" | "financials" | "round" | "preferences";
+export type SectionKey = "company" | "team" | "financials" | "round";
 
 export interface ProfileField {
   key: string;
@@ -35,10 +35,8 @@ export interface ProfileField {
 export const SECTIONS: { key: SectionKey; title: string; blurb: string }[] = [
   { key: "company", title: "Company", blurb: "What you build and who you build it for." },
   { key: "team", title: "Founders & team", blurb: "Who investors will be backing." },
-  { key: "traction", title: "Stage & traction", blurb: "Where the business is today." },
-  { key: "financials", title: "Financials", blurb: "Yearly numbers only. Investors compare you on annual revenue (ARR), past results and projections." },
+  { key: "financials", title: "Financials", blurb: "Yearly numbers only. Investors compare you on annual revenue (ARR) and last year's results." },
   { key: "round", title: "The round", blurb: "What you are raising and on what terms." },
-  { key: "preferences", title: "Investor preferences", blurb: "Who you want us to prioritise or skip." },
 ];
 
 const SECTORS = [
@@ -73,8 +71,6 @@ const BUSINESS_MODELS = [
   "Other",
 ] as const;
 
-const STAGES = ["Idea", "Pre-seed", "Seed", "Pre-Series A", "Series A", "Series B+"] as const;
-
 const MARKETS = ["India", "United States", "Europe / UK", "Middle East", "South-East Asia", "Global"] as const;
 
 const REVENUE_BASIS = [
@@ -85,16 +81,6 @@ const REVENUE_BASIS = [
 ] as const;
 
 const INSTRUMENTS = ["Equity", "CCPS", "CCD", "SAFE / iSAFE", "Convertible note", "Not decided yet"] as const;
-
-const INVESTOR_TYPES = [
-  "Angels",
-  "Angel networks",
-  "Micro VCs",
-  "Seed funds",
-  "Institutional VCs",
-  "Family offices",
-  "Corporate / strategic",
-] as const;
 
 const str = (v: unknown): string | null => {
   if (v === null || v === undefined) return null;
@@ -120,16 +106,10 @@ export interface FinancialYear {
 
 const FY_START = currentFyStart();
 
-/** The last three completed financial years, oldest first. */
-export const PAST_YEARS: FinancialYear[] = [3, 2, 1].map((back) => ({
+/** The last completed financial year. Founders are asked for that one year only. */
+export const PAST_YEARS: FinancialYear[] = [1].map((back) => ({
   key: `revenue_actual_fy${fyKey(FY_START - back)}`,
   label: fyName(FY_START - back),
-}));
-
-/** The current financial year and the next two. */
-export const PROJECTED_YEARS: FinancialYear[] = [0, 1, 2].map((ahead) => ({
-  key: `revenue_projected_fy${fyKey(FY_START + ahead)}`,
-  label: fyName(FY_START + ahead),
 }));
 
 export const PROFILE_FIELDS: ProfileField[] = [
@@ -150,37 +130,20 @@ export const PROFILE_FIELDS: ProfileField[] = [
   { key: "women_led", label: "Is there a woman co-founder?", type: "select", section: "team", options: ["Yes", "No"], matching: true, help: "Several funds in our network run women-led mandates." },
   { key: "team_size", label: "Full-time team size", type: "number", section: "team", placeholder: "e.g. 18" },
 
-  // Traction
-  { key: "stage", label: "Stage", type: "select", section: "traction", options: STAGES, matching: true, record: (s) => str(s.stage) },
-  { key: "traction_highlights", label: "Key traction", type: "textarea", section: "traction", placeholder: "Customers, users, growth, retention, notable logos — the numbers you are proudest of." },
-
   // Financials
   { key: "revenue_inr_l", label: "Annual revenue – ARR (₹ lakh)", type: "number", section: "financials", matching: true, required: true, heading: "Current annual revenue", placeholder: "e.g. 250", help: "Enter the full-year figure, not a monthly number. If you bill monthly, multiply by 12. Enter 0 if pre-revenue.", record: (s) => num(s.revenue_inr_l) },
   { key: "revenue_basis", label: "How that revenue is measured", type: "select", section: "financials", options: REVENUE_BASIS, matching: true },
-  { key: "burn_inr_l", label: "Monthly burn (₹ lakh)", type: "number", section: "financials", placeholder: "e.g. 12", record: (s) => num(s.burn_inr_l) },
-  { key: "runway_months", label: "Runway (months)", type: "number", section: "financials", placeholder: "e.g. 9", record: (s) => num(s.runway_months) },
   ...PAST_YEARS.map((y, i): ProfileField => ({
     key: y.key,
     label: `${y.label} revenue (₹ lakh)`,
     type: "number",
     section: "financials",
-    heading: i === 0 ? "Previous years' records" : undefined,
+    heading: i === 0 ? "Previous year's record" : undefined,
     placeholder: "e.g. 180",
-    help: i === 0 ? "Full-year actual revenue from your books. Enter 0 for a year with no revenue." : undefined,
+    help: i === 0 ? "Full-year actual revenue from your books for the last financial year. Enter 0 if there was no revenue." : undefined,
   })),
-  { key: "past_financials_note", label: "Notes on those years", type: "textarea", section: "financials", placeholder: "Net profit or loss each year, one-off items, and why revenue moved." },
-  { key: "financial_statements_link", label: "Link to your financial statements", type: "url", section: "financials", placeholder: "https://", help: "Audited accounts or P&L for those years, shared from Google Drive or similar." },
-  ...PROJECTED_YEARS.map((y, i): ProfileField => ({
-    key: y.key,
-    label: `${y.label} projected revenue (₹ lakh)`,
-    type: "number",
-    section: "financials",
-    heading: i === 0 ? "Projections" : undefined,
-    placeholder: "e.g. 400",
-    help: i === 0 ? "Your full-year forecast for the current year and the next two." : undefined,
-  })),
-  { key: "projection_basis", label: "What the projections assume", type: "textarea", section: "financials", placeholder: "Customers, pricing, new markets and hiring behind these numbers." },
-  { key: "financial_model_link", label: "Link to your financial model", type: "url", section: "financials", placeholder: "https://", help: "A spreadsheet or deck with the detail, if you have one." },
+  { key: "past_financials_note", label: "Notes on that year", type: "textarea", section: "financials", placeholder: "Net profit or loss, one-off items, and why revenue moved." },
+  { key: "financial_statements_link", label: "Link to your financial statements", type: "url", section: "financials", placeholder: "https://", help: "Audited accounts or P&L for that year, shared from Google Drive or similar." },
 
   // Round
   { key: "raise_amount", label: "Amount you are raising", type: "text", section: "round", matching: true, placeholder: "e.g. INR 5 Cr or US$1.5M", record: (s) => str(s.ask_as_written) },
@@ -189,10 +152,6 @@ export const PROFILE_FIELDS: ProfileField[] = [
   { key: "committed", label: "Already committed in this round", type: "text", section: "round", placeholder: "e.g. INR 1 Cr from existing angels" },
   { key: "use_of_funds", label: "Use of funds", type: "textarea", section: "round", placeholder: "What this round pays for, and the milestone it gets you to." },
   { key: "previous_funding", label: "Funding raised so far", type: "text", section: "round", placeholder: "e.g. INR 80 L pre-seed (2024), bootstrapped before" },
-
-  // Preferences
-  { key: "investor_types", label: "Investor types you prefer", type: "multi", section: "preferences", options: INVESTOR_TYPES, matching: true },
-  { key: "investors_to_skip", label: "Investors to skip", type: "textarea", section: "preferences", placeholder: "Investors already in your round, or anyone you'd rather we didn't approach." },
 ];
 
 export const FIELD_BY_KEY: Record<string, ProfileField> = Object.fromEntries(
@@ -301,6 +260,26 @@ export function profileProgress(startup: Startup | null, answers: Answers | null
   missing.sort((x, y) => Number(!!y.matching) - Number(!!x.matching));
   const total = PROFILE_FIELDS.length;
   return { pct: Math.round((done / total) * 100), done, total, missing, bySection };
+}
+
+const URL_RE = /^https?:\/\/[^\s]+\.[^\s]+$/i;
+
+/**
+ * A team-provided value, if it's one the founder could have entered for this question;
+ * otherwise null, so the question stays empty and a bad value can't block saving.
+ */
+export function prefillValue(field: ProfileField, raw: unknown): string | string[] | null {
+  if (field.type === "multi") {
+    const list = Array.isArray(raw) ? raw.map(String).filter((x) => (field.options ?? []).includes(x)) : [];
+    return list.length ? list : null;
+  }
+  if (raw === null || raw === undefined || Array.isArray(raw) || typeof raw === "object") return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  if (field.type === "select") return (field.options ?? []).includes(s) ? s : null;
+  if (field.type === "number") return Number.isFinite(Number(s.replace(/,/g, ""))) && Number(s.replace(/,/g, "")) >= 0 ? s : null;
+  if (field.type === "url") return s.length <= 300 && URL_RE.test(s) ? s : null;
+  return s.length <= (field.type === "textarea" ? 2000 : 200) ? s : null;
 }
 
 /** Display a stored answer as text. */

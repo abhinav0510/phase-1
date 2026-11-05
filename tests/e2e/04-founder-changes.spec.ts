@@ -5,15 +5,15 @@ const saveDraft = (page: any) => page.getByRole("button", { name: "Save draft" }
 const submit = (page: any) => page.getByRole("button", { name: /Submit for review/ }).click();
 
 test.describe("complete profile", () => {
-  test("the Financials section asks for ARR, past years and projections", async ({ page }) => {
+  test("the Financials section asks for ARR and last year, with no projections", async ({ page }) => {
     await asFounder(page, ID.delta);
     await page.goto("/complete-profile#section-financials");
     await expect(page.getByLabel(/Annual revenue – ARR/)).toBeVisible();
     await expect(page.getByText("Required")).toBeVisible();
     await expect(page.getByText(/not a monthly number/)).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Previous years' records" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Projections" })).toBeVisible();
-    await expect(page.getByLabel(/revenue \(₹ lakh\)/)).toHaveCount(6);
+    await expect(page.getByRole("heading", { name: "Previous year's record" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Projections" })).toHaveCount(0);
+    await expect(page.getByLabel(/revenue \(₹ lakh\)/)).toHaveCount(1);
   });
 
   test("submitting without ARR is blocked and nothing is saved", async ({ page }) => {
@@ -63,12 +63,10 @@ test.describe("complete profile", () => {
 
     await page.getByLabel(/Annual revenue – ARR/).fill("1,250");
     const years = page.getByLabel(/revenue \(₹ lakh\)/);
-    await expect(years).toHaveCount(6);
-    for (let i = 0; i < 6; i++) await years.nth(i).fill(String(100 + i * 50));
-    await page.getByLabel("Notes on those years").fill("Net loss of 5 L in the first year");
-    await page.getByLabel("What the projections assume").fill("Two new cities");
+    await expect(years).toHaveCount(1);
+    await years.first().fill("100");
+    await page.getByLabel("Notes on that year").fill("Net loss of 5 L in the year");
     await page.getByLabel("Link to your financial statements").fill("https://example.test/statements");
-    await page.getByLabel("Link to your financial model").fill("https://example.test/model");
     await page.getByRole("button", { name: "India", exact: true }).click();
 
     await submit(page);
@@ -79,8 +77,8 @@ test.describe("complete profile", () => {
     expect(p.answers.revenue_inr_l).toBe("1250");
     expect(p.answers.markets).toEqual(["India"]);
     expect(p.answers.past_financials_note).toContain("Net loss");
-    expect(Object.keys(p.answers).filter((k) => k.startsWith("revenue_actual_fy"))).toHaveLength(3);
-    expect(Object.keys(p.answers).filter((k) => k.startsWith("revenue_projected_fy"))).toHaveLength(3);
+    expect(Object.keys(p.answers).filter((k) => k.startsWith("revenue_actual_fy"))).toHaveLength(1);
+    expect(Object.keys(p.answers).filter((k) => k.startsWith("revenue_projected_fy"))).toHaveLength(0);
 
     // Founder answers never overwrite the record directly.
     expect(JSON.stringify((await state("startups")).find((s) => s.id === ID.delta))).toBe(before);
@@ -89,11 +87,10 @@ test.describe("complete profile", () => {
   test("the Financials page then shows those numbers", async ({ page }) => {
     await asFounder(page, ID.delta);
     await page.goto("/financials");
-    await expect(page.getByText(/3 of 3 added/)).toHaveCount(2);
-    await expect(page.getByRole("cell", { name: "Actual" })).toHaveCount(3);
-    await expect(page.getByRole("cell", { name: "Projected" })).toHaveCount(3);
+    await expect(page.getByText(/^Added: FY \d{4}-\d{2}$/)).toBeVisible();
+    await expect(page.getByRole("cell", { name: "Actual" })).toHaveCount(1);
+    await expect(page.getByRole("cell", { name: "Projected" })).toHaveCount(0);
     await expect(page.getByRole("cell", { name: "₹1.00 Cr", exact: true })).toBeVisible();
-    await expect(page.getByRole("cell", { name: "₹3.50 Cr", exact: true })).toBeVisible();
   });
 
   test("the review status shows on the form", async ({ page }) => {
@@ -164,5 +161,39 @@ test.describe("company logo", () => {
     await asTeam(page);
     const res = await page.request.get("/api/founder/logo");
     expect(res.status()).toBe(404);
+  });
+});
+
+// Details the Sidana team provided (npm run import:prefill) fill only empty questions.
+test.describe("details provided by the Sidana team", () => {
+  test("fill empty questions, marked for the founder to check, and save as their answers", async ({ page }) => {
+    await asFounder(page, ID.eta);
+    await page.goto("/complete-profile");
+    await expect(page.getByLabel("One-line pitch")).toHaveValue("Eta team pitch");
+    await expect(page.getByLabel("Website")).toHaveValue("https://eta.example.test");
+    await expect(page.getByLabel("Sector", { exact: true })).toHaveValue("Fintech");
+    await expect(page.getByText("Filled in by the Sidana team").first()).toBeVisible();
+    // A value the form wouldn't accept is left empty, and blank columns stay blank.
+    await expect(page.getByLabel("Business model")).toHaveValue("");
+    await expect(page.getByLabel("Headquarters city")).toHaveValue("");
+
+    expect(await profile(ID.eta)).toBeUndefined();
+    await saveDraft(page);
+    await expect(page.getByRole("status")).toContainText(/saved/i);
+    const p = await profile(ID.eta);
+    expect(p.answers.one_liner).toBe("Eta team pitch");
+    expect(p.answers.founders).toBe("Eta Founder (CEO)");
+    expect(p.answers.business_model).toBeUndefined();
+
+    await page.reload();
+    await expect(page.getByText("Filled in by the Sidana team")).toHaveCount(0);
+  });
+
+  test("never replace an answer the founder already gave", async ({ page }) => {
+    await asFounder(page, ID.epsilon);
+    await page.goto("/complete-profile");
+    await expect(page.getByLabel("One-line pitch")).toHaveValue("Demo fintech one-liner");
+    await expect(page.getByLabel("Headquarters city")).toHaveValue("Pune");
+    await expect(page.getByText("Filled in by the Sidana team")).toHaveCount(1);
   });
 });

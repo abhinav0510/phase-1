@@ -3,7 +3,6 @@ import {
   FIELD_BY_KEY,
   PAST_YEARS,
   PROFILE_FIELDS,
-  PROJECTED_YEARS,
   SECTIONS,
   arrDisplay,
   displayValue,
@@ -15,6 +14,16 @@ import {
 import type { Startup } from "@/shared/types/db";
 
 describe("profile fields", () => {
+  it("no longer asks founders for stage or traction", () => {
+    expect(PROFILE_FIELDS.map((f) => f.key)).not.toEqual(expect.arrayContaining(["stage"]));
+    expect(PROFILE_FIELDS.map((f) => f.key)).not.toContain("traction_highlights");
+    expect(PROFILE_FIELDS.map((f) => f.key)).not.toContain("burn_inr_l");
+    expect(PROFILE_FIELDS.map((f) => f.key)).not.toContain("runway_months");
+    expect(PROFILE_FIELDS.map((f) => f.key)).not.toContain("investor_types");
+    expect(PROFILE_FIELDS.map((f) => f.key)).not.toContain("investors_to_skip");
+    expect(SECTIONS.map((s) => s.title)).not.toContain("Investor preferences");
+    expect(SECTIONS.map((s) => s.title)).not.toContain("Stage & traction");
+  });
   it("has unique keys and every field in a known section", () => {
     const keys = PROFILE_FIELDS.map((f) => f.key);
     expect(new Set(keys).size).toBe(keys.length);
@@ -33,28 +42,18 @@ describe("profile fields", () => {
     expect(f.required).toBe(true);
     expect(f.section).toBe("financials");
   });
-  it("asks for three past years and three projected years", () => {
-    expect(PAST_YEARS).toHaveLength(3);
-    expect(PROJECTED_YEARS).toHaveLength(3);
-    for (const y of [...PAST_YEARS, ...PROJECTED_YEARS]) {
-      expect(FIELD_BY_KEY[y.key], y.key).toBeDefined();
-      expect(y.label).toMatch(/^FY \d{4}-\d{2}$/);
-    }
-  });
-  it("runs the years in order, with no gap between past and projected", () => {
-    const start = (l: string) => Number(l.slice(3, 7));
-    const all = [...PAST_YEARS, ...PROJECTED_YEARS].map((y) => start(y.label));
-    all.forEach((y, i) => {
-      if (i) expect(y).toBe(all[i - 1] + 1);
-    });
-  });
-  it("keeps actual and projected answers under separate keys", () => {
-    const keys = [...PAST_YEARS, ...PROJECTED_YEARS].map((y) => y.key);
-    expect(new Set(keys).size).toBe(6);
+  it("asks for the last completed year only, with no projections", () => {
+    expect(PAST_YEARS).toHaveLength(1);
+    expect(FIELD_BY_KEY[PAST_YEARS[0].key]).toBeDefined();
+    expect(PAST_YEARS[0].label).toMatch(/^FY \d{4}-\d{2}$/);
+    const keys = PROFILE_FIELDS.map((f) => f.key);
+    expect(keys.filter((k) => k.startsWith("revenue_projected_fy"))).toHaveLength(0);
+    expect(keys).not.toContain("projection_basis");
+    expect(keys).not.toContain("financial_model_link");
   });
   it("has a heading above each financial group", () => {
     const headings = PROFILE_FIELDS.filter((f) => f.section === "financials" && f.heading).map((f) => f.heading);
-    expect(headings).toEqual(["Current annual revenue", "Previous years' records", "Projections"]);
+    expect(headings).toEqual(["Current annual revenue", "Previous year's record"]);
   });
 });
 
@@ -89,7 +88,8 @@ describe("profileProgress", () => {
   });
   it("counts values on record, including a revenue of 0", () => {
     const p = profileProgress(startup, null);
-    expect(p.done).toBeGreaterThanOrEqual(3);
+    // Sector and revenue; stage is no longer asked, so it doesn't count.
+    expect(p.done).toBe(2);
     expect(recordValue(FIELD_BY_KEY.revenue_inr_l, startup)).toBe("0");
     expect(p.missing.map((f) => f.key)).not.toContain("revenue_inr_l");
   });

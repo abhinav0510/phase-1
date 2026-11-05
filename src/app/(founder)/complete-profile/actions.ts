@@ -70,11 +70,21 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
 
   const now = new Date().toISOString();
   const admin = createAdminClient();
+  // Saving a draft must not pull a submission out of the team's review queue: it stays
+  // submitted, and the team sees the latest answers.
+  const { data: current, error: readErr } = await admin
+    .from("startup_profiles")
+    .select("status")
+    .eq("startup_id", session.startupId)
+    .maybeSingle();
+  if (readErr && readErr.code !== "PGRST205") return { ok: false, error: "Could not save your profile. Please try again." };
+  const stillSubmitted = !submit && (current as { status: string } | null)?.status === "submitted";
+
   const { error } = await admin.from("startup_profiles").upsert(
     {
       startup_id: session.startupId,
       answers: parsed.answers,
-      status: submit ? "submitted" : "draft",
+      status: submit || stillSubmitted ? "submitted" : "draft",
       ...(submit ? { submitted_at: now } : {}),
       updated_by: session.authId,
       updated_at: now,

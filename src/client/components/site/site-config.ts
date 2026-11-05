@@ -7,10 +7,3 @@ export const SITE = {
   // Where the public "Login" button sends founders.
   loginPath: "/login",
 };
-
-export const NAV_LINKS = [
-  { label: "What We Do", href: "#what-we-do" },
-  { label: "Our Approach", href: "#approach" },
-  { label: "Portfolio", href: "#portfolio" },
-  { label: "Insights", href: "#insights" },
-];

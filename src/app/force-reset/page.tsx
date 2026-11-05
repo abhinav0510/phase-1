@@ -20,7 +20,6 @@ export default async function ForceResetPage() {
     <AuthShell
       portalLabel={admin ? "Team Access" : "Founder Portal"}
       variant={admin ? "team" : "founder"}
-      tagline={admin ? ["Sidana", "operations", "desk"] : undefined}
     >
       <AuthHeading
         eyebrow="One-time step"

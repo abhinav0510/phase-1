@@ -1,0 +1,153 @@
+/* =====================================================================
+   Public landing page (/). A plain, light page in the portal's own colours:
+   navy text with the logo's blue and green as the accents. Scoped under
+   .landing so nothing reaches the dashboard. Fonts come from brandFontVars.
+   ===================================================================== */
+.landing {
+  --paper: #ffffff;
+  --canvas: #f4f8fc;
+  --ink: #0d2c48;
+  --ink-70: rgba(13, 44, 72, 0.72);
+  --ink-50: rgba(13, 44, 72, 0.52);
+  --line: rgba(13, 44, 72, 0.1);
+  --blue: #0a6ab0;
+  --blue-deep: #0b568f;
+  --blue-tint: #eef7fd;
+  --leaf: #4fb13b;
+  --leaf-deep: #3c8f2d;
+  --leaf-tint: #f1fbee;
+  --display: var(--font-display), "Helvetica Neue", Arial, sans-serif;
+  --body: var(--font-body), "Helvetica Neue", Arial, sans-serif;
+  --mono: var(--font-mono), ui-monospace, monospace;
+  --gutter: clamp(16px, 5vw, 64px);
+  --max: 1180px;
+
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  line-height: 1.55;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+.landing * { box-sizing: border-box; }
+.landing img { max-width: 100%; height: auto; display: block; }
+.landing a { color: inherit; }
+.landing .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+.landing .eyebrow { margin: 0 0 0.9rem; font: 400 0.68rem/1 var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--blue); }
+.landing h1, .landing h2, .landing h3 { font-family: var(--display); letter-spacing: -0.03em; text-wrap: balance; margin: 0; overflow-wrap: anywhere; }
+.landing h2 { font-size: clamp(1.7rem, 3.2vw, 2.6rem); font-weight: 800; line-height: 1.08; }
+.landing h3 { font-size: 1.1rem; font-weight: 700; }
+.landing .lead { font-size: clamp(1rem, 1.25vw, 1.15rem); color: var(--ink-70); max-width: 58ch; }
+
+.landing .btn { display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.85rem 1.4rem; border-radius: 999px; font: 600 0.95rem/1 var(--body); text-decoration: none; white-space: nowrap; border: 1.5px solid transparent; transition: transform 0.25s cubic-bezier(0.19, 1, 0.22, 1), background 0.2s; }
+.landing .btn:hover { transform: translateY(-1px); }
+.landing .btn svg { width: 16px; height: 16px; }
+.landing .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 10px 24px rgba(10, 106, 176, 0.25); }
+.landing .btn-primary:hover { background: var(--blue-deep); }
+.landing .btn:focus-visible { outline: 3px solid var(--leaf); outline-offset: 3px; }
+
+/* Top bar: the logo and the one button. */
+.landing .top { position: sticky; top: 0; z-index: 10; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.landing .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 68px; }
+.landing .brand { display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.landing .brand img { width: 36px; height: 36px; }
+.landing .brand b { font: 800 1.1rem/1 var(--display); letter-spacing: -0.03em; display: block; }
+.landing .brand small { display: block; margin-top: 0.25rem; font: 400 0.6rem/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-50); }
+
+/* Hero */
+.landing .hero { padding: clamp(3rem, 7vw, 5.5rem) 0 0; overflow-x: clip; }
+.landing .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(1.5rem, 4vw, 4rem); align-items: end; }
+.landing h1 { font-size: clamp(2.6rem, 6.4vw, 5.2rem); font-weight: 800; line-height: 1.02; }
+.landing h1 .grad { background: linear-gradient(90deg, var(--blue) 0%, var(--leaf) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.landing .hero .lead { margin: 1.4rem 0 0; }
+.landing .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+.landing .hero-note { margin: 1rem 0 0; font-size: 0.82rem; color: var(--ink-50); }
+.landing .shot { position: relative; margin-top: clamp(2.5rem, 5vw, 4rem); padding: 0 0 clamp(2rem, 5vw, 4rem); }
+.landing .shot::before { content: ""; position: absolute; inset: 40% -10vw 0; background: linear-gradient(180deg, var(--blue-tint), var(--leaf-tint)); z-index: -1; }
+.landing .frame { border-radius: 16px; border: 1px solid var(--line); background: var(--paper); box-shadow: 0 30px 80px rgba(13, 44, 72, 0.18); overflow: hidden; }
+.landing .frame .bar { display: flex; align-items: center; gap: 0.4rem; height: 34px; padding: 0 0.9rem; border-bottom: 1px solid var(--line); background: #fbfcfe; }
+.landing .frame .bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.landing .frame .bar span { margin-left: 0.6rem; font: 400 0.68rem/1 var(--mono); color: var(--ink-50); }
+
+/* Stats, outlined like the reference */
+.landing .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: -1rem; }
+.landing .stat { position: relative; padding: 1.6rem 1.5rem; border: 1px dashed rgba(10, 106, 176, 0.35); background: var(--paper); }
+.landing .stat::before, .landing .stat::after { content: ""; position: absolute; width: 7px; height: 7px; background: var(--leaf); }
+.landing .stat::before { left: -4px; top: -4px; }
+.landing .stat::after { right: -4px; bottom: -4px; }
+.landing .stat b { display: block; font: 800 clamp(1.6rem, 2.8vw, 2.4rem)/1 var(--display); letter-spacing: -0.03em; color: var(--blue); }
+.landing .stat span { display: block; margin-top: 0.5rem; color: var(--ink-70); font-size: 0.92rem; }
+
+/* Sections */
+.landing section { padding: clamp(3rem, 6vw, 5rem) 0; }
+.landing .section-head { max-width: 46rem; margin-bottom: clamp(2rem, 4vw, 3rem); }
+.landing .section-head p { margin: 0.9rem 0 0; color: var(--ink-70); }
+
+.landing .key { padding-top: 0; }
+.landing .key-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+.landing .key-card { border: 1px solid var(--line); border-radius: 16px; padding: 1.3rem 1.2rem 1.4rem; background: var(--paper); }
+.landing .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 0.9rem; }
+.landing .ic svg { width: 18px; height: 18px; }
+.landing .key-card .ic { background: var(--leaf-tint); color: var(--leaf-deep); }
+.landing .key-card h3 { font-size: 1rem; }
+.landing .key-card p { margin: 0.45rem 0 0; font-size: 0.88rem; color: var(--ink-70); }
+
+.landing .screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.landing .screen { margin: 0; }
+.landing .screen .frame { aspect-ratio: 16 / 10; }
+.landing .screen .frame img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+.landing .screen figcaption { margin-top: 0.9rem; font-size: 0.9rem; color: var(--ink-70); }
+.landing .screen figcaption b { display: block; margin-bottom: 0.25rem; font: 700 1rem/1.3 var(--display); letter-spacing: -0.02em; color: var(--ink); }
+
+.landing .services { background: var(--canvas); }
+.landing .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.landing .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem 1.4rem 1.5rem; }
+.landing .card .ic { background: var(--blue-tint); color: var(--blue); margin-bottom: 1rem; }
+.landing .card p { margin: 0.5rem 0 0; font-size: 0.92rem; color: var(--ink-70); }
+
+.landing .promise { background: var(--ink); color: #fff; }
+.landing .promise .eyebrow { color: var(--leaf); }
+.landing .promise h2 { color: #fff; }
+.landing .lines { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem 2rem; margin-top: 2rem; }
+.landing .lines div { padding: 1.1rem 1.25rem; border-left: 2px solid var(--leaf); background: rgba(255, 255, 255, 0.05); border-radius: 0 12px 12px 0; }
+.landing .lines small { display: block; color: rgba(255, 255, 255, 0.62); font-size: 0.92rem; }
+.landing .lines b { display: block; margin-top: 0.25rem; font: 700 1.15rem/1.3 var(--display); letter-spacing: -0.02em; }
+.landing .promise .sign { margin: 2rem 0 0; color: rgba(255, 255, 255, 0.62); }
+
+.landing .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.landing .quote { margin: 0; border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem; display: grid; gap: 1rem; align-content: space-between; }
+.landing .quote p { margin: 0; font-size: 1rem; }
+.landing .quote footer { font-size: 0.85rem; color: var(--ink-50); }
+.landing .quote footer b { color: var(--ink); font-weight: 700; display: block; }
+
+.landing .faq { background: var(--canvas); }
+.landing .faq-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+.landing .faq-grid .lead { margin-top: 0.9rem; }
+.landing details { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 0 1.25rem; }
+.landing details + details { margin-top: 0.6rem; }
+.landing summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.05rem 0; font-weight: 600; }
+.landing summary::-webkit-details-marker { display: none; }
+.landing summary::after { content: "+"; font: 700 1.2rem/1 var(--display); color: var(--blue); transition: transform 0.2s; flex: none; }
+.landing details[open] summary::after { transform: rotate(45deg); }
+.landing details p { margin: 0 0 1.1rem; color: var(--ink-70); }
+.landing details a { color: var(--blue); }
+
+.landing .site-foot { border-top: 1px solid var(--line); padding: 2.5rem 0 2rem; }
+.landing .site-foot .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; align-items: flex-start; }
+.landing .site-foot p { margin: 0.6rem 0 0; max-width: 34ch; color: var(--ink-70); font-size: 0.92rem; }
+.landing .site-foot nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem; font-size: 0.9rem; }
+.landing .site-foot nav a { color: var(--ink-70); text-decoration: none; }
+.landing .site-foot nav a:hover { color: var(--blue); }
+.landing .site-foot .fine { margin-top: 2rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; font: 400 0.68rem/1.6 var(--mono); letter-spacing: 0.06em; color: var(--ink-50); }
+.landing .site-foot .fine a { color: inherit; }
+
+@media (max-width: 1100px) { .landing .key-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px) {
+  .landing .hero-grid, .landing .faq-grid, .landing .screens, .landing .stats, .landing .cards, .landing .quotes, .landing .lines { grid-template-columns: 1fr; }
+  .landing .stats { margin-top: 0; }
+  .landing .brand small { display: none; }
+  .landing .brand b { font-size: 1rem; white-space: nowrap; }
+  .landing .top .btn { padding: 0.7rem 1rem; font-size: 0.88rem; }
+}
+@media (max-width: 700px) { .landing .key-grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .landing .btn { transition: none; } }

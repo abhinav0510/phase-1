@@ -202,6 +202,20 @@ export const getOwnProfile = cache((startupId: number): Promise<StartupProfile |
 );
 
 /**
+ * Details the Sidana team provided for this startup's profile (loaded from their
+ * spreadsheet by `npm run import:prefill`). Null when there are none or the table
+ * is not created yet.
+ */
+export const getOwnPrefill = cache(async (startupId: number): Promise<Record<string, unknown> | null> => {
+  const admin = createAdminClient();
+  const { data } = ok(
+    await admin.from("startup_profile_prefill").select("answers").eq("startup_id", startupId).maybeSingle(),
+    "startup_profile_prefill",
+  );
+  return ((data as { answers: Record<string, unknown> } | null)?.answers ?? null);
+});
+
+/**
  * The deck Sidana sends to investors for this startup (mirrored hourly from the
  * Pilot sheet by n8n SYNC-DECKS). Scoped strictly by the verified startupId.
  * Returns null when there is no deck on file or the table is not created yet.
@@ -333,8 +347,6 @@ const PROFILE_FIELDS: (keyof Startup)[] = [
   "ask_amount",
   "ask_as_written",
   "revenue_inr_l",
-  "burn_inr_l",
-  "runway_months",
   "notes",
 ];
 
