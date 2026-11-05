@@ -11,7 +11,7 @@ test.describe("dashboard", () => {
     await expect(page.locator("main").getByText("Introduced by Sidana")).toHaveCount(0);
     await expect(page.getByText("Investor matches")).toBeVisible();
     await expect(page.getByRole("button", { name: /Demo Capital/ }).first()).toBeVisible();
-    // Financials have their own tab, the raise is on Current round, and the header holds the only profile prompt.
+    // Financials have their own tab, the raise is on Overview, and the header holds the only profile prompt.
     await expect(page.locator("#financials-upload")).toHaveCount(0);
     await expect(page.getByText("Outreach pipeline")).toHaveCount(0);
     await expect(page.getByText("Current ask")).toHaveCount(0);
@@ -30,11 +30,11 @@ test.describe("dashboard", () => {
 test.describe("current round", () => {
   test.beforeEach(async ({ page }) => {
     await asFounder(page, ID.alpha);
-    await page.goto("/current-round");
+    await page.goto("/overview");
   });
 
   test("shows the raise, matches and meetings, without the welcome or profile nudge", async ({ page }) => {
-    await expect(page.getByRole("heading", { level: 1, name: "Current round" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
     await expect(page.getByText("INR 5 Cr").first()).toBeVisible();
     // Sent + queued; the paused match is left out.
     await expect(page.getByText("Investor matches")).toBeVisible();
@@ -64,6 +64,15 @@ test.describe("current round", () => {
 });
 
 test.describe("navigation", () => {
+  test("Overview is the last tab, and the old Current round address opens it", async ({ page }) => {
+    await asFounder(page, ID.alpha);
+    const tabs = (await page.locator('nav[aria-label="Portal sections"] a').allInnerTexts()).map((t) => t.trim()).filter(Boolean);
+    expect(tabs.at(-1)).toBe("Overview");
+    expect(tabs).not.toContain("Current Round");
+    await page.goto("/current-round");
+    await expect(page).toHaveURL(/\/overview$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
+  });
   test("Complete Profile is no tab: its questions are on My Profile, opened from the profile menu", async ({ page }) => {
     await asFounder(page, ID.alpha);
     await expect(page.locator('nav[aria-label="Portal sections"] a[href="/complete-profile"]')).toHaveCount(0);
@@ -80,7 +89,7 @@ test.describe("navigation", () => {
     await asFounder(page, ID.alpha);
     const tabs: [string, RegExp, RegExp][] = [
       ["/pitch-deck", /pitch-deck/, /Pitch Deck/],
-      ["/current-round", /current-round/, /Current round/],
+      ["/overview", /overview/, /Overview/],
       ["/financials", /financials/, /Financials/],
       ["/meetings", /meetings/, /Meetings/],
       ["/dashboard", /dashboard/, /Welcome back/],
@@ -208,7 +217,7 @@ test.describe("investors and matches", () => {
     await expect(main).not.toContainText(/In queue|Lined up for outreach|Waiting for the next wave|Priority/);
     await page.getByRole("button", { name: /Queue Ventures/ }).click();
     await expect(main).not.toContainText(/In queue|Priority/);
-    await page.goto("/current-round");
+    await page.goto("/overview");
     await expect(page.getByText("Outreach pipeline")).toBeVisible();
     await expect(page.locator("main")).not.toContainText(/In queue|Lined up for outreach|Not queued/);
   });
@@ -286,7 +295,7 @@ test.describe("weekly reports", () => {
 });
 
 test.describe("a startup with almost no data", () => {
-  for (const path of ["/dashboard", "/current-round", "/financials", "/meetings", "/pitch-deck", "/profile"]) {
+  for (const path of ["/dashboard", "/overview", "/financials", "/meetings", "/pitch-deck", "/profile"]) {
     test(`${path} still loads`, async ({ page }) => {
       await asFounder(page, ID.eta);
       const res = await page.goto(path);
@@ -314,7 +323,7 @@ test.describe("announcements", () => {
 // after a tab switch until the page was reloaded.
 test("switching tabs never leaves a section invisible", async ({ page }) => {
   await asFounder(page, ID.alpha);
-  for (const href of ["/pitch-deck", "/financials", "/current-round", "/meetings", "/dashboard", "/financials"]) {
+  for (const href of ["/pitch-deck", "/financials", "/overview", "/meetings", "/dashboard", "/financials"]) {
     await page.locator(`nav[aria-label="Portal sections"] a[href="${href}"]`).click();
     await expect(page).toHaveURL(new RegExp(href));
     await expect

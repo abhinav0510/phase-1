@@ -34,8 +34,8 @@ test.describe("monthly figures prompt", () => {
     // Remind me later: gone for today, on every page.
     await dialog.getByRole("button", { name: "Remind me later" }).first().click();
     await expect(dialog).toHaveCount(0);
-    await page.goto("/current-round");
-    await expect(page.getByRole("heading", { level: 1, name: "Current round" })).toBeVisible();
+    await page.goto("/overview");
+    await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
     await expect(page.getByRole("dialog", { name: /figures/ })).toHaveCount(0);
 
     // Tomorrow it is back (simulated by clearing the snooze).

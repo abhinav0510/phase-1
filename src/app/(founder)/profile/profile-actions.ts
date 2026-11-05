@@ -104,7 +104,7 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
   revalidateTag(startupTag(session.startupId));
   revalidatePath("/profile");
   revalidatePath("/dashboard");
-  revalidatePath("/current-round");
+  revalidatePath("/overview");
   revalidatePath("/financials");
   return { ok: true };
 }

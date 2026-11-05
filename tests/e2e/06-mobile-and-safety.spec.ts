@@ -15,7 +15,7 @@ test.describe("on a phone", () => {
     });
   }
 
-  for (const path of ["/dashboard", "/pitch-deck", "/current-round", "/financials", "/meetings", "/profile", "/settings"]) {
+  for (const path of ["/dashboard", "/pitch-deck", "/overview", "/financials", "/meetings", "/profile", "/settings"]) {
     test(`founder ${path} fits`, async ({ page }) => {
       await asFounder(page, ID.alpha);
       await page.goto(path);

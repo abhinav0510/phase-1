@@ -181,8 +181,8 @@ export default async function FounderDashboard() {
               Complete profile <ArrowRight className="h-4 w-4" />
             </ButtonLink>
           ) : (
-            <ButtonLink href="/current-round">
-              Current round <ArrowRight className="h-4 w-4" />
+            <ButtonLink href="/overview">
+              Overview <ArrowRight className="h-4 w-4" />
             </ButtonLink>
           )}
         </div>
