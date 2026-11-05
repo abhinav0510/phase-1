@@ -46,6 +46,9 @@ export function LogoUploader({ currentUrl, startupName }: { currentUrl: string |
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [pending, startTransition] = useTransition();
+  // Until React has taken over the server HTML, picking a file would go nowhere.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     return () => {
@@ -181,6 +184,7 @@ export function LogoUploader({ currentUrl, startupName }: { currentUrl: string |
           type="file"
           accept={ACCEPT.join(",")}
           className="hidden"
+          disabled={!mounted}
           onChange={(e) => {
             void pick(e.target.files?.[0]);
             e.target.value = "";

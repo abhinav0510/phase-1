@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Download, FileSpreadsheet, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { cn, formatDate } from "@/shared/lib/utils";
@@ -25,6 +25,10 @@ export function MisUpload({ files, ready }: { files: MisItem[]; ready: boolean }
   const input = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  // Until React has taken over the server HTML, picking a file would go nowhere.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const off = pending || !ready || !mounted;
 
   function pick(file: File | undefined) {
     setMsg(null);
@@ -60,13 +64,13 @@ export function MisUpload({ files, ready }: { files: MisItem[]; ready: boolean }
         accept={ACCEPT}
         className="sr-only"
         aria-label="Upload your MIS (Excel file)"
-        disabled={pending || !ready}
+        disabled={off}
         onChange={(e) => pick(e.target.files?.[0])}
       />
       <button
         type="button"
         onClick={() => input.current?.click()}
-        disabled={pending || !ready}
+        disabled={off}
         className={cn(buttonClass("ghost", "md"), "w-full sm:w-auto")}
       >
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}

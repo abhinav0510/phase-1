@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Download, FileSpreadsheet, Loader2, UploadCloud } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -16,6 +16,10 @@ export function FinancialsUpload({ ready, summary }: { ready: boolean; summary: 
   const input = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<{ ok: true; text: string } | { ok: false; errors: string[] } | null>(null);
   const [pending, startTransition] = useTransition();
+  // Until React has taken over the server HTML, picking a file would go nowhere.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const off = pending || !ready || !mounted;
 
   function pick(file: File | undefined) {
     setResult(null);
@@ -64,10 +68,10 @@ export function FinancialsUpload({ ready, summary }: { ready: boolean; summary: 
             accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="sr-only"
             aria-label="Upload your filled-in financials template"
-            disabled={pending || !ready}
+            disabled={off}
             onChange={(e) => pick(e.target.files?.[0])}
           />
-          <button type="button" onClick={() => input.current?.click()} disabled={pending || !ready} className={buttonClass("primary", "sm")}>
+          <button type="button" onClick={() => input.current?.click()} disabled={off} className={buttonClass("primary", "sm")}>
             {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
             {pending ? "Checking…" : "Upload figures"}
           </button>

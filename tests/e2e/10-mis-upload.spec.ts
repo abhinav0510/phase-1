@@ -1,4 +1,4 @@
-import { asFounder, asTeam, expect, ID, state, test } from "./helpers";
+import { asFounder, asTeam, expect, ID, pickFile, state, test } from "./helpers";
 
 // Just enough of an .xlsx for the byte check: a zip holding xl/workbook.xml.
 const XLSX = Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.from("\0\0xl/workbook.xml\0\0")]);
@@ -14,7 +14,7 @@ test.describe("MIS upload", () => {
     await asFounder(page, ID.zeta);
     await page.goto("/complete-profile");
     await expect(page.getByRole("button", { name: "Upload MIS" })).toBeVisible();
-    await page.locator("#pf-mis").setInputFiles(upload("MIS Oct 2026.xlsx", XLSX));
+    await pickFile(page, "#pf-mis", upload("MIS Oct 2026.xlsx", XLSX));
     await expect(page.locator("#mis")).toContainText("Uploaded");
     await expect(page.locator("#mis")).toContainText("MIS Oct 2026.xlsx");
 
@@ -35,7 +35,7 @@ test.describe("MIS upload", () => {
   test("a file that isn't really Excel is refused", async ({ page }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/complete-profile");
-    await page.locator("#pf-mis").setInputFiles(upload("numbers.xlsx", Buffer.from("name,amount\nA,1")));
+    await pickFile(page, "#pf-mis", upload("numbers.xlsx", Buffer.from("name,amount\nA,1")));
     await expect(page.locator("#mis")).toContainText(/Excel file/);
     expect(await own(ID.zeta)).toHaveLength(0);
   });
@@ -43,7 +43,7 @@ test.describe("MIS upload", () => {
   test("only the startup's founder and the team can download it", async ({ page, browser }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/complete-profile");
-    await page.locator("#pf-mis").setInputFiles(upload("MIS.xlsx", XLSX));
+    await pickFile(page, "#pf-mis", upload("MIS.xlsx", XLSX));
     await expect(page.locator("#mis")).toContainText("Uploaded");
     const [saved] = await own(ID.zeta);
 

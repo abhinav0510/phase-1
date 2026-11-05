@@ -8,6 +8,13 @@ export const ID = { alpha: 101, beta: 102, gamma: 103, delta: 104, epsilon: 105,
 export const BETA_SECRET = "BETA-SECRET-MARKER";
 export const INVESTOR_CONTACTS = ["hidden.partner@demo-capital.test", "Hidden Partner", "linkedin.com/in/hidden-partner", "98765 43210"];
 
+/** Choose a file for an upload input once the page has hydrated: the inputs are disabled until then, so an early pick would be ignored. */
+export async function pickFile(page: Page, selector: string, file: { name: string; mimeType: string; buffer: Buffer }) {
+  const input = page.locator(selector);
+  await expect(input).toBeEnabled();
+  await input.setInputFiles(file);
+}
+
 /** Read a table straight from the fake database. */
 export async function state<T = any>(table: string): Promise<T[]> {
   const res = await fetch(`${MOCK}/__state?table=${table}`);
