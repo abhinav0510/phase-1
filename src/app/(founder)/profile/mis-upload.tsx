@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Download, FileSpreadsheet, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { cn, formatDate } from "@/shared/lib/utils";
 import { buttonClass } from "@/client/components/founder/ui";
@@ -20,8 +19,9 @@ export interface MisItem {
 const size = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
 /** Upload button and list for the founder's MIS spreadsheets. Saves at once, separately from the form. */
-export function MisUpload({ files, ready }: { files: MisItem[]; ready: boolean }) {
-  const router = useRouter();
+export function MisUpload({ files: initialFiles, ready }: { files: MisItem[]; ready: boolean }) {
+  // The list is kept here so an upload never redraws the profile form around it.
+  const [files, setFiles] = useState<MisItem[]>(initialFiles);
   const input = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
@@ -41,7 +41,7 @@ export function MisUpload({ files, ready }: { files: MisItem[]; ready: boolean }
       const r = await uploadMis(fd);
       if (input.current) input.current.value = "";
       setMsg(r.ok ? { ok: true, text: "Uploaded. The Sidana team can see it now." } : { ok: false, text: r.error });
-      if (r.ok) router.refresh();
+      if (r.ok) setFiles((list) => [r.file, ...list.filter((f) => f.id !== r.file.id)]);
     });
   }
 
@@ -50,7 +50,7 @@ export function MisUpload({ files, ready }: { files: MisItem[]; ready: boolean }
     startTransition(async () => {
       const r = await removeMis(id);
       setMsg(r.ok ? { ok: true, text: "File removed." } : { ok: false, text: r.error });
-      if (r.ok) router.refresh();
+      if (r.ok) setFiles((list) => list.filter((f) => f.id !== id));
     });
   }
 

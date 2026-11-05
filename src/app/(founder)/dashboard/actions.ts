@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireFounder } from "@/server/auth/session";
 import { createAdminClient } from "@/server/integrations/supabase/admin";
 import { isMisNotReady } from "@/server/data/mis";
@@ -82,7 +81,6 @@ export async function uploadFinancials(formData: FormData): Promise<FinancialsUp
     if (error) await admin.storage.from(MIS_BUCKET).remove([path]);
   }
 
-  revalidatePath("/financials");
-  revalidatePath("/complete-profile");
+  // No revalidatePath: the upload card reloads the page, and every founder page is dynamic.
   return { ok: true, months: parsed.months.length, years: parsed.years.length };
 }

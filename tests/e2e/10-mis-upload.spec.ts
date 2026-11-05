@@ -12,7 +12,7 @@ const own = async (startupId: number) => (await state("startup_mis_files")).filt
 test.describe("MIS upload", () => {
   test("upload beside the statements link, download it, then remove it", async ({ page }) => {
     await asFounder(page, ID.zeta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await expect(page.getByRole("button", { name: "Upload MIS" })).toBeVisible();
     await pickFile(page, "#pf-mis", upload("MIS Oct 2026.xlsx", XLSX));
     await expect(page.locator("#mis")).toContainText("Uploaded");
@@ -34,7 +34,7 @@ test.describe("MIS upload", () => {
 
   test("a file that isn't really Excel is refused", async ({ page }) => {
     await asFounder(page, ID.zeta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await pickFile(page, "#pf-mis", upload("numbers.xlsx", Buffer.from("name,amount\nA,1")));
     await expect(page.locator("#mis")).toContainText(/Excel file/);
     expect(await own(ID.zeta)).toHaveLength(0);
@@ -42,7 +42,7 @@ test.describe("MIS upload", () => {
 
   test("only the startup's founder and the team can download it", async ({ page, browser }) => {
     await asFounder(page, ID.zeta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await pickFile(page, "#pf-mis", upload("MIS.xlsx", XLSX));
     await expect(page.locator("#mis")).toContainText("Uploaded");
     const [saved] = await own(ID.zeta);

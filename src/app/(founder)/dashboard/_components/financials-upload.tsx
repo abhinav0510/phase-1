@@ -1,24 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Download, FileSpreadsheet, Loader2, UploadCloud } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { buttonClass } from "@/client/components/founder/ui";
 import { uploadFinancials } from "../actions";
+import { reloadWithNotice, takeNotice } from "@/client/lib/notice-after-reload";
 
 export const TEMPLATE_HREF = "/templates/sidana-financials-template.xlsx";
 const MAX_BYTES = 3 * 1024 * 1024; // matches the server cap
 
 /** Download the template, upload it filled in, and see what was saved or what to fix. */
 export function FinancialsUpload({ ready, summary }: { ready: boolean; summary: string | null }) {
-  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<{ ok: true; text: string } | { ok: false; errors: string[] } | null>(null);
   const [pending, startTransition] = useTransition();
   // Until React has taken over the server HTML, picking a file would go nowhere.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    const saved = takeNotice("financials");
+    if (saved) setResult({ ok: true, text: saved });
+  }, []);
   const off = pending || !ready || !mounted;
 
   function pick(file: File | undefined) {
@@ -33,8 +36,13 @@ export function FinancialsUpload({ ready, summary }: { ready: boolean; summary: 
       if (input.current) input.current.value = "";
       if (r.ok) {
         const parts = [r.months ? `${r.months} month${r.months === 1 ? "" : "s"}` : null, r.years ? `${r.years} year${r.years === 1 ? "" : "s"}` : null].filter(Boolean);
-        setResult({ ok: true, text: `Saved ${parts.join(" and ")} of figures. The charts below are updated.` });
-        router.refresh();
+        // A full reload redraws the charts reliably; refreshing in place can stall (see notice-after-reload).
+        const text = `Saved ${parts.join(" and ")} of figures. The charts below are updated.`;
+        reloadWithNotice("financials", text);
+        // Keep "Checking…" while the page reloads. If the reload never happens (blocked or
+        // cancelled), stop waiting after a while and say how to see the new charts.
+        await new Promise((done) => setTimeout(done, 10_000));
+        setResult({ ok: true, text: `${text.replace(" The charts below are updated.", "")} Reload the page to see your updated charts.` });
       } else {
         setResult({ ok: false, errors: r.errors });
       }

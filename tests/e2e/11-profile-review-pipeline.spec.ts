@@ -17,7 +17,7 @@ async function settle(page: any) {
 test.describe("profile review pipeline", () => {
   test("a founder's submission reaches the team's review queue", async ({ page }) => {
     await asFounder(page, ID.zeta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await page.getByLabel(/Annual revenue – ARR/).fill("250");
     await page.getByLabel("One-line pitch").fill("Zeta pipeline pitch");
     await page.getByRole("button", { name: /Submit for review/ }).click();
@@ -40,7 +40,7 @@ test.describe("profile review pipeline", () => {
 test.describe("submissions stay visible to the team", () => {
   test("saving a draft after submitting keeps it waiting for review", async ({ page }) => {
     await asFounder(page, ID.eta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await page.getByLabel(/Annual revenue – ARR/).fill("250");
     await page.getByRole("button", { name: /Submit for review/ }).click();
     await expect(page.getByRole("status")).toContainText(/Sent to the Sidana team/);

@@ -1,8 +1,7 @@
-import { Handshake, Send, Hourglass, XCircle } from "lucide-react";
+import { Handshake, Send, XCircle } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnMatches, getOwnReplies, type MailReply } from "@/server/data/founder";
 import {
-  gainIf,
   KpiCard,
   PageHeader,
   Card,
@@ -23,18 +22,21 @@ import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+// Founders don't see Sidana's outreach queue: a queued match is just "Matched".
 const STATE_LABEL: Record<string, string> = {
   sent: "Reached out",
-  queued: "In queue",
+  queued: "Matched",
   tracker_only: "Tracker only",
   paused: "Paused",
-  not_queued: "Not queued",
+  not_queued: "Matched",
 };
+const stateChip = (state: string | null): { label: string; tone: ChipTone } =>
+  state === "sent" || state === "tracker_only"
+    ? { label: STATE_LABEL[state], tone: MATCH_STATE_TONE[state] ?? "neutral" }
+    : { label: STATE_LABEL[state ?? "not_queued"] ?? label(state), tone: "neutral" };
 
 function groupOf(state: string | null) {
-  if (state === "sent") return "sent";
-  if (state === "queued") return "queued";
-  return "other";
+  return state === "sent" ? "sent" : "other";
 }
 
 /** Heading over the reply gist, by how the investor replied. */
@@ -53,7 +55,6 @@ export default async function FounderFunding() {
   const { startupId } = await requireFounder();
   const [matches, replies] = await Promise.all([getOwnMatches(startupId), getOwnReplies(startupId)]);
   const sent = matches.filter((m) => m.state === "sent").length;
-  const queued = matches.filter((m) => m.state === "queued").length;
 
   // replies arrive newest-first; keep the latest reply, and the latest pass, per investor.
   const latestByInvestor = new Map<number, MailReply>();
@@ -84,7 +85,7 @@ export default async function FounderFunding() {
     const didPass = invId != null && passedByInvestor.has(invId);
     const chip: { label: string; tone: ChipTone } = didPass
       ? { label: "Passed", tone: "red" }
-      : { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: MATCH_STATE_TONE[m.state ?? ""] ?? "neutral" };
+      : stateChip(m.state);
     return {
       id: String(m.id),
       title: m.investor?.name ?? "Investor",
@@ -108,7 +109,7 @@ export default async function FounderFunding() {
           heading: m.investor?.name ?? "Investor",
           chip: didPass
             ? { label: "Passed", tone: "red" }
-            : { label: STATE_LABEL[m.state ?? "not_queued"] ?? label(m.state), tone: "ocean" },
+            : { label: stateChip(m.state).label, tone: "ocean" },
           aside: m.score != null ? { label: "Match score", value: String(m.score) } : undefined,
           stats: [
             { label: "Cheque size", value: prof.cheque },
@@ -121,16 +122,15 @@ export default async function FounderFunding() {
           ],
           rows: [
             { label: "Matched on", value: formatDate(m.created_at) },
-            { label: reply ? "Last reply" : "Priority", value: reply ? formatDate(reply.sent_at) : m.priority != null ? `#${m.priority}` : "—" },
+            // No queue position: founders don't see Sidana's outreach order.
+            ...(reply ? [{ label: "Last reply", value: formatDate(reply.sent_at) }] : []),
           ],
           note:
             didPass
               ? undefined
               : m.state === "sent"
                 ? "Sidana has introduced you. Meetings booked from this intro show up under Meetings."
-                : m.state === "queued"
-                  ? "Lined up for outreach. Sidana sends introductions in priority order."
-                  : undefined,
+                : undefined,
         } satisfies DetailSpec,
       ];
     }),
@@ -144,15 +144,12 @@ export default async function FounderFunding() {
         subtitle="Every investor Sidana's engine has matched to your startup, what they said, and where each one stands."
       />
 
-      <Stagger className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Item>
           <KpiCard tone="accent" label="Matched investors" value={matches.length} icon={<Handshake className="h-4 w-4" />} hint="Fit by sector, stage and cheque" />
         </Item>
         <Item>
-          <KpiCard label="Reached out" value={sent} icon={<Send className="h-4 w-4" />} delta={gainIf(sent > 0, { text: `${Math.round((sent / Math.max(1, matches.length)) * 100)}%`, hint: "of matches contacted" })} />
-        </Item>
-        <Item>
-          <KpiCard label="In queue" value={queued} icon={<Hourglass className="h-4 w-4" />} hint="Waiting for the next wave" />
+          <KpiCard label="Reached out" value={sent} icon={<Send className="h-4 w-4" />} hint="Introduced by Sidana" />
         </Item>
         <Item>
           <KpiCard label="Passed" value={passed.length} icon={<XCircle className="h-4 w-4" />} hint={passed.length ? "See reasons below" : "None so far"} />
@@ -167,8 +164,7 @@ export default async function FounderFunding() {
           tabs={[
             { key: "all", label: "All" },
             { key: "sent", label: "Reached out" },
-            { key: "queued", label: "In queue" },
-            { key: "other", label: "Other" },
+            { key: "other", label: "Not contacted yet" },
           ]}
           items={items}
           details={details}

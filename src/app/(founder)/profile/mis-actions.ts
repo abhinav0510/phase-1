@@ -1,25 +1,30 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireFounder } from "@/server/auth/session";
 import { createAdminClient } from "@/server/integrations/supabase/admin";
 import { isMisNotReady } from "@/server/data/mis";
 import { MIS_BUCKET, MIS_MAX_BYTES, cleanFileName, sniffSpreadsheet } from "@/server/validators/mis";
 
+export interface MisFile {
+  id: number;
+  file_name: string;
+  size_bytes: number;
+  created_at: string;
+}
 export type MisResult = { ok: true } | { ok: false; error: string };
+export type MisUploadResult = { ok: true; file: MisFile } | { ok: false; error: string };
 
 const NOT_READY = "MIS uploads aren't switched on yet. Please try again shortly.";
 
-function refresh() {
-  revalidatePath("/complete-profile");
-}
+// No revalidatePath: the MIS card updates its own list, so the profile form around it is never
+// redrawn and answers the founder hasn't saved yet stay put.
 
 /**
  * Store a founder's MIS spreadsheet. The startup comes from the verified session only;
  * the file is checked by its bytes (.xlsx or .xls) and size before it is written.
  * Writes only startup_mis_files and the private bucket, never public.startups.
  */
-export async function uploadMis(formData: FormData): Promise<MisResult> {
+export async function uploadMis(formData: FormData): Promise<MisUploadResult> {
   const session = await requireFounder();
   const file = formData.get("mis");
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Choose an Excel file to upload." };
@@ -36,21 +41,24 @@ export async function uploadMis(formData: FormData): Promise<MisResult> {
     return { ok: false, error: isMisNotReady(up.error.message) ? NOT_READY : "Could not upload the file. Please try again." };
   }
 
-  const { error } = await admin.from("startup_mis_files").insert({
-    startup_id: session.startupId,
-    file_path: path,
-    file_name: cleanFileName(file.name, kind.ext),
-    content_type: kind.mime,
-    size_bytes: bytes.length,
-    uploaded_by: session.authId,
-  });
-  if (error) {
+  const { data: saved, error } = await admin
+    .from("startup_mis_files")
+    .insert({
+      startup_id: session.startupId,
+      file_path: path,
+      file_name: cleanFileName(file.name, kind.ext),
+      content_type: kind.mime,
+      size_bytes: bytes.length,
+      uploaded_by: session.authId,
+    })
+    .select("id, file_name, size_bytes, created_at")
+    .single();
+  if (error || !saved) {
     await admin.storage.from(MIS_BUCKET).remove([path]);
-    return { ok: false, error: isMisNotReady(error.message, error.code) ? NOT_READY : "Could not save the file. Please try again." };
+    return { ok: false, error: error && isMisNotReady(error.message, error.code) ? NOT_READY : "Could not save the file. Please try again." };
   }
 
-  refresh();
-  return { ok: true };
+  return { ok: true, file: saved as MisFile };
 }
 
 /** Remove one of the founder's own MIS files. */
@@ -70,6 +78,5 @@ export async function removeMis(id: number): Promise<MisResult> {
     .map((r) => r.file_path)
     .filter((p) => p.startsWith(`${session.startupId}/`));
   if (paths.length) await admin.storage.from(MIS_BUCKET).remove(paths);
-  refresh();
   return { ok: true };
 }

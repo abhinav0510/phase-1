@@ -15,15 +15,18 @@ export const MATCH_STATE_META: Record<
   { label: string; color: string; order: number }
 > = {
   sent: { label: "Reached out", color: SERIES.navy, order: 0 },
-  queued: { label: "In queue", color: SERIES.gold, order: 1 },
   tracker_only: { label: "Tracker only", color: SERIES.teal, order: 2 },
-  not_queued: { label: "Not queued", color: SERIES.leaf, order: 4 },
+  not_contacted: { label: "Not contacted yet", color: SERIES.leaf, order: 4 },
 };
+
+// Founders don't see Sidana's outreach queue: queued and not-queued matches are both
+// simply "not contacted yet".
+const founderState = (state: string | null) => (state === "sent" || state === "tracker_only" ? state : "not_contacted");
 
 export function matchStateSlices(matches: MatchRow[]): DonutSlice[] {
   const counts = new Map<string, number>();
   for (const m of matches) {
-    const k = m.state ?? "not_queued";
+    const k = founderState(m.state);
     counts.set(k, (counts.get(k) ?? 0) + 1);
   }
   return Object.entries(MATCH_STATE_META)
@@ -78,12 +81,6 @@ export function pipelineStages(
   const held = meetings.filter((m) => m.held === true);
   return [
     { key: "matched", label: "Matched", count: matches.length, names: names(matches) },
-    {
-      key: "queued",
-      label: "In queue",
-      count: matches.filter((m) => m.state === "queued").length,
-      names: names(matches.filter((m) => m.state === "queued")),
-    },
     {
       key: "sent",
       label: "Reached out",

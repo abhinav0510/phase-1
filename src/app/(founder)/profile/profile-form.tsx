@@ -14,8 +14,9 @@ import {
   type ProfileField,
   type SectionKey,
 } from "@/shared/lib/profile-fields";
-import { saveProfile } from "./actions";
+import { saveProfile } from "./profile-actions";
 import { MisUpload, type MisItem } from "./mis-upload";
+import type { SheetAnswer } from "@/app/(founder)/dashboard/_components/financials-model";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -24,6 +25,8 @@ export function ProfileForm({
   record,
   canSubmit,
   fromTeam = [],
+  fromSheet = [],
+  sheet = {},
   mis,
 }: {
   initial: Answers;
@@ -33,6 +36,10 @@ export function ProfileForm({
   canSubmit: boolean;
   /** Questions pre-filled from the Sidana team's details, for the founder to check. */
   fromTeam?: string[];
+  /** Questions pre-filled from the founder's uploaded figures, for them to check. */
+  fromSheet?: string[];
+  /** What the uploaded figures say per question, to point out when an answer differs. */
+  sheet?: Record<string, SheetAnswer>;
   /** MIS spreadsheets already uploaded, shown beside the financial statements link. */
   mis: { files: MisItem[]; ready: boolean };
 }) {
@@ -145,6 +152,8 @@ export function ProfileForm({
                   value={values[f.key]}
                   record={record[f.key]}
                   fromTeam={fromTeam.includes(f.key) && JSON.stringify(values[f.key]) === JSON.stringify(initial[f.key])}
+                  fromSheet={fromSheet.includes(f.key) && JSON.stringify(values[f.key]) === JSON.stringify(initial[f.key])}
+                  sheet={sheet[f.key]}
                   onChange={(v) => set(f.key, v)}
                 />
                 {f.key === "financial_statements_link" ? <MisUpload files={mis.files} ready={mis.ready} /> : null}
@@ -200,17 +209,28 @@ export function ProfileForm({
   );
 }
 
+/** Whether a typed answer already matches the sheet's: numbers compare by value, so "1,250" equals "1250". */
+function sameAnswer(f: ProfileField, typed: string, sheetValue: string): boolean {
+  if (f.type !== "number") return typed === sheetValue;
+  const n = Number(typed.replace(/[,\s]/g, ""));
+  return typed.trim() !== "" && Number.isFinite(n) && n === Number(sheetValue);
+}
+
 function Field({
   field: f,
   value,
   record,
   fromTeam,
+  fromSheet,
+  sheet,
   onChange,
 }: {
   field: ProfileField;
   value: string | string[] | undefined;
   record: string | null;
   fromTeam: boolean;
+  fromSheet: boolean;
+  sheet?: SheetAnswer;
   onChange: (v: string | string[]) => void;
 }) {
   const id = `pf-${f.key}`;
@@ -293,8 +313,20 @@ function Field({
         />
       )}
 
-      {fromTeam ? (
+      {fromSheet && sheet ? (
+        <p className="mt-1 text-xs text-leaf-700" data-from-sheet>
+          From your uploaded figures ({sheet.from}). Please check it, then save.
+        </p>
+      ) : fromTeam ? (
         <p className="mt-1 text-xs text-ocean-700">Filled in by the Sidana team. Please check it, then save.</p>
+      ) : null}
+      {sheet && !fromSheet && !sameAnswer(f, str, sheet.value) ? (
+        <p className="mt-1 text-xs text-navy-500" data-sheet-differs>
+          Your uploaded figures say <span className="font-semibold text-tide">{sheet.value}</span> ({sheet.from}).{" "}
+          <button type="button" onClick={() => onChange(sheet.value)} className="font-semibold text-ocean-700 underline underline-offset-2">
+            Use this
+          </button>
+        </p>
       ) : null}
       {showRecord ? (
         <p className="mt-1 text-xs text-navy-400">

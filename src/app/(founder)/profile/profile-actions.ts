@@ -102,8 +102,8 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
   }
   // Drop this startup's cached reads so the founder sees their own save at once.
   revalidateTag(startupTag(session.startupId));
-  revalidatePath("/complete-profile");
+  revalidatePath("/profile");
   revalidatePath("/dashboard");
-  revalidatePath("/financials");
+  revalidatePath("/current-round");
   return { ok: true };
 }

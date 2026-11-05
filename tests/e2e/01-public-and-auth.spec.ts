@@ -42,7 +42,7 @@ test.describe("public pages", () => {
   }
 
   const protectedPaths = [
-    "/dashboard", "/business-details", "/complete-profile", "/pitch-deck", "/financials", "/funding", "/meetings", "/weekly-reports", "/profile", "/settings",
+    "/dashboard", "/business-details", "/complete-profile", "/pitch-deck", "/financials", "/current-round", "/funding", "/meetings", "/weekly-reports", "/profile", "/settings",
     "/admin", "/admin/startups", "/admin/investors", "/admin/matches", "/admin/meetings", "/admin/documents", "/admin/reports", "/admin/users", "/admin/notifications", "/admin/announcements", "/admin/profiles", "/admin/settings",
   ];
   for (const path of protectedPaths) {

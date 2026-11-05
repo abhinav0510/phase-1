@@ -3,7 +3,7 @@ import { formatLakh } from "@/shared/lib/utils";
 import type { Startup } from "@/shared/types/db";
 
 // The founder profile Sidana uses for investor matchmaking. One list drives the
-// founder form (/complete-profile), the completion score on the dashboard and
+// founder form (on /profile), the completion score on the dashboard and
 // the admin review screen, so a field added here shows up everywhere.
 //
 // `record` reads the value already on file in public.startups (from the

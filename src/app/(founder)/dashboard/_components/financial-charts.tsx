@@ -2,8 +2,8 @@
 
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatLakh } from "@/shared/lib/utils";
-import { INK, SERIES } from "../../dashboard/_components/palette";
-import type { MonthPoint, YearPoint } from "./model";
+import { INK, SERIES } from "./palette";
+import type { MonthPoint, YearPoint } from "./financials-model";
 
 const tooltipStyle = {
   borderRadius: 12,

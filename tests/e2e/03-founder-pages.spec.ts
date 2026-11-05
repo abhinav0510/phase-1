@@ -3,12 +3,43 @@ import { asFounder, expect, ID, test } from "./helpers";
 test.describe("dashboard", () => {
   test.beforeEach(async ({ page }) => asFounder(page, ID.alpha));
 
-  test("shows the raise, matches and meetings", async ({ page }) => {
+  test("greets the founder, then shows their financials", async ({ page }) => {
+    await expect(page.getByRole("heading", { level: 1, name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByText("Annual revenue (ARR)").first()).toBeVisible();
+    await expect(page.getByText("Monthly revenue (MRR)")).toBeVisible();
+    await expect(page.locator("#financials-upload")).toBeVisible();
+    // The raise details moved to the Current round tab, and the header holds the only profile prompt.
+    await expect(page.getByText("Outreach pipeline")).toHaveCount(0);
+    await expect(page.getByText("Current ask")).toHaveCount(0);
+    await expect(page.getByText("Allocation left")).toHaveCount(0);
+    await expect(page.getByText(/Complete your profile for the best matches/i)).toHaveCount(0);
+    await expect(page.locator("main").getByRole("link", { name: /Complete profile/ })).toHaveCount(1);
+    await expect(page.getByRole("link", { name: /Update via profile/ })).toHaveCount(0);
+    // Nothing saved by this founder yet, so the prompt to add financials stays.
+    await expect(page.getByRole("link", { name: "Add your financials" })).toBeVisible();
+  });
+  test("offers to add a logo when there is none", async ({ page }) => {
+    await expect(page.getByTitle("Add your company logo")).toBeVisible();
+  });
+  test("nudges the founder to complete their profile", async ({ page }) => {
+    await expect(page.getByRole("link", { name: "Complete profile" }).first()).toHaveAttribute("href", "/profile#complete-profile");
+  });
+});
+
+test.describe("current round", () => {
+  test.beforeEach(async ({ page }) => {
+    await asFounder(page, ID.alpha);
+    await page.goto("/current-round");
+  });
+
+  test("shows the raise, matches and meetings, without the welcome or profile nudge", async ({ page }) => {
+    await expect(page.getByRole("heading", { level: 1, name: "Current round" })).toBeVisible();
     await expect(page.getByText("INR 5 Cr").first()).toBeVisible();
     // Sent + queued; the paused match is left out.
     await expect(page.getByText("Investor matches")).toBeVisible();
     await expect(page.getByText("Outreach pipeline")).toBeVisible();
-    await expect(page.getByText("Annual revenue (ARR)")).toBeVisible();
+    await expect(page.getByText(/Welcome back/)).toHaveCount(0);
+    await expect(page.getByTitle("Add your company logo")).toHaveCount(0);
   });
   test("counts real meetings only: no duplicates, internal or cancelled", async ({ page }) => {
     // 1 upcoming, Twice Saved, Left Side, Not Listed, list-named, Held.
@@ -17,12 +48,6 @@ test.describe("dashboard", () => {
     await expect(card).toContainText("1 upcoming");
     await expect(card).toContainText("1 held");
   });
-  test("offers to add a logo when there is none", async ({ page }) => {
-    await expect(page.getByTitle("Add your company logo")).toBeVisible();
-  });
-  test("nudges the founder to complete their profile", async ({ page }) => {
-    await expect(page.getByRole("link", { name: "Complete profile" }).first()).toHaveAttribute("href", "/complete-profile");
-  });
   test("the pipeline stages open their investor lists", async ({ page }) => {
     await page.getByRole("button", { name: /Reached out/ }).click();
     await expect(page.getByText("Demo Capital").first()).toBeVisible();
@@ -30,13 +55,23 @@ test.describe("dashboard", () => {
 });
 
 test.describe("navigation", () => {
+  test("Complete Profile is no tab: its questions are on My Profile, opened from the profile menu", async ({ page }) => {
+    await asFounder(page, ID.alpha);
+    await expect(page.locator('nav[aria-label="Portal sections"] a[href="/complete-profile"]')).toHaveCount(0);
+    await page.getByRole("button", { name: /Demo Alpha Foods/ }).click();
+    await page.getByRole("menu").getByRole("link", { name: "My profile" }).click();
+    await expect(page).toHaveURL(/\/profile/);
+    await expect(page.getByRole("heading", { level: 1, name: "My Profile" })).toBeVisible();
+    await expect(page.locator("#complete-profile")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Submit for review/ })).toBeVisible();
+    await page.goto("/complete-profile");
+    await expect(page).toHaveURL(/\/profile/);
+  });
   test("every tab opens from the nav bar", async ({ page }) => {
     await asFounder(page, ID.alpha);
     const tabs: [string, RegExp, RegExp][] = [
-      ["/business-details", /business-details/, /My Startup/],
-      ["/complete-profile", /complete-profile/, /Complete Profile/],
       ["/pitch-deck", /pitch-deck/, /Pitch Deck/],
-      ["/financials", /financials/, /Financials/],
+      ["/current-round", /current-round/, /Current round/],
       ["/funding", /funding/, /Investors & Matches/],
       ["/meetings", /meetings/, /Meetings/],
       ["/dashboard", /dashboard/, /Welcome back/],
@@ -58,20 +93,29 @@ test.describe("navigation", () => {
 });
 
 test.describe("my startup", () => {
-  test("shows the company record, and no status beyond what's on file", async ({ page }) => {
+  test("is no tab any more: its address opens My Profile, which shows the company", async ({ page }) => {
     await asFounder(page, ID.alpha);
+    await expect(page.locator('nav[aria-label="Portal sections"] a[href="/business-details"]')).toHaveCount(0);
     await page.goto("/business-details");
+    await expect(page).toHaveURL(/\/profile$/);
     await expect(page.getByRole("heading", { name: "Demo Alpha Foods" })).toBeVisible();
     await expect(page.getByText("FoodTech").first()).toBeVisible();
-    await expect(page.getByText("Demo Owner")).toBeVisible();
-    await expect(page.getByRole("link", { name: /Update details/ })).toHaveAttribute("href", "/complete-profile");
+    await expect(page.getByText("Demo Owner").first()).toBeVisible();
   });
 });
 
-test.describe("financials", () => {
+test.describe("financials on the dashboard", () => {
   test.beforeEach(async ({ page }) => {
     await asFounder(page, ID.alpha);
+    await page.goto("/dashboard");
+  });
+
+  test("the old Financials tab is gone and its address opens the dashboard", async ({ page }) => {
+    await expect(page.locator('nav[aria-label="Portal sections"] a[href="/financials"]')).toHaveCount(0);
     await page.goto("/financials");
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByRole("heading", { level: 1, name: /Welcome back/ })).toBeVisible();
+    await expect(page.locator("#financials-upload")).toBeVisible();
   });
 
   test("tells founders clearly to report annually as ARR", async ({ page }) => {
@@ -86,7 +130,7 @@ test.describe("financials", () => {
   });
   test("the button goes straight to the financials form", async ({ page }) => {
     await page.getByRole("link", { name: "Add your financials" }).click();
-    await expect(page).toHaveURL(/complete-profile#section-financials/);
+    await expect(page).toHaveURL(/\/profile#section-financials/);
     await expect(page.getByRole("heading", { name: "Financials", exact: true })).toBeVisible();
   });
   test("shows figures on record, monthly revenue and funding rounds", async ({ page }) => {
@@ -137,9 +181,19 @@ test.describe("investors and matches", () => {
     await expect(dialog).toBeHidden();
   });
   test("the tabs filter the list", async ({ page }) => {
-    await page.getByRole("tab", { name: /In queue/ }).click();
+    await page.getByRole("tab", { name: /Not contacted yet/ }).click();
     await expect(page.getByRole("button", { name: /Queue Ventures/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /^DC Demo Capital/ })).toHaveCount(0);
+  });
+  test("nothing about Sidana's outreach queue is shown", async ({ page }) => {
+    const main = page.locator("main");
+    await expect(main.getByText("Investor matches")).toBeVisible();
+    await expect(main).not.toContainText(/In queue|Lined up for outreach|Waiting for the next wave|Priority/);
+    await page.getByRole("button", { name: /Queue Ventures/ }).click();
+    await expect(main).not.toContainText(/In queue|Priority/);
+    await page.goto("/current-round");
+    await expect(page.getByText("Outreach pipeline")).toBeVisible();
+    await expect(page.locator("main")).not.toContainText(/In queue|Lined up for outreach|Not queued/);
   });
 });
 
@@ -215,7 +269,7 @@ test.describe("weekly reports", () => {
 });
 
 test.describe("a startup with almost no data", () => {
-  for (const path of ["/dashboard", "/business-details", "/financials", "/funding", "/meetings", "/pitch-deck", "/profile", "/complete-profile"]) {
+  for (const path of ["/dashboard", "/current-round", "/funding", "/meetings", "/pitch-deck", "/profile"]) {
     test(`${path} still loads`, async ({ page }) => {
       await asFounder(page, ID.eta);
       const res = await page.goto(path);
@@ -243,7 +297,7 @@ test.describe("announcements", () => {
 // after a tab switch until the page was reloaded.
 test("switching tabs never leaves a section invisible", async ({ page }) => {
   await asFounder(page, ID.alpha);
-  for (const href of ["/complete-profile", "/funding", "/financials", "/meetings", "/business-details", "/dashboard", "/funding"]) {
+  for (const href of ["/pitch-deck", "/funding", "/current-round", "/meetings", "/dashboard", "/funding"]) {
     await page.locator(`nav[aria-label="Portal sections"] a[href="${href}"]`).click();
     await expect(page).toHaveURL(new RegExp(href));
     await expect

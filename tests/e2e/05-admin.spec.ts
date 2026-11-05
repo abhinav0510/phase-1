@@ -252,7 +252,7 @@ test.describe("profile reviews", () => {
 
     await page.context().clearCookies();
     await asFounder(page, ID.epsilon);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await expect(page.getByText(/Please add your FY numbers/).first()).toBeVisible();
   });
 
