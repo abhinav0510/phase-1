@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { writeXlsx } from "../../scripts/lib/xlsx-writer.mjs";
 import { parseFinancialsWorkbook, parseFy, parseMonth } from "@/server/validators/financials-upload";
-import { latestMrr, monthlySeries, yearRows, yearSeries } from "@/app/(founder)/financials/_components/model";
+import { latestMrr, monthlySeries, sheetAnswers, yearRows, yearSeries } from "@/app/(founder)/dashboard/_components/financials-model";
 
 const NOW = new Date("2026-11-05T06:00:00Z"); // FY 2026-27, November 2026
 const book = (tabs: Record<string, (string | number | null)[][]>) =>
@@ -120,5 +120,33 @@ describe("what Financials shows", () => {
       { label: "FY 25-26", actual: 4000, projected: 4000 },
       { label: "FY 26-27", actual: null, projected: 8000 },
     ]);
+  });
+});
+
+describe("sheetAnswers: profile answers from the uploaded figures", () => {
+  const LAST = { key: "past_revenue_y1", label: "FY 2025-26" };
+  const m = (month: string, revenue: number | null, mrr: number | null) => ({ month, revenue_inr_l: revenue, mrr_inr_l: mrr, expenses_inr_l: null });
+
+  it("ARR is the newest month's MRR × 12, measured as ARR", () => {
+    const out = sheetAnswers([m("2026-08", 300, 280), m("2026-10", 380, 30.5), m("2026-09", 320, 300)], [], LAST);
+    expect(out.revenue_inr_l).toEqual({ value: "366", from: "Oct 2026 MRR of ₹30.5 L × 12" });
+    expect(out.revenue_basis.value).toBe("Annual recurring revenue (ARR)");
+  });
+  it("falls back to that month's revenue × 12 when MRR is blank", () => {
+    const out = sheetAnswers([m("2026-10", 40, null)], [], LAST);
+    expect(out.revenue_inr_l.value).toBe("480");
+    expect(out.revenue_basis.value).toBe("Monthly revenue × 12");
+  });
+  it("takes last year's revenue only from an actual row for that year", () => {
+    const years = [
+      { fy_start: 2025, kind: "projected" as const, revenue_inr_l: 999 },
+      { fy_start: 2024, kind: "actual" as const, revenue_inr_l: 100 },
+    ];
+    expect(sheetAnswers([], years, LAST)[LAST.key]).toBeUndefined();
+    const withActual = sheetAnswers([], [...years, { fy_start: 2025, kind: "actual", revenue_inr_l: 1234.567 }], LAST);
+    expect(withActual[LAST.key]).toEqual({ value: "1234.57", from: "FY 2025-26 on your Yearly tab" });
+  });
+  it("gives nothing when nothing was uploaded", () => {
+    expect(sheetAnswers([], [], LAST)).toEqual({});
   });
 });

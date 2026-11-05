@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 export const MOCK = "http://localhost:4329";
 export const PASSWORD = "demo-password-1";
 
-export const ID = { alpha: 101, beta: 102, gamma: 103, delta: 104, epsilon: 105, zeta: 106, eta: 107 };
+export const ID = { alpha: 101, beta: 102, gamma: 103, delta: 104, epsilon: 105, zeta: 106, eta: 107, theta: 108 };
 export const BETA_SECRET = "BETA-SECRET-MARKER";
 export const INVESTOR_CONTACTS = ["hidden.partner@demo-capital.test", "Hidden Partner", "linkedin.com/in/hidden-partner", "98765 43210"];
 

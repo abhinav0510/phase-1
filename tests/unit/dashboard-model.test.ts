@@ -21,11 +21,11 @@ describe("pipelineStages", () => {
   );
   const by = Object.fromEntries(stages.map((s) => [s.key, s]));
 
-  it("has the five stages in order", () => {
-    expect(stages.map((s) => s.key)).toEqual(["matched", "queued", "sent", "meetings", "held"]);
+  it("has the four stages in order, with no outreach queue", () => {
+    expect(stages.map((s) => s.key)).toEqual(["matched", "sent", "meetings", "held"]);
   });
   it("counts each stage", () => {
-    expect([by.matched.count, by.queued.count, by.sent.count, by.meetings.count, by.held.count]).toEqual([3, 1, 2, 2, 1]);
+    expect([by.matched.count, by.sent.count, by.meetings.count, by.held.count]).toEqual([3, 2, 2, 1]);
   });
   it("lists names and skips blanks", () => {
     expect(by.sent.names).toEqual(["A"]);
@@ -38,6 +38,12 @@ describe("matchStateSlices", () => {
     const slices = matchStateSlices([match(1, "sent", "A"), match(2, "sent", "B"), match(3, "queued", "C")]);
     expect(slices.reduce((n, s) => n + s.value, 0)).toBe(3);
     expect(slices.find((s) => s.key === "sent")?.value).toBe(2);
+  });
+  it("shows queued matches as not contacted yet, never as a queue", () => {
+    const slices = matchStateSlices([match(1, "queued", "A"), match(2, "not_queued", "B"), match(3, "tracker_only", "C"), match(4, "not_queued", "D")]);
+    expect(slices.map((s) => s.label)).not.toContain("In queue");
+    expect(slices.find((s) => s.key === "not_contacted")?.value).toBe(3);
+    expect(slices.find((s) => s.key === "tracker_only")?.value).toBe(1);
   });
   it("is all zeros with no matches, so the chart still draws its legend", () => {
     expect(matchStateSlices([]).every((s) => s.value === 0)).toBe(true);

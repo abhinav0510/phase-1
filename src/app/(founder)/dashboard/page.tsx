@@ -1,131 +1,98 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarClock,
-  CheckCircle2,
-  FileBarChart,
-  Handshake,
-  ImagePlus,
-  Target,
-  Wallet,
-} from "lucide-react";
+import { ArrowRight, TrendingUp, Repeat, PencilLine, CheckCircle2, CircleAlert, ImagePlus } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
+import { getOwnStartup, getOwnFunding, getOwnProfile, getOwnBranding, logoUrlFor } from "@/server/data/founder";
+import { getFinancials } from "@/server/data/financials";
+import { fundingDisplay } from "@/shared/lib/currency";
+import { PAST_YEARS, arrDisplay, isFilled, mrrDisplay, profileProgress, type ArrDisplay, type FinancialYear } from "@/shared/lib/profile-fields";
 import {
-  gainIf,
-  Card,
-  CardHeader,
-  CardBody,
   KpiCard,
-  Chip,
-  ButtonLink,
-  EmptyState,
-  ViewAll,
-  Avatar,
   CompanyLogo,
   STARTUP_STATUS_TONE,
   label,
+  Card,
+  CardHeader,
+  CardBody,
+  Chip,
+  Note,
+  ButtonLink,
+  Table,
+  THead,
+  TH,
+  TBody,
+  TR,
+  TD,
+  EmptyState,
+  gainIf,
 } from "@/client/components/founder/ui";
-import { Stagger, Item, Reveal, ProgressBar } from "@/client/components/founder/motion";
-import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
-import { JoinLink } from "@/client/components/ui/join-link";
-import {
-  getFounderOverview,
-  getOwnMeetings,
-  getOwnMatches,
-  getOwnProfile,
-  getOwnBranding,
-  logoUrlFor,
-} from "@/server/data/founder";
-import { allocationDisplay, askDisplay } from "@/shared/lib/currency";
-import { arrDisplay, profileProgress } from "@/shared/lib/profile-fields";
-import { ProfileNudge } from "./_components/profile-nudge";
-import { cn, formatLakh, formatDate } from "@/shared/lib/utils";
-import { Donut } from "./_components/charts";
-import { SERIES } from "./_components/palette";
-import { Gauge, IconDisc, MeterRow, Ring } from "./_components/visuals";
-import {
-  activityFeed,
-  investorMix,
-  matchStateSlices,
-  pipelineStages,
-  relativeTime,
-  type ActivityKind,
-} from "./_components/model";
+import { FinancialsUpload } from "./_components/financials-upload";
+import { RevenueExpensesChart, YearlyRevenueChart } from "./_components/financial-charts";
+import { fyLabel as fyLabelOf, latestMrr, monthLabel, monthlySeries, sheetAnswers, yearRows as buildYearRows, yearSeries } from "./_components/financials-model";
+import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
+import { formatLakh, formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const ACTIVITY_META: Record<
-  ActivityKind,
-  { tone: "navy" | "teal" | "coral" | "gold"; Icon: typeof Handshake }
-> = {
-  match: { tone: "navy", Icon: Handshake },
-  meeting: { tone: "teal", Icon: CalendarClock },
-  held: { tone: "coral", Icon: CheckCircle2 },
-  report: { tone: "gold", Icon: FileBarChart },
-};
+const FINANCIALS_FORM = "/profile#section-financials";
 
-const STAGE_BLURB: Record<string, string> = {
-  matched: "Investors our engine fit to you",
-  queued: "Lined up for outreach",
-  sent: "Introduced by Sidana",
-  meetings: "Calls on the calendar",
-  held: "Conversations completed",
+function ChecklistItem({ done, title, detail }: { done: boolean; title: string; detail: string }) {
+  const Icon = done ? CheckCircle2 : CircleAlert;
+  return (
+    <li className="flex items-start gap-2.5 rounded-2xl bg-white/80 px-4 py-3">
+      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${done ? "text-leaf-600" : "text-amber-600"}`} />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-tide">{title}</p>
+        <p className="mt-0.5 text-xs text-tide/65">{detail}</p>
+      </div>
+    </li>
+  );
+}
+
+const ARR_HINT: Partial<Record<ArrDisplay["source"], string>> = {
+  note: "From Sidana's records",
+  founder: "As you entered it",
+  none: "Not added yet",
 };
 
 export default async function FounderDashboard() {
   const { startupId } = await requireFounder();
-  const [overview, meetings, matches, profile, branding] = await Promise.all([
-    getFounderOverview(startupId),
-    getOwnMeetings(startupId),
-    getOwnMatches(startupId),
+  const [s, funding, profile, fin, branding] = await Promise.all([
+    getOwnStartup(startupId),
+    getOwnFunding(startupId),
     getOwnProfile(startupId),
+    getFinancials(startupId),
     getOwnBranding(startupId),
   ]);
-  const s = overview.startup;
+  const answers = profile?.answers ?? {};
   const logoUrl = logoUrlFor(branding);
   const progress = profileProgress(s, profile?.answers ?? null);
-  const now = new Date();
-  const upcoming = meetings
-    .filter((m) => m.scheduled_at && new Date(m.scheduled_at) >= now && !m.held)
-    .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
-    .slice(0, 5);
-
-  const stages = pipelineStages(matches, meetings);
-  const slices = matchStateSlices(matches);
-  const mix = investorMix(matches);
-  const mixMax = Math.max(1, ...mix.map((m) => m.value));
-  // Weekly reports live on their own page, not the dashboard.
-  const feed = activityFeed(matches, meetings, [], 5, now);
-  const reachedPct =
-    overview.matchCount > 0 ? Math.round((overview.matchSent / overview.matchCount) * 100) : 0;
-
-  const askValue = askDisplay(s);
-  const allocValue = allocationDisplay(s);
-
-  const pipelineItems: ListItem[] = stages.map((st) => ({
-    id: st.key,
-    title: st.label,
-    subtitle: STAGE_BLURB[st.key],
-    avatar: st.label,
-    value: String(st.count),
-  }));
-  const pipelineDetails: Record<string, DetailSpec> = Object.fromEntries(
-    stages.map((st) => [
-      st.key,
-      {
-        eyebrow: "Pipeline stage",
-        heading: st.label,
-        aside: { label: st.count === 1 ? "Investor" : "Investors", value: String(st.count) },
-        stats: [
-          { label: "Of all matches", value: matches.length ? `${Math.round((st.count / matches.length) * 100)}%` : "—" },
-          { label: "Named here", value: String(st.names.length) },
-          { label: "Total matches", value: String(matches.length) },
-        ],
-        lists: [{ title: "Investors", items: st.names.slice(0, 12), empty: "No investors at this stage yet." }],
-        action: { label: st.key === "meetings" || st.key === "held" ? "See meetings" : "See all matches", href: st.key === "meetings" || st.key === "held" ? "/meetings" : "/funding" },
-      } satisfies DetailSpec,
-    ]),
-  );
+  const arr = arrDisplay(s, answers);
+  const filled = (years: FinancialYear[]) => years.filter((y) => isFilled(answers[y.key])).length;
+  // With nothing typed or on record, the ARR worked out from the uploaded figures counts.
+  const sheetArr = arr.source === "none" ? sheetAnswers(fin.months, fin.years, PAST_YEARS[0]).revenue_inr_l : undefined;
+  const hasArr = arr.source !== "none" || !!sheetArr;
+  const mrr = mrrDisplay(s);
+  // Uploaded figures lead; the profile's answer for last year fills in a year they don't cover.
+  const lastYear = PAST_YEARS[0];
+  const profileYear = isFilled(answers[lastYear.key])
+    ? { fy_start: Number(lastYear.label.slice(3, 7)), revenue: Number(answers[lastYear.key]) }
+    : null;
+  const years = buildYearRows(fin.years, profileYear);
+  // Last year counts as added whether it came from the profile or an upload.
+  const pastDone = filled(PAST_YEARS) + PAST_YEARS.filter((y) => !isFilled(answers[y.key]) && fin.years.some((f) => f.kind === "actual" && fyLabelOf(f.fy_start) === y.label)).length;
+  // The reminder goes once both checklist items are ticked, whatever the source: saved on
+  // My Profile, on Sidana's record, or in the uploaded sheet.
+  const financialsDone = hasArr && pastDone === PAST_YEARS.length;
+  const yearPoints = yearSeries(years);
+  const monthPoints = monthlySeries(fin.months);
+  const latest = latestMrr(fin.months);
+  const uploaded = fin.months.length + fin.years.length > 0;
+  const summary = uploaded
+    ? [
+        fin.months.length ? `${fin.months.length} month${fin.months.length === 1 ? "" : "s"} (${monthLabel(fin.months[0].month)} to ${monthLabel(fin.months.at(-1)!.month)})` : null,
+        fin.years.length ? `${fin.years.length} year${fin.years.length === 1 ? "" : "s"}` : null,
+      ].filter(Boolean).join(" and ") + " on file from your last upload."
+    : null;
 
   return (
     <div className="space-y-5">
@@ -148,7 +115,7 @@ export default async function FounderDashboard() {
               Welcome back, {s?.name ?? "founder"}
             </h1>
             <p className="mt-1 text-sm text-navy-500">
-              Here&apos;s where your raise stands today
+              Your financials on record with Sidana
               {s?.sector || s?.stage ? <> · {[s?.sector, s?.stage].filter(Boolean).join(" · ")}</> : null}.
             </p>
           </div>
@@ -156,278 +123,193 @@ export default async function FounderDashboard() {
         <div className="flex flex-wrap items-center gap-2">
           {s?.status ? <Chip tone={STARTUP_STATUS_TONE[s.status] ?? "neutral"}>{label(s.status)}</Chip> : null}
           {progress.pct < 100 ? (
-            <ButtonLink href="/complete-profile">
+            <ButtonLink href="/profile#complete-profile">
               Complete profile <ArrowRight className="h-4 w-4" />
             </ButtonLink>
           ) : (
-            <ButtonLink href="/funding">
-              View matches <ArrowRight className="h-4 w-4" />
+            <ButtonLink href="/current-round">
+              Current round <ArrowRight className="h-4 w-4" />
             </ButtonLink>
           )}
         </div>
       </div>
 
-      <ProfileNudge
-        pct={progress.pct}
-        missing={progress.missing.map((f) => ({ label: f.label, matching: !!f.matching }))}
-        status={profile?.status ?? null}
-        reviewNote={profile?.review_note ?? null}
-      />
-
-      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Item>
-          <KpiCard
-            label="Current ask"
-            value={askValue}
-            icon={<Target className="h-4 w-4" />}
-            hint={s?.ask_updated_on ? `Updated ${formatDate(s.ask_updated_on)}` : "As recorded with Sidana"}
-          />
-        </Item>
-        <Item>
-          <KpiCard
-            label="Allocation left"
-            value={allocValue}
-            icon={<Wallet className="h-4 w-4" />}
-            hint={s?.allocation_updated_on ? `Updated ${formatDate(s.allocation_updated_on)}` : "Of the current round"}
-          />
-        </Item>
-        <Item>
-          <KpiCard
-            label="Investor matches"
-            value={overview.matchCount}
-            icon={<Handshake className="h-4 w-4" />}
-            delta={gainIf(overview.matchSent > 0, { text: `${overview.matchSent} reached out`, hint: `${reachedPct}% contacted` })}
-            visual={
-              <div className="flex items-center gap-3">
-                <Ring pct={reachedPct} color={SERIES.navy} size={44} />
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-100">
-                  <ProgressBar pct={reachedPct} className="h-1.5 w-full" barClassName="h-full rounded-full bg-ocean-600" />
-                </div>
-              </div>
-            }
-          />
-        </Item>
-        <Item>
-          <KpiCard
-            tone="dark"
-            label="Meetings"
-            value={meetings.length}
-            icon={<CalendarClock className="h-4 w-4" />}
-            delta={gainIf(overview.meetingsUpcoming > 0, {
-              text: `${overview.meetingsUpcoming} upcoming`,
-              hint: overview.meetingsHeld > 0 ? `${overview.meetingsHeld} held` : undefined,
-            })}
-            hint={overview.meetingsHeld > 0 ? `${overview.meetingsHeld} held` : undefined}
-            visual={
-              upcoming[0] ? (
-                <p className="truncate text-xs text-tide/60">
-                  Next: <span className="font-semibold text-tide">{upcoming[0].investor_name ?? "Investor"}</span>{" "}
-                  · {relativeTime(new Date(upcoming[0].scheduled_at!), now)}
+      {/* Shown until both checklist items below are ticked. */}
+      {financialsDone ? null : (
+        <Reveal>
+          <div id="annual-numbers" className="rounded-[20px] bg-gradient-to-br from-ocean-100 via-ocean-50 to-leaf-100 p-5 ring-1 ring-ocean-200/60">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-2xl">
+                <h2 className="text-base font-semibold text-tide">Report your revenue annually, as ARR</h2>
+                <p className="mt-1 text-sm text-tide/70">
+                  Always give the full-year figure, not a monthly one. If you bill monthly, multiply by 12. Investors also
+                  expect last year&apos;s revenue, so please add that too.
                 </p>
+              </div>
+              <ButtonLink href={FINANCIALS_FORM}>
+                <PencilLine className="h-4 w-4" /> Add your financials
+              </ButtonLink>
+            </div>
+            <ul className="mt-4 grid gap-3 md:grid-cols-2">
+              <ChecklistItem
+                done={hasArr}
+                title="Annual revenue (ARR)"
+                detail={
+                  sheetArr
+                    ? "Worked out from your uploaded figures. Check it on My Profile, then save."
+                    : hasArr
+                      ? "On file. Check it is the yearly figure."
+                      : "Required. Enter 0 if pre-revenue."
+                }
+              />
+              <ChecklistItem
+                done={pastDone === PAST_YEARS.length}
+                title="Previous year's record"
+                detail={`${pastDone === PAST_YEARS.length ? "Added" : "Not added yet"}: ${PAST_YEARS.map((y) => y.label).join(", ")}`}
+              />
+            </ul>
+          </div>
+        </Reveal>
+      )}
+
+      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Item>
+          <KpiCard
+            label="Annual revenue (ARR)"
+            value={
+              sheetArr ? (
+                formatLakh(Number(sheetArr.value))
+              ) : arr.source === "note" ? (
+                <span className="block whitespace-normal text-lg font-semibold leading-snug">{arr.value}</span>
               ) : (
-                <p className="text-xs text-tide/55">No meeting on the calendar yet.</p>
+                arr.value
               )
             }
+            icon={<TrendingUp className="h-4 w-4" />}
+            hint={sheetArr ? `From your uploaded figures: ${sheetArr.from}` : (ARR_HINT[arr.source] ?? arr.note ?? "Latest on record")}
           />
+        </Item>
+        <Item>
+          {latest ? (
+            <KpiCard
+              label="Monthly revenue (MRR)"
+              value={formatLakh(latest.value)}
+              icon={<Repeat className="h-4 w-4" />}
+              // A growth arrow only for good news, like every other indicator.
+              delta={gainIf((latest.growthPct ?? 0) > 0, { text: `+${latest.growthPct}%`, hint: `on ${latest.previousMonth ? monthLabel(latest.previousMonth) : ""}` })}
+              hint={`${monthLabel(latest.month)}, from your figures`}
+            />
+          ) : (
+            <KpiCard
+              label="Monthly revenue (MRR)"
+              value={mrr.value}
+              icon={<Repeat className="h-4 w-4" />}
+              hint={mrr.source === "note" ? "From Sidana's records" : "Not on record"}
+            />
+          )}
         </Item>
       </Stagger>
 
       <Reveal>
-        <ListDetail
-          title="Outreach pipeline"
-          subtitle="Investors Sidana has matched, contacted and met for you"
-          listLabel="Stages"
-          items={pipelineItems}
-          details={pipelineDetails}
-          emptyTitle="No pipeline yet"
-        />
+        <FinancialsUpload ready={fin.ready} summary={summary} />
       </Reveal>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      {monthPoints.length >= 2 ? (
         <Reveal>
-          <Card className="h-full">
-            <CardHeader title="Matches by state" action={<ViewAll href="/funding" />} />
+          <Card>
+            <CardHeader title="Monthly revenue vs expenses" subtitle="From your uploaded figures, the last 12 months" />
             <CardBody>
-              {matches.length === 0 ? (
-                <EmptyState title="No matches yet" message="As Sidana's match engine finds fits, they'll appear here." />
-              ) : (
-                <div className="flex flex-col items-center gap-4">
-                  <Donut slices={slices} total={matches.length} centerLabel="matches" />
-                  <ul className="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-                    {slices.map((sl) => (
-                      <li key={sl.key} className="flex items-center gap-2 text-sm">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: sl.color }} />
-                        <span className="flex-1 text-navy-700">{sl.label}</span>
-                        <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-tide">
-                          {sl.value}
-                          <span className="font-normal text-navy-400">
-                            {" "}
-                            ({matches.length ? Math.round((sl.value / matches.length) * 100) : 0}%)
-                          </span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <RevenueExpensesChart data={monthPoints} />
             </CardBody>
           </Card>
         </Reveal>
+      ) : null}
 
-        <Reveal delay={0.08}>
-          <Card className="h-full">
-            <CardHeader title="Upcoming meetings" action={<ViewAll href="/meetings" />} />
-            <CardBody className="p-2 pt-3">
-              {upcoming.length === 0 ? (
-                <div className="p-3">
-                  <EmptyState title="No upcoming meetings" />
-                </div>
-              ) : (
-                <ul className="space-y-1">
-                  {upcoming.map((m) => {
-                    const d = new Date(m.scheduled_at!);
-                    return (
-                      <li key={m.id} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-canvas">
-                        <div className="w-14 shrink-0 text-xs font-semibold text-tide">
-                          {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-                          <div className="text-[10px] font-normal text-navy-400">
-                            {d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
-                          </div>
-                        </div>
-                        <Avatar name={m.investor_name} size="sm" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-tide">{m.investor_name ?? "Investor"}</p>
-                          <p className="text-[11px] text-navy-400">
-                            {m.is_second ? "Second meeting" : "Investor meeting"}
-                            {m.source ? ` · ${m.source}` : ""}
-                          </p>
-                        </div>
-                        <JoinLink href={m.meet_link} />
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </CardBody>
-          </Card>
-        </Reveal>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <Reveal>
-          <Card className="h-full">
-            <CardHeader title="Recent activity" subtitle="Matches and meetings as they happen" />
-            <CardBody className="pt-3">
-              {feed.length === 0 ? (
-                <EmptyState title="Nothing yet" message="Activity shows up here as Sidana works your raise." />
-              ) : (
-                <ol className="relative space-y-4">
-                  <span className="absolute left-[17px] top-3 h-[calc(100%-1.5rem)] w-px bg-navy-100" aria-hidden="true" />
-                  {feed.map((e) => {
-                    const meta = ACTIVITY_META[e.kind];
-                    return (
-                      <li key={e.id} className="relative flex items-start gap-3">
-                        <IconDisc tone={meta.tone} size="sm">
-                          <meta.Icon className="h-4 w-4" />
-                        </IconDisc>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-tide">{e.detail}</p>
-                          <p className="truncate text-xs text-navy-500">{e.title}</p>
-                          <p className="mt-0.5 text-[11px] text-navy-400">{relativeTime(e.at, now)}</p>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-            </CardBody>
-          </Card>
-        </Reveal>
-
-        <Reveal delay={0.08}>
-          <Card className="h-full">
-            <CardHeader
-              title="Profile completeness"
-              subtitle="Fields Sidana uses to match you"
-              action={<ViewAll href="/complete-profile" label={progress.pct < 100 ? "Complete" : "Review"} />}
-            />
+      <Reveal>
+        <Card>
+          <CardHeader title="Revenue by year" subtitle="Actual years and your projections" />
+          {yearPoints.length >= 2 ? (
             <CardBody>
-              <Gauge pct={progress.pct} color={SERIES.navy} label="of profile complete" />
-              <p className="mt-3 text-center text-xs text-navy-500">
-                {progress.done} of {progress.total} details on file
-              </p>
-              <div className="mt-5 border-t border-navy-50 pt-4">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-navy-400">Investor mix</p>
-                {mix.length === 0 ? (
-                  <p className="text-sm text-navy-400">No matches yet.</p>
-                ) : (
-                  <div className="space-y-2.5">
-                    {mix.map((m) => (
-                      <MeterRow key={m.label} label={m.label} value={m.value} max={mixMax} color={SERIES.navy} />
-                    ))}
-                  </div>
-                )}
-              </div>
+              <YearlyRevenueChart data={yearPoints} />
             </CardBody>
-          </Card>
-        </Reveal>
+          ) : null}
+          <CardBody className="p-0 pt-2">
+            {years.length === 0 ? (
+              <div className="p-5">
+                <EmptyState
+                  title="No yearly numbers added yet"
+                  message="Add last year's revenue in your profile, or upload your figures above."
+                />
+              </div>
+            ) : (
+              <Table>
+                <THead>
+                  <tr>
+                    <TH>Financial year</TH>
+                    <TH>Revenue</TH>
+                    <TH>Type</TH>
+                    <TH>Year-on-year</TH>
+                  </tr>
+                </THead>
+                <TBody>
+                  {years.map((y) => (
+                    <TR key={`${y.fy_start}-${y.kind}`}>
+                      <TD className="font-semibold text-tide">{y.label}</TD>
+                      <TD className="text-navy-700">{formatLakh(y.revenue)}</TD>
+                      <TD>
+                        <Chip tone={y.kind === "actual" ? "green" : "blue"}>{y.kind === "actual" ? "Actual" : "Projected"}</Chip>
+                      </TD>
+                      {/* Growth shows only when it's up, like every other indicator. */}
+                      <TD className={(y.growthPct ?? 0) > 0 ? "font-semibold text-emerald-600" : "text-navy-400"}>
+                        {(y.growthPct ?? 0) > 0 ? `+${y.growthPct}%` : "—"}
+                      </TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            )}
+          </CardBody>
+        </Card>
+      </Reveal>
 
-        <Reveal delay={0.16}>
-          <Card className="h-full">
-            <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/financials" />} />
-            <CardBody className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <Metric label="Annual revenue (ARR)" value={arrDisplay(s, profile?.answers).value} />
-                </div>
-                <Metric label="Score" value={s?.score?.toString() ?? "—"} />
-                <Metric label="Rule tier" value={s?.rule_tier ?? "—"} />
+      <Reveal>
+        <Card>
+          <CardHeader title="Funding rounds" subtitle="Closed rounds on record" />
+          <CardBody className="p-0 pt-2">
+            {funding.length === 0 ? (
+              <div className="p-5">
+                <EmptyState title="No funding rounds recorded yet" message="Closed rounds will appear here as they are logged." />
               </div>
-              <div>
-                <div className="flex items-baseline justify-between">
-                  <p className="text-xs text-navy-400">Runway</p>
-                  <p className="text-sm font-semibold text-tide">
-                    {s?.runway_months ? `${s.runway_months} months` : "—"}
-                  </p>
-                </div>
-                <RunwayMeter months={s?.runway_months ?? null} />
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl bg-leaf-50 px-4 py-3 text-tide ring-1 ring-leaf-100">
-                <Avatar name={s?.owner_name ?? "Sidana"} size="sm" />
-                <div className="min-w-0">
-                  <p className="text-[11px] text-tide/55">Your Sidana contact</p>
-                  <p className="truncate text-sm font-semibold">{s?.owner_name ?? "Sidana deal desk"}</p>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        </Reveal>
-      </div>
+            ) : (
+              <Table>
+                <THead>
+                  <tr>
+                    <TH>Round</TH>
+                    <TH>Amount</TH>
+                    <TH>Lead</TH>
+                    <TH>Closed</TH>
+                  </tr>
+                </THead>
+                <TBody>
+                  {funding.map((f: any) => (
+                    <TR key={f.id}>
+                      <TD className="font-semibold text-tide">{f.round_name ?? f.instrument ?? "Round"}</TD>
+                      <TD className="text-navy-700">{fundingDisplay(f)}</TD>
+                      <TD className="text-navy-500">{f.lead_investor_name ?? "—"}</TD>
+                      <TD className="text-navy-500">{formatDate(f.closed_on)}</TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            )}
+          </CardBody>
+        </Card>
+      </Reveal>
+
+      <Note>
+        Figures shown are the latest on record with Sidana. To update your annual revenue or your round, use the
+        Financials section of <strong>My Profile</strong>. The Sidana team reviews every update before it is used for matching.
+      </Note>
     </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-canvas px-3 py-2.5">
-      <p className="text-[11px] text-navy-400">{label}</p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-tide">{value}</p>
-    </div>
-  );
-}
-
-/** Runway meter: status colour by months left (≥12 fine, 6–12 watch, <6 urgent). */
-function RunwayMeter({ months }: { months: number | null }) {
-  if (months === null || months === undefined) {
-    return <div className="mt-2 h-2 w-full rounded-full bg-navy-100" />;
-  }
-  const pct = Math.max(4, Math.min(100, Math.round((months / 24) * 100)));
-  const tone = months >= 12 ? "bg-emerald-500" : months >= 6 ? "bg-amber-500" : "bg-red-500";
-  return (
-    <ProgressBar
-      pct={pct}
-      className="mt-2 h-2 w-full overflow-hidden rounded-full bg-navy-100"
-      barClassName={cn("h-full rounded-full", tone)}
-    />
   );
 }

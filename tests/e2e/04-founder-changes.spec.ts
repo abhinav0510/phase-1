@@ -7,7 +7,7 @@ const submit = (page: any) => page.getByRole("button", { name: /Submit for revie
 test.describe("complete profile", () => {
   test("the Financials section asks for ARR and last year, with no projections", async ({ page }) => {
     await asFounder(page, ID.delta);
-    await page.goto("/complete-profile#section-financials");
+    await page.goto("/profile#section-financials");
     await expect(page.getByLabel(/Annual revenue – ARR/)).toBeVisible();
     await expect(page.getByText("Required")).toBeVisible();
     await expect(page.getByText(/not a monthly number/)).toBeVisible();
@@ -18,7 +18,7 @@ test.describe("complete profile", () => {
 
   test("submitting without ARR is blocked and nothing is saved", async ({ page }) => {
     await asFounder(page, ID.delta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await submit(page);
     await expect(page.getByRole("status")).toContainText(/Annual revenue/);
     expect(await profile(ID.delta)).toBeUndefined();
@@ -26,7 +26,7 @@ test.describe("complete profile", () => {
 
   test("bad numbers and links are rejected", async ({ page }) => {
     await asFounder(page, ID.delta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await page.getByLabel(/Annual revenue – ARR/).fill("lots");
     await saveDraft(page);
     await expect(page.getByRole("status")).toContainText(/must be a number/);
@@ -44,7 +44,7 @@ test.describe("complete profile", () => {
 
   test("a draft can be saved without ARR, and reloads as typed", async ({ page }) => {
     await asFounder(page, ID.delta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await page.getByLabel("One-line pitch").fill("Demo draft pitch");
     await saveDraft(page);
     await expect(page.getByRole("status")).toContainText(/saved/i);
@@ -59,7 +59,7 @@ test.describe("complete profile", () => {
   test("submitting saves everything for review and never touches the startup record", async ({ page }) => {
     const before = JSON.stringify((await state("startups")).find((s) => s.id === ID.delta));
     await asFounder(page, ID.delta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
 
     await page.getByLabel(/Annual revenue – ARR/).fill("1,250");
     const years = page.getByLabel(/revenue \(₹ lakh\)/);
@@ -84,18 +84,20 @@ test.describe("complete profile", () => {
     expect(JSON.stringify((await state("startups")).find((s) => s.id === ID.delta))).toBe(before);
   });
 
-  test("the Financials page then shows those numbers", async ({ page }) => {
+  test("the dashboard then shows those numbers", async ({ page }) => {
     await asFounder(page, ID.delta);
-    await page.goto("/financials");
-    await expect(page.getByText(/^Added: FY \d{4}-\d{2}$/)).toBeVisible();
+    await page.goto("/dashboard");
     await expect(page.getByRole("cell", { name: "Actual" })).toHaveCount(1);
     await expect(page.getByRole("cell", { name: "Projected" })).toHaveCount(0);
     await expect(page.getByRole("cell", { name: "₹1.00 Cr", exact: true })).toBeVisible();
+    // ARR and last year are both saved, so the whole "report annually" reminder is gone.
+    await expect(page.getByRole("link", { name: "Add your financials" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Report your revenue annually, as ARR" })).toHaveCount(0);
   });
 
   test("the review status shows on the form", async ({ page }) => {
     await asFounder(page, ID.delta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await expect(page.getByText(/Sent for review on/)).toBeVisible();
   });
 
@@ -116,7 +118,7 @@ test.describe("company logo", () => {
   test("a text file pretending to be an image is refused", async ({ page }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/profile");
-    await pickFile(page, 'input[type="file"]', { name: "evil.png", mimeType: "image/png", buffer: Buffer.from("<svg onload=alert(1)>") });
+    await pickFile(page, "#logo-file", { name: "evil.png", mimeType: "image/png", buffer: Buffer.from("<svg onload=alert(1)>") });
     await expect(page.locator("#logo")).toContainText(/image|PNG|couldn|read/i);
     expect((await state("startup_branding")).filter((b) => b.startup_id === ID.zeta)).toHaveLength(0);
   });
@@ -124,7 +126,7 @@ test.describe("company logo", () => {
   test("upload, show on the dashboard, then remove", async ({ page }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/profile");
-    await pickFile(page, 'input[type="file"]', { name: "logo.png", mimeType: "image/png", buffer: PNG });
+    await pickFile(page, "#logo-file", { name: "logo.png", mimeType: "image/png", buffer: PNG });
     await page.getByRole("button", { name: /Save logo/i }).click();
     await expect.poll(async () => (await state("startup_branding")).filter((b) => b.startup_id === ID.zeta).length).toBe(1);
 
@@ -143,9 +145,9 @@ test.describe("company logo", () => {
 
     await page.goto("/profile");
     // Removing asks for a second click to confirm.
-    await page.getByRole("button", { name: /Remove/i }).click();
+    await page.locator("#logo").getByRole("button", { name: /Remove/i }).click();
     await expect.poll(async () => (await state("startup_branding")).find((b) => b.startup_id === ID.zeta)?.logo_path).toBeTruthy();
-    await page.getByRole("button", { name: /Remove|confirm|sure/i }).click();
+    await page.locator("#logo").getByRole("button", { name: /Remove|confirm|sure/i }).click();
     await expect.poll(async () => (await state("startup_branding")).find((b) => b.startup_id === ID.zeta)?.logo_path ?? null).toBeNull();
     await page.goto("/dashboard");
     await expect(page.getByTitle("Add your company logo")).toBeVisible();
@@ -168,7 +170,7 @@ test.describe("company logo", () => {
 test.describe("details provided by the Sidana team", () => {
   test("fill empty questions, marked for the founder to check, and save as their answers", async ({ page }) => {
     await asFounder(page, ID.eta);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await expect(page.getByLabel("One-line pitch")).toHaveValue("Eta team pitch");
     await expect(page.getByLabel("Website")).toHaveValue("https://eta.example.test");
     await expect(page.getByLabel("Sector", { exact: true })).toHaveValue("Fintech");
@@ -191,7 +193,7 @@ test.describe("details provided by the Sidana team", () => {
 
   test("never replace an answer the founder already gave", async ({ page }) => {
     await asFounder(page, ID.epsilon);
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await expect(page.getByLabel("One-line pitch")).toHaveValue("Demo fintech one-liner");
     await expect(page.getByLabel("Headquarters city")).toHaveValue("Pune");
     await expect(page.getByText("Filled in by the Sidana team")).toHaveCount(1);

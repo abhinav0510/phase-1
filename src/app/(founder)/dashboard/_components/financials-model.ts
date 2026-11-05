@@ -104,3 +104,39 @@ export function yearSeries(rows: YearRowView[]): YearPoint[] {
     projected: r.kind === "projected" || (hasProjection && r.fy_start === lastActual) ? r.revenue : null,
   }));
 }
+
+export interface SheetAnswer {
+  /** The answer as the profile form stores it (₹ lakh numbers as plain strings). */
+  value: string;
+  /** Where it came from, shown under the question. */
+  from: string;
+}
+
+/** ₹ lakh to the form's plain number text: at most two decimals, no trailing zeros. */
+const lakhText = (n: number) => String(Math.round(n * 100) / 100);
+
+/**
+ * Profile answers the uploaded figures can supply:
+ * - ARR: the newest month's MRR × 12, or its revenue × 12 when MRR is blank;
+ * - how that revenue is measured, to match;
+ * - last financial year's revenue, from an actual row on the Yearly tab.
+ * Keys follow PROFILE_FIELDS; `lastYear` is PAST_YEARS[0].
+ */
+export function sheetAnswers(months: Month[], years: Year[], lastYear: { key: string; label: string }): Record<string, SheetAnswer> {
+  const out: Record<string, SheetAnswer> = {};
+  const sorted = [...months].sort((a, b) => a.month.localeCompare(b.month));
+  const latest = [...sorted].reverse().find((m) => m.mrr_inr_l !== null || m.revenue_inr_l !== null);
+  if (latest) {
+    const useMrr = latest.mrr_inr_l !== null;
+    const monthly = (useMrr ? latest.mrr_inr_l : latest.revenue_inr_l) as number;
+    const what = useMrr ? "MRR" : "revenue";
+    out.revenue_inr_l = { value: lakhText(monthly * 12), from: `${monthLabel(latest.month)} ${what} of ₹${lakhText(monthly)} L × 12` };
+    out.revenue_basis = {
+      value: useMrr ? "Annual recurring revenue (ARR)" : "Monthly revenue × 12",
+      from: `${monthLabel(latest.month)} ${what} × 12`,
+    };
+  }
+  const actual = years.find((y) => y.kind === "actual" && fyLabel(y.fy_start) === lastYear.label);
+  if (actual) out[lastYear.key] = { value: lakhText(actual.revenue_inr_l), from: `${lastYear.label} on your Yearly tab` };
+  return out;
+}

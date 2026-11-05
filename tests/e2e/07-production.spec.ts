@@ -58,7 +58,7 @@ test.describe("production behaviour", () => {
   test("a failed read shows an error, not an empty page, and retrying recovers", async ({ page }) => {
     await asFounder(page, ID.alpha);
     // Saving clears this startup's cache, so the next visit has to read the database.
-    await page.goto("/complete-profile");
+    await page.goto("/profile");
     await page.getByRole("button", { name: "Save draft" }).click();
     await expect(page.getByRole("status")).toBeVisible();
 

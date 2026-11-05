@@ -181,6 +181,7 @@ export function LogoUploader({ currentUrl, startupName }: { currentUrl: string |
         </button>
         <input
           ref={inputRef}
+          id="logo-file"
           type="file"
           accept={ACCEPT.join(",")}
           className="hidden"

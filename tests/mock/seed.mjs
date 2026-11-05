@@ -2,7 +2,7 @@
 // address is on the reserved .test domain. Nothing here reaches the real database.
 export const PASSWORD = "demo-password-1";
 
-export const STARTUP = { alpha: 101, beta: 102, gamma: 103, delta: 104, epsilon: 105, zeta: 106, eta: 107 };
+export const STARTUP = { alpha: 101, beta: 102, gamma: 103, delta: 104, epsilon: 105, zeta: 106, eta: 107, theta: 108 };
 export const INVESTOR = { capital: 201, passed: 202, paused: 203, queued: 204, betaOnly: 205, dollar: 206 };
 
 /** Text that belongs only to Demo Beta. Founder Alpha must never see it. */
@@ -29,6 +29,7 @@ export const USER = {
   inactive: uid(106),
   zeta: uid(107),
   eta: uid(108),
+  theta: uid(109),
 };
 
 function startup(id, name, extra = {}) {
@@ -86,6 +87,8 @@ export function buildSeed() {
       revenue_note: "ARR US$250K", notes: "Raising alongside a US$2M note",
     }),
     startup(STARTUP.eta, "Demo Eta Empty", { sector: null, stage: null, owner_name: null, ask_as_written: null, ask_amount: null, ask_current_cr: null, ask_updated_on: null }),
+    // Only the uploaded-figures spec uses Theta, so nothing about it is ever cached beforehand.
+    startup(STARTUP.theta, "Demo Theta Sheets", { sector: "SaaS" }),
   ];
 
   const users = [
@@ -98,6 +101,7 @@ export function buildSeed() {
     { id: USER.inactive, email: "inactive@sidana.test", password: PASSWORD, app_metadata: {} },
     { id: USER.zeta, email: "s106@founders.sidana.local", password: PASSWORD, app_metadata: {} },
     { id: USER.eta, email: "s107@founders.sidana.local", password: PASSWORD, app_metadata: {} },
+    { id: USER.theta, email: "s108@founders.sidana.local", password: PASSWORD, app_metadata: {} },
   ];
 
   const appUser = (id, email, role, startupId, active = true) => ({
@@ -118,6 +122,7 @@ export function buildSeed() {
         appUser(USER.inactive, "inactive@sidana.test", "owner", null, false),
         appUser(USER.zeta, "s106@founders.sidana.local", "founder", STARTUP.zeta),
         appUser(USER.eta, "s107@founders.sidana.local", "founder", STARTUP.eta),
+        appUser(USER.theta, "s108@founders.sidana.local", "founder", STARTUP.theta),
       ],
       investors: [
         investor(INVESTOR.capital, "Demo Capital"),
@@ -223,7 +228,7 @@ export function buildSeed() {
       ],
       // Everyone has already seen the live notices, except Founder Beta, who tests the
       // popup. Otherwise the popup would sit on top of every other test's clicks.
-      announcement_dismissals: [USER.team, USER.alpha, USER.gamma, USER.delta, USER.epsilon, USER.zeta, USER.eta, USER.inactive].flatMap((user_id, i) =>
+      announcement_dismissals: [USER.team, USER.alpha, USER.gamma, USER.delta, USER.epsilon, USER.zeta, USER.eta, USER.theta, USER.inactive].flatMap((user_id, i) =>
         [1, 3].map((announcement_id) => ({ id: i * 10 + announcement_id, user_id, announcement_id })),
       ),
       email_broadcasts: [],
