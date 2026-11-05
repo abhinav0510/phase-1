@@ -205,7 +205,6 @@ export default async function FounderDashboard() {
           tabs={[
             { key: "all", label: "All" },
             { key: "sent", label: "Reached out" },
-            { key: "other", label: "Not contacted yet" },
           ]}
           items={items}
           details={details}
