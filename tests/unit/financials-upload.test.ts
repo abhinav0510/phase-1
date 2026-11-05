@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { writeXlsx } from "../../scripts/lib/xlsx-writer.mjs";
 import { parseFinancialsWorkbook, parseFy, parseMonth } from "@/server/validators/financials-upload";
-import { latestMrr, monthlySeries, sheetAnswers, yearRows, yearSeries } from "@/app/(founder)/dashboard/_components/financials-model";
+import { latestMrr, monthlySeries, sheetAnswers, yearRows, yearSeries } from "@/app/(founder)/financials/_components/financials-model";
 
 const NOW = new Date("2026-11-05T06:00:00Z"); // FY 2026-27, November 2026
 const book = (tabs: Record<string, (string | number | null)[][]>) =>

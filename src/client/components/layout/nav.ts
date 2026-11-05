@@ -30,8 +30,8 @@ export interface NavItem {
 export const FOUNDER_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: "dashboard" },
   { label: "Current Round", href: "/current-round", icon: "round" },
+  { label: "Financials", href: "/financials", icon: "financials" },
   { label: "Pitch Deck", href: "/pitch-deck", icon: "documents" },
-  { label: "Investors & Matches", href: "/funding", icon: "funding" },
   { label: "Meetings", href: "/meetings", icon: "meetings" },
   { label: "My Profile", href: "/profile", icon: "profile" },
   { label: "Settings", href: "/settings", icon: "settings" },

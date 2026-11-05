@@ -74,11 +74,11 @@ test.describe("profile answers from uploaded figures", () => {
     await expect(page.locator("[data-sheet-differs]")).toHaveCount(0);
   });
 
-  test("the dashboard counts the sheet's ARR, and the reminder goes once both ticks are green", async ({ page }) => {
+  test("Financials counts the sheet's ARR, and the reminder goes once both ticks are green", async ({ page }) => {
     // Theta has no ARR on record or in a saved answer, and no other spec uses it.
     await uploadedMonths(ID.theta, 5);
     await asFounder(page, ID.theta);
-    await page.goto("/dashboard");
+    await page.goto("/financials");
     await expect(page.getByText("Worked out from your uploaded figures. Check it on My Profile, then save.")).toBeVisible();
     await expect(page.getByText(/From your uploaded figures: .* MRR of ₹5 L × 12/)).toBeVisible();
     await expect(page.getByText("₹60.00 L", { exact: true })).toBeVisible();

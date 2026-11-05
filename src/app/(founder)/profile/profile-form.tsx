@@ -16,7 +16,7 @@ import {
 } from "@/shared/lib/profile-fields";
 import { saveProfile } from "./profile-actions";
 import { MisUpload, type MisItem } from "./mis-upload";
-import type { SheetAnswer } from "@/app/(founder)/dashboard/_components/financials-model";
+import type { SheetAnswer } from "@/app/(founder)/financials/_components/financials-model";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 

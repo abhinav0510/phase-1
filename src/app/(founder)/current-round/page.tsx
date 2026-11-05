@@ -52,7 +52,6 @@ const ACTIVITY_META: Record<
 
 const STAGE_BLURB: Record<string, string> = {
   matched: "Investors our engine fit to you",
-  sent: "Introduced by Sidana",
   meetings: "Calls on the calendar",
   held: "Conversations completed",
 };
@@ -98,13 +97,8 @@ export default async function CurrentRound() {
         eyebrow: "Pipeline stage",
         heading: st.label,
         aside: { label: st.count === 1 ? "Investor" : "Investors", value: String(st.count) },
-        stats: [
-          { label: "Of all matches", value: matches.length ? `${Math.round((st.count / matches.length) * 100)}%` : "—" },
-          { label: "Named here", value: String(st.names.length) },
-          { label: "Total matches", value: String(matches.length) },
-        ],
         lists: [{ title: "Investors", items: st.names.slice(0, 12), empty: "No investors at this stage yet." }],
-        action: { label: st.key === "meetings" || st.key === "held" ? "See meetings" : "See all matches", href: st.key === "meetings" || st.key === "held" ? "/meetings" : "/funding" },
+        action: { label: st.key === "meetings" || st.key === "held" ? "See meetings" : "See all matches", href: st.key === "meetings" || st.key === "held" ? "/meetings" : "/dashboard" },
       } satisfies DetailSpec,
     ]),
   );
@@ -190,7 +184,7 @@ export default async function CurrentRound() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Reveal>
           <Card className="h-full">
-            <CardHeader title="Matches by state" action={<ViewAll href="/funding" />} />
+            <CardHeader title="Matches by state" action={<ViewAll href="/dashboard" />} />
             <CardBody>
               {matches.length === 0 ? (
                 <EmptyState title="No matches yet" message="As Sidana's match engine finds fits, they'll appear here." />
@@ -318,7 +312,7 @@ export default async function CurrentRound() {
 
         <Reveal delay={0.16}>
           <Card className="h-full">
-            <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/dashboard" />} />
+            <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/financials" />} />
             <CardBody className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">

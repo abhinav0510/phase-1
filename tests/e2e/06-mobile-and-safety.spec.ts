@@ -15,7 +15,7 @@ test.describe("on a phone", () => {
     });
   }
 
-  for (const path of ["/dashboard", "/pitch-deck", "/current-round", "/funding", "/meetings", "/profile", "/settings"]) {
+  for (const path of ["/dashboard", "/pitch-deck", "/current-round", "/financials", "/meetings", "/profile", "/settings"]) {
     test(`founder ${path} fits`, async ({ page }) => {
       await asFounder(page, ID.alpha);
       await page.goto(path);
@@ -26,8 +26,8 @@ test.describe("on a phone", () => {
 
   test("founders can move between pages with the phone nav", async ({ page }) => {
     await asFounder(page, ID.alpha);
-    await page.locator('nav a[href="/funding"]:visible').first().click();
-    await expect(page).toHaveURL(/\/funding/);
+    await page.locator('nav a[href="/financials"]:visible').first().click();
+    await expect(page).toHaveURL(/\/financials/);
     await page.locator('nav a[href="/meetings"]:visible').first().click();
     await expect(page).toHaveURL(/\/meetings/);
   });

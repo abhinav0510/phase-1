@@ -84,9 +84,9 @@ test.describe("complete profile", () => {
     expect(JSON.stringify((await state("startups")).find((s) => s.id === ID.delta))).toBe(before);
   });
 
-  test("the dashboard then shows those numbers", async ({ page }) => {
+  test("Financials then shows those numbers", async ({ page }) => {
     await asFounder(page, ID.delta);
-    await page.goto("/dashboard");
+    await page.goto("/financials");
     await expect(page.getByRole("cell", { name: "Actual" })).toHaveCount(1);
     await expect(page.getByRole("cell", { name: "Projected" })).toHaveCount(0);
     await expect(page.getByRole("cell", { name: "₹1.00 Cr", exact: true })).toBeVisible();

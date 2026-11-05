@@ -17,7 +17,7 @@ import { getProfileStatus, getStartupDetail } from "@/server/data/admin";
 import { PROFILE_STATUS_META } from "../../profiles/status";
 import { listMisFiles } from "@/server/data/mis";
 import { getFinancials } from "@/server/data/financials";
-import { fyLabel, monthLabel } from "@/app/(founder)/dashboard/_components/financials-model";
+import { fyLabel, monthLabel } from "@/app/(founder)/financials/_components/financials-model";
 import { MisFiles } from "@/client/components/admin/mis-files";
 import { allocationDisplay, askDisplay, fundingDisplay, toRupees } from "@/shared/lib/currency";
 import { JoinLink } from "@/client/components/ui/join-link";

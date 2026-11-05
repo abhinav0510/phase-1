@@ -105,5 +105,6 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
   revalidatePath("/profile");
   revalidatePath("/dashboard");
   revalidatePath("/current-round");
+  revalidatePath("/financials");
   return { ok: true };
 }

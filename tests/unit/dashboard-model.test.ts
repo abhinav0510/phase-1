@@ -21,14 +21,15 @@ describe("pipelineStages", () => {
   );
   const by = Object.fromEntries(stages.map((s) => [s.key, s]));
 
-  it("has the four stages in order, with no outreach queue", () => {
-    expect(stages.map((s) => s.key)).toEqual(["matched", "sent", "meetings", "held"]);
+  it("has three stages in order: no outreach queue and no separate reached-out stage", () => {
+    expect(stages.map((s) => s.key)).toEqual(["matched", "meetings", "held"]);
+    expect(by.matched.label).toBe("Investors Outreached");
   });
   it("counts each stage", () => {
-    expect([by.matched.count, by.sent.count, by.meetings.count, by.held.count]).toEqual([3, 2, 2, 1]);
+    expect([by.matched.count, by.meetings.count, by.held.count]).toEqual([3, 2, 1]);
   });
   it("lists names and skips blanks", () => {
-    expect(by.sent.names).toEqual(["A"]);
+    expect(by.matched.names).toEqual(["A", "B"]);
     expect(by.meetings.names).toEqual(["C", "D"]);
   });
 });

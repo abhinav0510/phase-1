@@ -33,7 +33,7 @@ test.describe("one startup can't see another's data", () => {
 
   test("the other founder sees their own data", async ({ page }) => {
     await asFounder(page, ID.beta);
-    await page.goto("/funding");
+    await page.goto("/dashboard");
     await expect(page.getByText("Beta Only Ventures").first()).toBeVisible();
     await expect(page.locator("body")).not.toContainText("Demo Capital");
     await expect(page.locator("body")).not.toContainText("Demo Alpha Foods");
@@ -68,7 +68,7 @@ test.describe("internal fields", () => {
   });
   test("paused investors are hidden from founders", async ({ page }) => {
     await asFounder(page, ID.alpha);
-    for (const path of ["/dashboard", "/current-round", "/funding"]) {
+    for (const path of ["/dashboard", "/current-round", "/financials"]) {
       const html = await pageSource(page, path);
       expect(html, path).not.toContain("Paused Fund Internal");
     }

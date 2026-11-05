@@ -3,7 +3,7 @@ import { requireFounder } from "@/server/auth/session";
 import { getOwnBranding, getOwnPrefill, getOwnProfile, getOwnStartup, logoUrlFor } from "@/server/data/founder";
 import { listMisFiles } from "@/server/data/mis";
 import { getFinancials } from "@/server/data/financials";
-import { sheetAnswers } from "@/app/(founder)/dashboard/_components/financials-model";
+import { sheetAnswers } from "@/app/(founder)/financials/_components/financials-model";
 import { PageHeader, Card, CardHeader, CardBody, FieldRow, Note, CompanyLogo, ButtonLink } from "@/client/components/founder/ui";
 import { ProgressBar, Reveal } from "@/client/components/founder/motion";
 import { formatDateTime } from "@/shared/lib/utils";
