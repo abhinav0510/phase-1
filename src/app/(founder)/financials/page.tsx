@@ -1,8 +1,9 @@
 import { Target, Wallet, TrendingUp, Repeat, PencilLine, CheckCircle2, CircleAlert } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnStartup, getOwnFunding, getOwnProfile } from "@/server/data/founder";
+import { getFinancials } from "@/server/data/financials";
 import { allocationDisplay, askDisplay, fundingDisplay } from "@/shared/lib/currency";
-import { PAST_YEARS, PROJECTED_YEARS, arrDisplay, isFilled, mrrDisplay, type ArrDisplay, type FinancialYear } from "@/shared/lib/profile-fields";
+import { PAST_YEARS, arrDisplay, isFilled, mrrDisplay, type ArrDisplay, type FinancialYear } from "@/shared/lib/profile-fields";
 import {
   KpiCard,
   PageHeader,
@@ -19,7 +20,11 @@ import {
   TR,
   TD,
   EmptyState,
+  gainIf,
 } from "@/client/components/founder/ui";
+import { FinancialsUpload } from "./_components/financials-upload";
+import { RevenueExpensesChart, YearlyRevenueChart } from "./_components/financial-charts";
+import { fyLabel as fyLabelOf, latestMrr, monthLabel, monthlySeries, yearRows as buildYearRows, yearSeries } from "./_components/model";
 import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
 import { formatLakh, formatDate } from "@/shared/lib/utils";
 
@@ -48,22 +53,35 @@ const ARR_HINT: Partial<Record<ArrDisplay["source"], string>> = {
 
 export default async function Financials() {
   const { startupId } = await requireFounder();
-  const [s, funding, profile] = await Promise.all([
+  const [s, funding, profile, fin] = await Promise.all([
     getOwnStartup(startupId),
     getOwnFunding(startupId),
     getOwnProfile(startupId),
+    getFinancials(startupId),
   ]);
   const answers = profile?.answers ?? {};
   const arr = arrDisplay(s, answers);
   const filled = (years: FinancialYear[]) => years.filter((y) => isFilled(answers[y.key])).length;
   const hasArr = arr.source !== "none";
-  const pastDone = filled(PAST_YEARS);
-  const projectedDone = filled(PROJECTED_YEARS);
-  const yearRows = [
-    ...PAST_YEARS.map((y) => ({ ...y, kind: "Actual" as const })),
-    ...PROJECTED_YEARS.map((y) => ({ ...y, kind: "Projected" as const })),
-  ];
-  const mrr = mrrDisplay(s);
+    const mrr = mrrDisplay(s);
+  // Uploaded figures lead; the profile's answer for last year fills in a year they don't cover.
+  const lastYear = PAST_YEARS[0];
+  const profileYear = isFilled(answers[lastYear.key])
+    ? { fy_start: Number(lastYear.label.slice(3, 7)), revenue: Number(answers[lastYear.key]) }
+    : null;
+  const years = buildYearRows(fin.years, profileYear);
+  // Last year counts as added whether it came from the profile or an upload.
+  const pastDone = filled(PAST_YEARS) + PAST_YEARS.filter((y) => !isFilled(answers[y.key]) && fin.years.some((f) => f.kind === "actual" && fyLabelOf(f.fy_start) === y.label)).length;
+  const yearPoints = yearSeries(years);
+  const monthPoints = monthlySeries(fin.months);
+  const latest = latestMrr(fin.months);
+  const uploaded = fin.months.length + fin.years.length > 0;
+  const summary = uploaded
+    ? [
+        fin.months.length ? `${fin.months.length} month${fin.months.length === 1 ? "" : "s"} (${monthLabel(fin.months[0].month)} to ${monthLabel(fin.months.at(-1)!.month)})` : null,
+        fin.years.length ? `${fin.years.length} year${fin.years.length === 1 ? "" : "s"}` : null,
+      ].filter(Boolean).join(" and ") + " on file from your last upload."
+    : null;
 
   return (
     <div className="space-y-5">
@@ -85,14 +103,14 @@ export default async function Financials() {
               <h2 className="text-base font-semibold text-tide">Report your revenue annually, as ARR</h2>
               <p className="mt-1 text-sm text-tide/70">
                 Always give the full-year figure, not a monthly one. If you bill monthly, multiply by 12. Investors also
-                expect your previous years&apos; records and your projections, so please add those too.
+                expect last year&apos;s revenue, so please add that too.
               </p>
             </div>
             <ButtonLink href={FINANCIALS_FORM}>
               <PencilLine className="h-4 w-4" /> Add your financials
             </ButtonLink>
           </div>
-          <ul className="mt-4 grid gap-3 md:grid-cols-3">
+          <ul className="mt-4 grid gap-3 md:grid-cols-2">
             <ChecklistItem
               done={hasArr}
               title="Annual revenue (ARR)"
@@ -100,13 +118,8 @@ export default async function Financials() {
             />
             <ChecklistItem
               done={pastDone === PAST_YEARS.length}
-              title="Previous years' records"
-              detail={`${pastDone} of ${PAST_YEARS.length} added: ${PAST_YEARS[0].label} to ${PAST_YEARS[PAST_YEARS.length - 1].label}`}
-            />
-            <ChecklistItem
-              done={projectedDone === PROJECTED_YEARS.length}
-              title="Projections"
-              detail={`${projectedDone} of ${PROJECTED_YEARS.length} added: ${PROJECTED_YEARS[0].label} to ${PROJECTED_YEARS[PROJECTED_YEARS.length - 1].label}`}
+              title="Previous year's record"
+              detail={`${pastDone === PAST_YEARS.length ? "Added" : "Not added yet"}: ${PAST_YEARS.map((y) => y.label).join(", ")}`}
             />
           </ul>
         </div>
@@ -139,24 +152,55 @@ export default async function Financials() {
           />
         </Item>
         <Item>
-          <KpiCard
-            label="Monthly revenue (MRR)"
-            value={mrr.value}
-            icon={<Repeat className="h-4 w-4" />}
-            hint={mrr.source === "note" ? "From Sidana's records" : "Not on record"}
-          />
+          {latest ? (
+            <KpiCard
+              label="Monthly revenue (MRR)"
+              value={formatLakh(latest.value)}
+              icon={<Repeat className="h-4 w-4" />}
+              // A growth arrow only for good news, like every other indicator.
+              delta={gainIf((latest.growthPct ?? 0) > 0, { text: `+${latest.growthPct}%`, hint: `on ${latest.previousMonth ? monthLabel(latest.previousMonth) : ""}` })}
+              hint={`${monthLabel(latest.month)}, from your figures`}
+            />
+          ) : (
+            <KpiCard
+              label="Monthly revenue (MRR)"
+              value={mrr.value}
+              icon={<Repeat className="h-4 w-4" />}
+              hint={mrr.source === "note" ? "From Sidana's records" : "Not on record"}
+            />
+          )}
         </Item>
       </Stagger>
 
       <Reveal>
+        <FinancialsUpload ready={fin.ready} summary={summary} />
+      </Reveal>
+
+      {monthPoints.length >= 2 ? (
+        <Reveal>
+          <Card>
+            <CardHeader title="Monthly revenue vs expenses" subtitle="From your uploaded figures, the last 12 months" />
+            <CardBody>
+              <RevenueExpensesChart data={monthPoints} />
+            </CardBody>
+          </Card>
+        </Reveal>
+      ) : null}
+
+      <Reveal>
         <Card>
-          <CardHeader title="Revenue by year" subtitle="As you entered it, reviewed by the Sidana team" />
+          <CardHeader title="Revenue by year" subtitle="Actual years and your projections" />
+          {yearPoints.length >= 2 ? (
+            <CardBody>
+              <YearlyRevenueChart data={yearPoints} />
+            </CardBody>
+          ) : null}
           <CardBody className="p-0 pt-2">
-            {pastDone + projectedDone === 0 ? (
+            {years.length === 0 ? (
               <div className="p-5">
                 <EmptyState
                   title="No yearly numbers added yet"
-                  message="Add your previous years' revenue and your projections, and they will appear here."
+                  message="Add last year's revenue in your profile, or upload your figures above."
                 />
               </div>
             ) : (
@@ -164,19 +208,22 @@ export default async function Financials() {
                 <THead>
                   <tr>
                     <TH>Financial year</TH>
-                    <TH>Type</TH>
                     <TH>Revenue</TH>
+                    <TH>Type</TH>
+                    <TH>Year-on-year</TH>
                   </tr>
                 </THead>
                 <TBody>
-                  {yearRows.map((y) => (
-                    <TR key={y.key}>
+                  {years.map((y) => (
+                    <TR key={`${y.fy_start}-${y.kind}`}>
                       <TD className="font-semibold text-tide">{y.label}</TD>
+                      <TD className="text-navy-700">{formatLakh(y.revenue)}</TD>
                       <TD>
-                        <Chip tone={y.kind === "Actual" ? "green" : "blue"}>{y.kind}</Chip>
+                        <Chip tone={y.kind === "actual" ? "green" : "blue"}>{y.kind === "actual" ? "Actual" : "Projected"}</Chip>
                       </TD>
-                      <TD className="text-navy-700">
-                        {isFilled(answers[y.key]) ? formatLakh(Number(answers[y.key])) : "Not added"}
+                      {/* Growth shows only when it's up, like every other indicator. */}
+                      <TD className={(y.growthPct ?? 0) > 0 ? "font-semibold text-emerald-600" : "text-navy-400"}>
+                        {(y.growthPct ?? 0) > 0 ? `+${y.growthPct}%` : "—"}
                       </TD>
                     </TR>
                   ))}
@@ -222,7 +269,7 @@ export default async function Financials() {
       </Reveal>
 
       <Note>
-        Figures shown are the latest on record with Sidana. To update your annual revenue, burn, runway or your round, use{" "}
+        Figures shown are the latest on record with Sidana. To update your annual revenue or your round, use{" "}
         <strong>Update via profile</strong>. The Sidana team reviews every update before it is used for matching.
       </Note>
     </div>

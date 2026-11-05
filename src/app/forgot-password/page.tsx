@@ -41,7 +41,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <AuthShell portalLabel="Team Access" variant="team" tagline={["Sidana", "operations", "desk"]}>
+    <AuthShell portalLabel="Team Access" variant="team">
       <AuthHeading
         eyebrow="Account recovery"
         title="Reset your password."

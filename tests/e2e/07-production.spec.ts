@@ -62,16 +62,16 @@ test.describe("production behaviour", () => {
     await page.getByRole("button", { name: "Save draft" }).click();
     await expect(page.getByRole("status")).toBeVisible();
 
-    await failTable("weekly_reports", true);
+    await failTable("meetings", true);
     try {
-      await page.goto("/weekly-reports");
+      await page.goto("/meetings");
       await expect(page.getByRole("heading", { name: "We couldn't load this page" })).toBeVisible();
-      await expect(page.getByText("No weekly reports yet")).toHaveCount(0);
+      await expect(page.getByText("No meetings here yet")).toHaveCount(0);
     } finally {
-      await failTable("weekly_reports", false);
+      await failTable("meetings", false);
     }
 
     await page.getByRole("button", { name: "Try again" }).click();
-    await expect(page.getByRole("heading", { name: "Weekly Reports" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Meetings" })).toBeVisible();
   });
 });

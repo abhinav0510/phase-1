@@ -47,3 +47,4 @@ next-env.d.ts
 # generated credential exports — never commit
 *.local.csv
 founder-credentials.local.csv
+/demo-files/

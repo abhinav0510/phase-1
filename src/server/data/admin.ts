@@ -361,16 +361,26 @@ export async function listPendingDocs(): Promise<any[]> {
 
 export type ProfileQueueRow = StartupProfile & { startup_name: string | null };
 
+export interface ProfileQueue {
+  rows: ProfileQueueRow[];
+  /** Why the list couldn't be read. An error must never look like "no submissions". */
+  problem: "not_created" | "read_failed" | null;
+}
+
 /** Every founder profile that has been started, submissions waiting for review first. */
-export async function listProfileSubmissions(): Promise<ProfileQueueRow[]> {
+export async function listProfileSubmissions(): Promise<ProfileQueue> {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("startup_profiles")
     .select("*")
     .order("updated_at", { ascending: false })
     .limit(500);
-  if (error || !data) return [];
-  const rows = data as StartupProfile[];
+  if (error) {
+    const missing = error.code === "PGRST205" || error.code === "42P01";
+    console.error(`startup_profiles read failed: ${error.code || error.message}`);
+    return { rows: [], problem: missing ? "not_created" : "read_failed" };
+  }
+  const rows = (data ?? []) as StartupProfile[];
   const ids = rows.map((r) => r.startup_id);
   const names = new Map<number, string | null>();
   if (ids.length) {
@@ -378,9 +388,19 @@ export async function listProfileSubmissions(): Promise<ProfileQueueRow[]> {
     for (const s of (st ?? []) as { id: number; name: string | null }[]) names.set(s.id, s.name);
   }
   const rank: Record<string, number> = { submitted: 0, changes_requested: 1, draft: 2, approved: 3 };
-  return rows
-    .map((r) => ({ ...r, startup_name: names.get(r.startup_id) ?? null }))
-    .sort((a, b) => (rank[a.status] ?? 9) - (rank[b.status] ?? 9));
+  return {
+    rows: rows
+      .map((r) => ({ ...r, startup_name: names.get(r.startup_id) ?? null }))
+      .sort((a, b) => (rank[a.status] ?? 9) - (rank[b.status] ?? 9)),
+    problem: null,
+  };
+}
+
+/** One startup's profile review status, for its admin page. */
+export async function getProfileStatus(startupId: number): Promise<StartupProfile["status"] | null> {
+  const admin = createAdminClient();
+  const { data } = await admin.from("startup_profiles").select("status").eq("startup_id", startupId).maybeSingle();
+  return (data as { status: StartupProfile["status"] } | null)?.status ?? null;
 }
 
 export async function getProfileForReview(

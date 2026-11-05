@@ -1,6 +1,6 @@
 import { asFounder, asTeam, BETA_SECRET, expect, ID, INVESTOR_CONTACTS, pageSource, test } from "./helpers";
 
-const FOUNDER_PAGES = ["/dashboard", "/business-details", "/complete-profile", "/pitch-deck", "/financials", "/funding", "/meetings", "/weekly-reports", "/profile", "/settings"];
+const FOUNDER_PAGES = ["/dashboard", "/business-details", "/complete-profile", "/pitch-deck", "/financials", "/funding", "/meetings", "/profile", "/settings"];
 
 test.describe("roles", () => {
   test("a founder is kept out of every admin page", async ({ page }) => {

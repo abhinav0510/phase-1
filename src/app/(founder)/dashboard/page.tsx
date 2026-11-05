@@ -33,7 +33,6 @@ import {
   getOwnMeetings,
   getOwnMatches,
   getOwnProfile,
-  getOwnWeeklyReports,
   getOwnBranding,
   logoUrlFor,
 } from "@/server/data/founder";
@@ -75,11 +74,10 @@ const STAGE_BLURB: Record<string, string> = {
 
 export default async function FounderDashboard() {
   const { startupId } = await requireFounder();
-  const [overview, meetings, matches, weeklyReports, profile, branding] = await Promise.all([
+  const [overview, meetings, matches, profile, branding] = await Promise.all([
     getFounderOverview(startupId),
     getOwnMeetings(startupId),
     getOwnMatches(startupId),
-    getOwnWeeklyReports(startupId),
     getOwnProfile(startupId),
     getOwnBranding(startupId),
   ]);
@@ -87,7 +85,6 @@ export default async function FounderDashboard() {
   const logoUrl = logoUrlFor(branding);
   const progress = profileProgress(s, profile?.answers ?? null);
   const now = new Date();
-  const latestReport = weeklyReports[0] ?? null;
   const upcoming = meetings
     .filter((m) => m.scheduled_at && new Date(m.scheduled_at) >= now && !m.held)
     .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
@@ -97,7 +94,8 @@ export default async function FounderDashboard() {
   const slices = matchStateSlices(matches);
   const mix = investorMix(matches);
   const mixMax = Math.max(1, ...mix.map((m) => m.value));
-  const feed = activityFeed(matches, meetings, weeklyReports, 5, now);
+  // Weekly reports live on their own page, not the dashboard.
+  const feed = activityFeed(matches, meetings, [], 5, now);
   const reachedPct =
     overview.matchCount > 0 ? Math.round((overview.matchSent / overview.matchCount) * 100) : 0;
 
@@ -318,7 +316,7 @@ export default async function FounderDashboard() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Reveal>
           <Card className="h-full">
-            <CardHeader title="Recent activity" subtitle="Matches, meetings and reports as they happen" />
+            <CardHeader title="Recent activity" subtitle="Matches and meetings as they happen" />
             <CardBody className="pt-3">
               {feed.length === 0 ? (
                 <EmptyState title="Nothing yet" message="Activity shows up here as Sidana works your raise." />
@@ -379,8 +377,9 @@ export default async function FounderDashboard() {
             <CardHeader title="Snapshot" subtitle="Key financials on record" action={<ViewAll href="/financials" />} />
             <CardBody className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <Metric label="Annual revenue (ARR)" value={arrDisplay(s, profile?.answers).value} />
-                <Metric label="Burn" value={formatLakh(s?.burn_inr_l)} />
+                <div className="col-span-2">
+                  <Metric label="Annual revenue (ARR)" value={arrDisplay(s, profile?.answers).value} />
+                </div>
                 <Metric label="Score" value={s?.score?.toString() ?? "—"} />
                 <Metric label="Rule tier" value={s?.rule_tier ?? "—"} />
               </div>
@@ -400,17 +399,6 @@ export default async function FounderDashboard() {
                   <p className="truncate text-sm font-semibold">{s?.owner_name ?? "Sidana deal desk"}</p>
                 </div>
               </div>
-              {latestReport ? (
-                <div className="border-t border-navy-50 pt-4">
-                  <p className="text-xs text-navy-400">Latest report · week of {formatDate(latestReport.week_start)}</p>
-                  <div className="mt-2 grid grid-cols-4 gap-2 text-center">
-                    <Mini label="Reached" value={latestReport.reached} />
-                    <Mini label="Follow-ups" value={latestReport.followups} />
-                    <Mini label="Meetings" value={latestReport.meetings} />
-                    <Mini label="Passed" value={latestReport.passed} />
-                  </div>
-                </div>
-              ) : null}
             </CardBody>
           </Card>
         </Reveal>
@@ -424,15 +412,6 @@ function Metric({ label, value }: { label: string; value: string }) {
     <div className="rounded-2xl bg-canvas px-3 py-2.5">
       <p className="text-[11px] text-navy-400">{label}</p>
       <p className="mt-0.5 truncate text-sm font-semibold text-tide">{value}</p>
-    </div>
-  );
-}
-
-function Mini({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <p className="text-lg font-bold leading-tight text-tide">{value}</p>
-      <p className="text-[10px] text-navy-400">{label}</p>
     </div>
   );
 }

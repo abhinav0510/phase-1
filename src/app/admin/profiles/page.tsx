@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
 import { Badge } from "@/client/components/ui/badge";
 import { Table, THead, TH, TBody, TR, TD, EmptyState } from "@/client/components/admin/ui/table";
@@ -12,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminProfiles() {
   await requireAdmin();
-  const rows = await listProfileSubmissions();
+  const { rows, problem } = await listProfileSubmissions();
   const waiting = rows.filter((r) => r.status === "submitted").length;
 
   return (
@@ -26,7 +25,13 @@ export default async function AdminProfiles() {
         }
       />
       <CardBody className="p-0">
-        {rows.length === 0 ? (
+        {problem ? (
+          <div role="alert" className="m-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {problem === "not_created"
+              ? "Profile reviews aren't switched on: the startup_profiles table doesn't exist yet. Run MIGRATIONS/startup-profiles.sql in Supabase."
+              : "Couldn't load founder submissions. Reload the page; if it keeps happening, check the server logs."}
+          </div>
+        ) : rows.length === 0 ? (
           <div className="p-5">
             <EmptyState
               title="No founder profiles yet"
@@ -61,12 +66,14 @@ export default async function AdminProfiles() {
                     <TD className="text-navy-500">{formatDateTime(r.submitted_at)}</TD>
                     <TD className="text-navy-500">{formatDateTime(r.updated_at)}</TD>
                     <TD>
-                      <Link
+                      {/* A plain link: Next.js's client navigation could drop this click when
+                          a background prefetch of the review was cancelled. */}
+                      <a
                         href={`/admin/profiles/${r.startup_id}`}
                         className="text-xs font-semibold text-navy-700 hover:underline"
                       >
                         {r.status === "submitted" ? "Review" : "Open"}
-                      </Link>
+                      </a>
                     </TD>
                   </TR>
                 );

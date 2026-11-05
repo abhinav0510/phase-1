@@ -34,7 +34,6 @@ export const FOUNDER_NAV: NavItem[] = [
   { label: "Financials", href: "/financials", icon: "financials" },
   { label: "Investors & Matches", href: "/funding", icon: "funding" },
   { label: "Meetings", href: "/meetings", icon: "meetings" },
-  { label: "Weekly Reports", href: "/weekly-reports", icon: "weekly" },
   { label: "My Profile", href: "/profile", icon: "profile" },
   { label: "Settings", href: "/settings", icon: "settings" },
 ];

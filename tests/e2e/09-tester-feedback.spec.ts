@@ -16,10 +16,12 @@ test.describe("tester feedback", () => {
     await expect(page.getByText("Weekly activity")).toHaveCount(0);
   });
 
-  test("recent activity names the week a report covers", async ({ page }) => {
+  test("the dashboard has no weekly report sections", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page.getByText("Recent activity")).toBeVisible();
-    await expect(page.locator("main")).not.toContainText(/\d+ reached · \d+ meetings/);
+    await expect(page.getByText("Matches and meetings as they happen")).toBeVisible();
+    const main = page.locator("main");
+    await expect(main).not.toContainText(/Latest report|Weekly report, week of|\d+ reached · \d+ meetings/);
   });
 
   test("investors show their details, not match labels", async ({ page }) => {
@@ -31,14 +33,6 @@ test.describe("tester feedback", () => {
     await expect(main.getByText("Stages they back").first()).toBeVisible();
     for (const removed of ["Strong fit", "Stage fit", "Cheque fit", "Match type"]) {
       await expect(main.getByText(removed)).toHaveCount(0);
-    }
-  });
-
-  test("weekly reports don't compare with last week", async ({ page }) => {
-    await page.goto("/weekly-reports");
-    await expect(page.getByText("Investors reached").first()).toBeVisible();
-    for (const removed of ["vs last week", "First report", "No change"]) {
-      await expect(page.locator("main").getByText(removed)).toHaveCount(0);
     }
   });
 
@@ -129,4 +123,21 @@ test.describe("dollar amounts show in rupees at 100 rupees to the dollar", () =>
     await expect(page.getByText("₹10–20 Cr")).toBeVisible();
     await noDollars(page);
   });
+});
+
+test("complete profile doesn't ask for stage, traction, burn, runway or investor preferences", async ({ page }) => {
+  await asFounder(page, ID.delta);
+  await page.goto("/complete-profile");
+  await expect(page.getByRole("heading", { name: "Financials" }).first()).toBeVisible();
+  await expect(page.getByText("Stage & traction")).toHaveCount(0);
+  await expect(page.getByLabel("Stage", { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Key traction")).toHaveCount(0);
+  await expect(page.getByText(/monthly burn/i)).toHaveCount(0);
+  await expect(page.getByLabel(/Runway/)).toHaveCount(0);
+  await expect(page.getByText("Investor preferences")).toHaveCount(0);
+  await expect(page.getByText(/Investor types you prefer|Investors to skip/)).toHaveCount(0);
+
+  await page.goto("/dashboard");
+  await expect(page.getByText("Snapshot")).toBeVisible();
+  await expect(page.locator("main").getByText("Burn", { exact: true })).toHaveCount(0);
 });

@@ -13,8 +13,11 @@ import {
   EmptyState,
 } from "@/client/components/admin/ui/table";
 import { requireAdmin } from "@/server/auth/session";
-import { getStartupDetail } from "@/server/data/admin";
+import { getProfileStatus, getStartupDetail } from "@/server/data/admin";
+import { PROFILE_STATUS_META } from "../../profiles/status";
 import { listMisFiles } from "@/server/data/mis";
+import { getFinancials } from "@/server/data/financials";
+import { fyLabel, monthLabel } from "@/app/(founder)/financials/_components/model";
 import { MisFiles } from "@/client/components/admin/mis-files";
 import { allocationDisplay, askDisplay, fundingDisplay, toRupees } from "@/shared/lib/currency";
 import { JoinLink } from "@/client/components/ui/join-link";
@@ -32,9 +35,11 @@ export default async function StartupDetailPage({
   const startupId = Number(id);
   if (!Number.isInteger(startupId)) notFound();
 
-  const [{ startup, matches, meetings, funding, docs }, mis] = await Promise.all([
+  const [{ startup, matches, meetings, funding, docs }, mis, profileStatus, fin] = await Promise.all([
     getStartupDetail(startupId),
     listMisFiles(startupId),
+    getProfileStatus(startupId),
+    getFinancials(startupId),
   ]);
   if (!startup) notFound();
 
@@ -59,6 +64,12 @@ export default async function StartupDetailPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {profileStatus ? (
+            <a href={`/admin/profiles/${startup.id}`} className="inline-flex items-center gap-1.5 text-xs font-semibold text-navy-700 hover:underline">
+              Founder profile
+              <Badge tone={PROFILE_STATUS_META[profileStatus].tone}>{PROFILE_STATUS_META[profileStatus].label}</Badge>
+            </a>
+          ) : null}
           <StatusBadge value={startup.bucket} kind="bucket" />
           <StatusBadge value={startup.status} kind="startup" />
         </div>
@@ -253,6 +264,54 @@ export default async function StartupDetailPage({
                 MIS from the founder
               </p>
               <MisFiles files={mis.files} ready={mis.ready} />
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">
+                Figures from the founder&apos;s template
+              </p>
+              {!fin.ready ? (
+                <p className="text-sm text-navy-400">Not switched on yet (MIGRATIONS/startup-financials.sql).</p>
+              ) : fin.months.length + fin.years.length === 0 ? (
+                <p className="text-sm text-navy-400">No figures uploaded yet.</p>
+              ) : (
+                <div className="space-y-3 text-sm">
+                  {fin.months.length ? (
+                    <table className="w-full text-left">
+                      <thead className="text-xs text-navy-400">
+                        <tr>
+                          <th className="py-1 font-medium">Month</th>
+                          <th className="py-1 font-medium">Revenue</th>
+                          <th className="py-1 font-medium">MRR</th>
+                          <th className="py-1 font-medium">Expenses</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-navy-700">
+                        {fin.months.slice(-6).reverse().map((m) => (
+                          <tr key={m.month}>
+                            <td className="py-0.5">{monthLabel(m.month)}</td>
+                            <td className="py-0.5">{formatLakh(m.revenue_inr_l)}</td>
+                            <td className="py-0.5">{formatLakh(m.mrr_inr_l)}</td>
+                            <td className="py-0.5">{formatLakh(m.expenses_inr_l)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : null}
+                  {fin.years.length ? (
+                    <ul className="space-y-1">
+                      {fin.years.map((y) => (
+                        <li key={`${y.fy_start}-${y.kind}`} className="flex justify-between">
+                          <span className="text-navy-700">
+                            {fyLabel(y.fy_start)} {y.kind === "projected" ? "(projected)" : ""}
+                          </span>
+                          <span className="text-navy-500">{formatLakh(y.revenue_inr_l)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {fin.months.length > 6 ? <p className="text-xs text-navy-400">Showing the latest 6 of {fin.months.length} months.</p> : null}
+                </div>
+              )}
             </div>
           </CardBody>
         </Card>
