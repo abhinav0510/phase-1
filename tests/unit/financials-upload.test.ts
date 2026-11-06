@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { writeXlsx } from "../../scripts/lib/xlsx-writer.mjs";
 import { parseFinancialsWorkbook, parseFy, parseMonth } from "@/server/validators/financials-upload";
+import { buildFinancialsTemplate } from "@/server/validators/financials-template";
+import { readXlsxSheets } from "@/server/validators/xlsx-reader.mjs";
+import { templatePeriods } from "@/shared/lib/figures-due";
 import { latestMrr, monthlySeries, sheetAnswers, yearRows, yearSeries } from "@/app/(founder)/financials/_components/financials-model";
 
 const NOW = new Date("2026-11-05T06:00:00Z"); // FY 2026-27, November 2026
@@ -64,7 +67,6 @@ describe("parseFinancialsWorkbook", () => {
       "Monthly tab, row 3: Revenue must be a number in ₹ lakh, like 12.5.",
       "Monthly tab, row 4: 2026-08 appears twice.",
       "Monthly tab, row 5: 2026-12 is in the future. Put expected revenue in the Projections tab.",
-      "Monthly tab, row 6: add at least one amount for 2026-07.",
       "Yearly tab, row 2: FY 2026-27 isn't over yet. Put it in the Projections tab.",
       "Projections tab, row 2: FY 2024-25 is already over. Put it in the Yearly tab.",
     ]);
@@ -79,6 +81,61 @@ describe("parseFinancialsWorkbook", () => {
     expect(parseFinancialsWorkbook(book({ Sheet1: [["a"]] }), NOW)).toEqual({ ok: false, errors: [expect.stringMatching(/no "Monthly"/)] });
     expect(parseFinancialsWorkbook(book({ Monthly: [MONTH_HEAD] }), NOW)).toEqual({ ok: false, errors: [expect.stringMatching(/no figures/)] });
     expect(parseFinancialsWorkbook(new Uint8Array(Buffer.from("not a workbook")), NOW).ok).toBe(false);
+  });
+});
+
+describe("the prefilled template", () => {
+  it.each([
+    // [now, months, previous FY, projection FYs]
+    ["2026-11-07T06:00:00Z", ["2026-04", "2026-10"], 7, 2025, [2026, 2027, 2028, 2029]],
+    ["2026-11-01T06:00:00Z", ["2026-04", "2026-09"], 6, 2025, [2026, 2027, 2028, 2029]],
+    ["2026-12-02T06:00:00Z", ["2026-04", "2026-11"], 8, 2025, [2026, 2027, 2028, 2029]],
+    ["2027-04-02T06:00:00Z", ["2026-04", "2027-03"], 12, 2026, [2027, 2028, 2029, 2030]],
+    ["2027-05-02T06:00:00Z", ["2027-04", "2027-04"], 1, 2026, [2027, 2028, 2029, 2030]],
+  ])("on %s lists the right months and years", (now, [first, last], count, prev, proj) => {
+    const p = templatePeriods(new Date(now));
+    expect([p.months[0], p.months.at(-1), p.months.length]).toEqual([first, last, count]);
+    expect(p.previousFy).toBe(prev);
+    expect(p.projectionFys).toEqual(proj);
+  });
+  it("uses IST, so 1 April 00:30 IST is already the new financial year", () => {
+    expect(templatePeriods(new Date("2027-03-31T19:00:00Z")).projectionFys[0]).toBe(2027);
+  });
+
+  const NOV7 = new Date("2026-11-07T06:00:00Z");
+  const tabs: Map<string, string[][]> = readXlsxSheets(buildFinancialsTemplate(NOV7));
+  it("comes with the months and years filled in", () => {
+    expect([...tabs.keys()]).toEqual(["How to fill", "Monthly", "Yearly", "Projections"]);
+    expect(tabs.get("Monthly")!.map((r: string[]) => r[0])).toEqual(["Month", "Apr 2026", "May 2026", "Jun 2026", "Jul 2026", "Aug 2026", "Sep 2026", "Oct 2026"]);
+    expect(tabs.get("Yearly")!.map((r: string[]) => r[0])).toEqual(["Financial year", "FY 2025-26"]);
+    expect(tabs.get("Projections")!.map((r: string[]) => r[0])).toEqual(["Financial year", "FY 2026-27", "FY 2027-28", "FY 2028-29", "FY 2029-30"]);
+  });
+  it("uploads cleanly once amounts are typed, skipping the rows left empty", () => {
+    const fill = (rows: string[][], values: Record<string, (string | number)[]>) =>
+      rows.map((r, i) => (i && values[r[0]] ? [r[0], ...values[r[0]]] : r));
+    const r = parseFinancialsWorkbook(
+      book({
+        Monthly: fill(tabs.get("Monthly")!, { "Jul 2026": [150, 33, 24], "Oct 2026": [200, "", 23] }),
+        Yearly: fill(tabs.get("Yearly")!, { "FY 2025-26": [100] }),
+        Projections: fill(tabs.get("Projections")!, { "FY 2026-27": [130], "FY 2028-29": [300] }),
+      }),
+      NOV7,
+    );
+    expect(r).toEqual({
+      ok: true,
+      months: [
+        { month: "2026-07", revenue_inr_l: 150, mrr_inr_l: 33, expenses_inr_l: 24 },
+        { month: "2026-10", revenue_inr_l: 200, mrr_inr_l: null, expenses_inr_l: 23 },
+      ],
+      years: [
+        { fy_start: 2025, kind: "actual", revenue_inr_l: 100 },
+        { fy_start: 2026, kind: "projected", revenue_inr_l: 130 },
+        { fy_start: 2028, kind: "projected", revenue_inr_l: 300 },
+      ],
+    });
+  });
+  it("an untouched template says there are no figures yet", () => {
+    expect(parseFinancialsWorkbook(new Uint8Array(buildFinancialsTemplate(NOV7)), NOV7)).toEqual({ ok: false, errors: [expect.stringMatching(/no figures/)] });
   });
 });
 

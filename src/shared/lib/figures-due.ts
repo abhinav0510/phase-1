@@ -69,3 +69,42 @@ export function figuresDue(
   }
   return { month, fy };
 }
+
+export interface TemplatePeriods {
+  /** Months to list on the Monthly tab (YYYY-MM), oldest first. */
+  months: string[];
+  /** The last closed financial year, for the Yearly tab. */
+  previousFy: number;
+  /** This financial year and the three after it, for the Projections tab. */
+  projectionFys: number[];
+}
+
+/**
+ * The months and years the downloaded template comes filled in with, so founders only type
+ * numbers. Months run from April of the financial year of the newest due month (due from
+ * the 2nd of the month after it, like the monthly prompt) up to that month. On 7 Nov 2026:
+ * Apr–Oct 2026, FY 2025-26, and FY 2026-27 to FY 2029-30.
+ */
+export function templatePeriods(now = new Date()): TemplatePeriods {
+  const t = ist(now);
+  const y = t.getUTCFullYear();
+  const m0 = t.getUTCMonth();
+  const latestDue = t.getUTCDate() >= 2 ? ym(y, m0 - 1) : ym(y, m0 - 2);
+  const [dy, dm] = latestDue.split("-").map(Number);
+  const dueFy = dm >= 4 ? dy : dy - 1;
+  const months: string[] = [];
+  for (let i = 0; ; i++) {
+    const m = ym(dueFy, 3 + i);
+    months.push(m);
+    if (m === latestDue) break;
+  }
+  const thisFy = m0 >= 3 ? y : y - 1;
+  return { months, previousFy: thisFy - 1, projectionFys: [thisFy, thisFy + 1, thisFy + 2, thisFy + 3] };
+}
+
+const SHORT = NAMES.map((n) => n.slice(0, 3));
+/** "2026-04" -> "Apr 2026", the way the template lists months. */
+export const shortMonth = (month: string) => {
+  const [y, m] = month.split("-").map(Number);
+  return `${SHORT[m - 1]} ${y}`;
+};

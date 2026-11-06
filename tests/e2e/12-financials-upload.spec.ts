@@ -21,21 +21,26 @@ const months = async () => (await state("startup_financial_months")).filter((m) 
 const years = async () => (await state("startup_financial_years")).filter((y) => y.startup_id === ID.zeta);
 
 test.describe("financials template", () => {
-  test("signed-in founders can download the template, with its four tabs", async ({ page, request }) => {
+  test("signed-in founders can download the template, with its months and years filled in", async ({ page, request }) => {
     // Like every non-public path, it needs a signed-in user.
-    expect((await request.get("/templates/sidana-financials-template.xlsx", { maxRedirects: 0 })).status()).toBeGreaterThanOrEqual(300);
+    expect((await request.get("/api/founder/financials-template", { maxRedirects: 0 })).status()).toBeGreaterThanOrEqual(300);
     await asFounder(page, ID.zeta);
-    const res = await page.request.get("/templates/sidana-financials-template.xlsx");
+    const res = await page.request.get("/api/founder/financials-template");
     expect(res.status()).toBe(200);
+    expect(res.headers()["content-disposition"]).toContain("sidana-financials-template.xlsx");
+    expect(res.headers()["cache-control"]).toContain("no-store");
     const tabs = readXlsxSheets(Buffer.from(await res.body()));
     expect([...tabs.keys()]).toEqual(["How to fill", "Monthly", "Yearly", "Projections"]);
-    expect(tabs.get("Monthly")![0]).toEqual(MONTH_HEAD);
+    expect(tabs.get("Monthly")![0]).toEqual(["Month", "Revenue (₹ lakh)", "MRR (₹ lakh)", "Expenses (₹ lakh)"]);
+    expect(tabs.get("Monthly")!.length).toBeGreaterThan(1);
+    expect(tabs.get("Yearly")![1][0]).toBe(fy(FY - 1));
+    expect(tabs.get("Projections")!.slice(1).map((r: string[]) => r[0])).toEqual([fy(FY), fy(FY + 1), fy(FY + 2), fy(FY + 3)]);
   });
 
   test("a filled-in template draws the charts and the year table", async ({ page }) => {
     await asFounder(page, ID.zeta);
     await page.goto("/financials");
-    await expect(page.getByRole("link", { name: /Download template/ })).toHaveAttribute("href", "/templates/sidana-financials-template.xlsx");
+    await expect(page.getByRole("link", { name: /Download template/ })).toHaveAttribute("href", "/api/founder/financials-template");
     await pickFile(page, "#financials-file", 
       file("Zeta financials.xlsx", {
         Monthly: [MONTH_HEAD, [monthsAgo(3), 300, 280, 250], [monthsAgo(2), 320, 300, 255], [monthsAgo(1), 380, 363, 260]],

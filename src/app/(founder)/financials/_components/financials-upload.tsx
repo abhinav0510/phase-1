@@ -7,7 +7,7 @@ import { buttonClass } from "@/client/components/founder/ui";
 import { uploadFinancials } from "../actions";
 import { reloadWithNotice, takeNotice } from "@/client/lib/notice-after-reload";
 
-export const TEMPLATE_HREF = "/templates/sidana-financials-template.xlsx";
+export const TEMPLATE_HREF = "/api/founder/financials-template";
 const MAX_BYTES = 3 * 1024 * 1024; // matches the server cap
 
 /** Download the template, upload it filled in, and see what was saved or what to fix. */
@@ -59,8 +59,9 @@ export function FinancialsUpload({ ready, summary }: { ready: boolean; summary: 
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-tide">Your monthly and yearly figures</h2>
             <p className="mt-0.5 max-w-2xl text-sm text-navy-500">
-              Download the template, fill in monthly revenue, MRR and expenses, past years and projections in ₹ lakh,
-              then upload it to draw your charts. Uploading again replaces your earlier figures.
+              Download the template: the months and years are already filled in, so just type your revenue, MRR,
+              expenses and projections in ₹ lakh, then upload it to draw your charts. Uploading again replaces your
+              earlier figures.
             </p>
             {summary ? <p className="mt-1 text-xs text-navy-400">{summary}</p> : null}
           </div>
