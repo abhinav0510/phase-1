@@ -4,7 +4,7 @@ import { readXlsxSheets } from "./xlsx-reader.mjs";
 
 /**
  * Reads the financials template founders download from the Financials page
- * (scripts/make-financials-template.mjs) and checks every row. Amounts are in ₹ lakh.
+ * (built per download by ./financials-template.ts) and checks every row. Amounts are in ₹ lakh.
  */
 
 export interface MonthRow {
@@ -127,7 +127,8 @@ export function parseFinancialsWorkbook(bytes: Uint8Array, now = new Date()): Fi
       monthly.slice(1, MAX_ROWS + 1).forEach((row, i) => {
         const cell = (k: string) => String(row[at[k]] ?? "");
         const label = `Monthly tab, row ${i + 2}`;
-        if (![cell("month"), cell("revenue"), cell("mrr"), cell("expenses")].some((v) => v.trim())) return;
+        // The template comes with the months filled in, so a month with no amounts is skipped.
+        if (![cell("revenue"), cell("mrr"), cell("expenses")].some((v) => v.trim())) return;
         const month = parseMonth(cell("month"));
         if (!month) return add(`${label}: write the month like 2026-04.`);
         if (month > thisMonth) return add(`${label}: ${month} is in the future. Put expected revenue in the Projections tab.`);
@@ -136,7 +137,6 @@ export function parseFinancialsWorkbook(bytes: Uint8Array, now = new Date()): Fi
         const values = { revenue: amount(cell("revenue")), mrr: amount(cell("mrr")), expenses: amount(cell("expenses")) };
         const bad = Object.entries(values).filter(([, v]) => v === "bad").map(([k]) => (k === "mrr" ? "MRR" : k[0].toUpperCase() + k.slice(1)));
         if (bad.length) return add(`${label}: ${bad.join(", ")} must be a number in ₹ lakh, like 12.5.`);
-        if (values.revenue === null && values.mrr === null && values.expenses === null) return add(`${label}: add at least one amount for ${month}.`);
         months.push({ month, revenue_inr_l: values.revenue as number | null, mrr_inr_l: values.mrr as number | null, expenses_inr_l: values.expenses as number | null });
       });
     }
@@ -154,7 +154,8 @@ export function parseFinancialsWorkbook(bytes: Uint8Array, now = new Date()): Fi
       const fyCell = String(row[at.fy] ?? "");
       const revCell = String(row[at.revenue] ?? "");
       const label = `${tab} tab, row ${i + 2}`;
-      if (!fyCell.trim() && !revCell.trim()) return;
+      // The template comes with the years filled in, so a year with no amount is skipped.
+      if (!revCell.trim()) return;
       const fy = parseFy(fyCell);
       if (fy === null) return add(`${label}: write the year like FY 2025-26.`);
       if (kind === "actual" && fy >= thisFy) return add(`${label}: ${fyLabel(fy)} isn't over yet. Put it in the Projections tab.`);
