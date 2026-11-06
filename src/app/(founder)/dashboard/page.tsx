@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CalendarCheck, Handshake, ImagePlus, XCircle } from "lucide-react";
+import { ArrowRight, Handshake, ImagePlus, XCircle } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnBranding, getOwnMatches, getOwnMeetings, getOwnProfile, getOwnReplies, getOwnStartup, logoUrlFor, type MailReply } from "@/server/data/founder";
 import { profileProgress } from "@/shared/lib/profile-fields";
@@ -22,7 +22,8 @@ import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
 import { PassedList, type PassedItem } from "@/client/components/founder/passed-list";
 import { profileView } from "@/client/components/founder/investor-format";
-import { TYPE_LABEL, interestedInvestorCount } from "./_components/model";
+import { TYPE_LABEL, interestedInvestorNames } from "./_components/model";
+import { InterestedInvestorsCard } from "./_components/interested-card";
 import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +69,8 @@ export default async function FounderDashboard() {
   ]);
   const logoUrl = logoUrlFor(branding);
   // Investors with at least one meeting, each counted once.
-  const interested = interestedInvestorCount(meetings);
+  const interestedNames = interestedInvestorNames(meetings);
+  const interested = interestedNames.length;
   const progress = profileProgress(s, profile?.answers ?? null);
 
   // replies arrive newest-first; keep the latest reply, and the latest pass, per investor.
@@ -199,12 +201,7 @@ export default async function FounderDashboard() {
           <KpiCard label="Passed" value={passed.length} icon={<XCircle className="h-4 w-4" />} hint={passed.length ? "See reasons below" : "None so far"} />
         </Item>
         <Item>
-          <KpiCard
-            label="Interested investors"
-            value={interested}
-            icon={<CalendarCheck className="h-4 w-4" />}
-            hint={interested ? "Different investors you've had a meeting with" : "No meetings yet"}
-          />
+          <InterestedInvestorsCard count={interested} names={interestedNames} />
         </Item>
       </Stagger>
 

@@ -200,11 +200,18 @@ const investorKey = (name: string | null | undefined) => (name ?? "").toLowerCas
  * calendar rows are sometimes linked to the wrong investor, so the title-derived name wins.
  */
 export function interestedInvestorCount(meetings: Pick<Meeting, "investor_id" | "investor_name">[]): number {
-  const keys = new Set<string>();
+  return interestedInvestorNames(meetings).length;
+}
+
+export function interestedInvestorNames(meetings: Pick<Meeting, "investor_id" | "investor_name">[]): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
   for (const m of meetings) {
-    const name = investorKey(m.investor_name);
-    if (name) keys.add(`n:${name}`);
-    else if (m.investor_id != null) keys.add(`i:${m.investor_id}`);
+    const key = investorKey(m.investor_name);
+    const dedup = key ? `n:${key}` : m.investor_id != null ? `i:${m.investor_id}` : null;
+    if (!dedup || seen.has(dedup)) continue;
+    seen.add(dedup);
+    names.push(m.investor_name ?? `Investor #${m.investor_id}`);
   }
-  return keys.size;
+  return names;
 }
