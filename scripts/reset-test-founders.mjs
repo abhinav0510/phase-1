@@ -1,6 +1,7 @@
 // Put chosen founder logins back to a fresh start — RUN MANUALLY, dry by default.
 //   npm run reset:test-founders -- --only=123,124            # dry run: show what would change
 //   npm run reset:test-founders -- --only=123,124 --apply    # do it
+//   npm run reset:test-founders -- --find=bon                # look up Login IDs by name (read-only)
 //
 // For each startup named in --only (and no other):
 //   * every founder login gets the initial password and must choose its own on first
@@ -22,15 +23,27 @@ if (!URL || !KEY) {
   console.error("Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY");
   process.exit(1);
 }
+const admin = createClient(URL, KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+
+const findArg = process.argv.find((a) => a.startsWith("--find="));
+if (findArg) {
+  const q = findArg.slice(7).trim();
+  const { data, error } = await admin.from("startups").select("id,name").ilike("name", `%${q.replace(/[%_]/g, "")}%`).order("name").limit(50);
+  if (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+  console.log(data.length ? data.map((s) => `  ${s.id}  ${s.name}`).join("\n") : `No startup name contains "${q}".`);
+  process.exit(0);
+}
+
 const APPLY = process.argv.includes("--apply");
 const onlyArg = process.argv.find((a) => a.startsWith("--only="));
 const IDS = [...new Set((onlyArg?.slice(7) ?? "").split(",").map((s) => Number(s.trim())).filter((n) => Number.isInteger(n) && n > 0))];
 if (!IDS.length) {
-  console.error("Name the startups to reset, e.g. --only=123,124 (their Login IDs).");
+  console.error("Name the startups to reset, e.g. --only=123,124 (their Login IDs), or look them up with --find=<part of the name>.");
   process.exit(1);
 }
-
-const admin = createClient(URL, KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const csvCell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 const problems = [];
 const must = (res, what) => {
