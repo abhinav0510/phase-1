@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, Handshake, ImagePlus, XCircle } from "lucide-react";
+import { ArrowRight, CalendarCheck, Handshake, ImagePlus, XCircle } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
-import { getOwnBranding, getOwnMatches, getOwnProfile, getOwnReplies, getOwnStartup, logoUrlFor, type MailReply } from "@/server/data/founder";
+import { getOwnBranding, getOwnMatches, getOwnMeetings, getOwnProfile, getOwnReplies, getOwnStartup, logoUrlFor, type MailReply } from "@/server/data/founder";
 import { profileProgress } from "@/shared/lib/profile-fields";
 import {
   KpiCard,
@@ -22,7 +22,7 @@ import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
 import { PassedList, type PassedItem } from "@/client/components/founder/passed-list";
 import { profileView } from "@/client/components/founder/investor-format";
-import { TYPE_LABEL } from "./_components/model";
+import { TYPE_LABEL, interestedInvestorCount } from "./_components/model";
 import { formatDate } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -58,14 +58,17 @@ function typeLabelOf(type: string | null | undefined): string | null {
 
 export default async function FounderDashboard() {
   const { startupId } = await requireFounder();
-  const [matches, replies, s, branding, profile] = await Promise.all([
+  const [matches, replies, s, branding, profile, meetings] = await Promise.all([
     getOwnMatches(startupId),
     getOwnReplies(startupId),
     getOwnStartup(startupId),
     getOwnBranding(startupId),
     getOwnProfile(startupId),
+    getOwnMeetings(startupId),
   ]);
   const logoUrl = logoUrlFor(branding);
+  // Investors with at least one meeting, each counted once.
+  const interested = interestedInvestorCount(meetings);
   const progress = profileProgress(s, profile?.answers ?? null);
 
   // replies arrive newest-first; keep the latest reply, and the latest pass, per investor.
@@ -188,12 +191,20 @@ export default async function FounderDashboard() {
         </div>
       </div>
 
-      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Item>
           <KpiCard tone="accent" label="Investors Outreached" value={matches.length} icon={<Handshake className="h-4 w-4" />} hint="Fit by sector, stage and cheque" />
         </Item>
         <Item>
           <KpiCard label="Passed" value={passed.length} icon={<XCircle className="h-4 w-4" />} hint={passed.length ? "See reasons below" : "None so far"} />
+        </Item>
+        <Item>
+          <KpiCard
+            label="Interested investors"
+            value={interested}
+            icon={<CalendarCheck className="h-4 w-4" />}
+            hint={interested ? "Different investors you've had a meeting with" : "No meetings yet"}
+          />
         </Item>
       </Stagger>
 

@@ -1,13 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  activityFeed,
-  initialsOf,
-  investorMix,
-  matchStateSlices,
-  pipelineStages,
-  relativeTime,
-  weekPoints,
-} from "@/app/(founder)/dashboard/_components/model";
+import { activityFeed, initialsOf, investorMix, matchStateSlices, pipelineStages, relativeTime, weekPoints, interestedInvestorCount } from "@/app/(founder)/dashboard/_components/model";
 
 const match = (id: number, state: string, name: string | null, type = "vc") =>
   ({ id, state, created_at: "2026-10-01T00:00:00Z", investor: { id, name, type } }) as never;
@@ -114,5 +106,22 @@ describe("initialsOf", () => {
   it("handles names and blanks", () => {
     expect(initialsOf("Bon Cuisine Foods")).toBe("BC");
     expect(initialsOf(null)).toBe("?");
+  });
+});
+
+describe("interestedInvestorCount", () => {
+  const m = (investor_name: string | null, investor_id: number | null = null) => ({ investor_name, investor_id });
+  it("counts each investor once, whatever the spelling or how many meetings", () => {
+    expect(interestedInvestorCount([m("Demo Capital", 1), m("demo capital"), m("Demo Capital.", 1), m("Peak XV")])).toBe(2);
+  });
+  it("trusts the name over a wrong investor link", () => {
+    // Calendar rows titled for different investors but linked to the same id are different investors.
+    expect(interestedInvestorCount([m("Twice Saved Ventures", 7), m("Held Ventures", 7), m("Demo Capital", 7)])).toBe(3);
+  });
+  it("falls back to the id only when a meeting has no name, and skips rows with neither", () => {
+    expect(interestedInvestorCount([m(null, 9), m("", 9), m(null, 10), m(null, null)])).toBe(2);
+  });
+  it("is zero with no meetings", () => {
+    expect(interestedInvestorCount([])).toBe(0);
   });
 });
