@@ -48,11 +48,11 @@ test.describe("current round", () => {
     await expect(page.getByTitle("Add your company logo")).toHaveCount(0);
   });
   test("counts real meetings only: no duplicates, internal or cancelled", async ({ page }) => {
-    // 1 upcoming, Twice Saved, Left Side, Not Listed, list-named, Held.
+    // 1 upcoming, Twice Saved, Left Side, Not Listed, list-named, Held. Past ones count as held.
     const card = page.locator("div", { hasText: /^Meetings/ }).filter({ has: page.getByText("upcoming") }).first();
     await expect(card).toContainText("6");
     await expect(card).toContainText("1 upcoming");
-    await expect(card).toContainText("1 held");
+    await expect(card).toContainText("5 held");
   });
   test("the pipeline has no reached-out stage and no per-stage stats", async ({ page }) => {
     const pipeline = page.locator("section, div").filter({ has: page.getByText("Outreach pipeline", { exact: true }) }).last();

@@ -1,3 +1,5 @@
+import "server-only";
+
 export { count, type AdminKpis, getAdminKpis } from "./kpis";
 export { flattenMeetingJoins, getUpcomingMeetings, getRecentMeetings, listMeetings } from "./meetings";
 export {
