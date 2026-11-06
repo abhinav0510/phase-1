@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toFounderMeetings } from "@/server/data/meetings";
+import { toFounderMeetings, withPastMeetingsHeld } from "@/server/data/meetings";
 import type { Meeting } from "@/shared/types/db";
 
 let nextId = 1;
@@ -136,5 +136,27 @@ describe("duplicate meetings", () => {
     const input = row(title);
     run([input]);
     expect(input.investor_name).toBeNull();
+  });
+});
+
+describe("past meetings count as held", () => {
+  const now = Date.parse("2026-11-06T12:00:00Z");
+  const at = (scheduled_at: string | null, held: boolean | null = null) => row("A <> B", { scheduled_at, held });
+
+  it("marks a meeting held once its time has passed", () => {
+    expect(withPastMeetingsHeld([at("2026-11-06T11:00:00Z")], now)[0].held).toBe(true);
+  });
+  it("leaves upcoming meetings as they are", () => {
+    expect(withPastMeetingsHeld([at("2026-11-06T13:00:00Z")], now)[0].held).toBeNull();
+  });
+  it("leaves meetings with no time as they are", () => {
+    expect(withPastMeetingsHeld([at(null)], now)[0].held).toBeNull();
+  });
+  it("keeps a meeting already marked held", () => {
+    expect(withPastMeetingsHeld([at("2026-11-07T10:00:00Z", true)], now)[0].held).toBe(true);
+  });
+  it("never counts a cancelled meeting, because it is dropped before", () => {
+    const rows = toFounderMeetings([row("Bon Cuisine <> Northern Arc | Cancelled", { scheduled_at: "2026-10-01T05:30:00Z" })], "Bon Cuisine", names);
+    expect(withPastMeetingsHeld(rows, now)).toHaveLength(0);
   });
 });

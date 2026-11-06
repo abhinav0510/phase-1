@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Globe2, Wallet, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Avatar } from "./ui";
+import { Avatar } from "@/client/components/founder/ui";
 import type { ProfileView } from "./investor-format";
 
 export interface PassedItem {
