@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sidana Founder Login</title>
+<meta name="description" content="Design reference: the founder sign-in screen for svdealflow.io, in the same look as the simple landing page.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Manrope:wght@500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Same light palette as the landing page: the form in a white card, a quiet product panel beside it. */
+    --paper: #ffffff;
+    --canvas: #f4f8fc;
+    --ink: #0d2c48;
+    --ink-70: rgba(13, 44, 72, .72);
+    --ink-50: rgba(13, 44, 72, .52);
+    --line: rgba(13, 44, 72, .10);
+    --blue: #0a6ab0;
+    --blue-deep: #0b568f;
+    --blue-tint: #eef7fd;
+    --leaf: #4fb13b;
+    --leaf-deep: #3c8f2d;
+    --leaf-tint: #f1fbee;
+    --display: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+    --body: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --gutter: clamp(16px, 5vw, 64px);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--canvas); color: var(--ink); font-family: var(--body); line-height: 1.55; -webkit-font-smoothing: antialiased; display: grid; grid-template-rows: auto 1fr auto; }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; }
+
+  .top { background: var(--paper); border-bottom: 1px solid var(--line); }
+  .top .wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; }
+  .brand img { width: 36px; height: 36px; }
+  .brand b { font: 800 1.1rem/1 var(--display); letter-spacing: -.03em; display: block; }
+  .brand small { display: block; margin-top: .25rem; font: 500 .6rem/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-50); }
+  .back { font-size: .9rem; font-weight: 600; color: var(--ink-70); text-decoration: none; }
+  .back:hover { color: var(--blue); }
+
+  main { display: grid; place-items: center; padding: clamp(1.5rem, 4vh, 3rem) var(--gutter); }
+  .panel { width: min(1040px, 100%); display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 30px 80px rgba(13, 44, 72, .10); }
+  .form { padding: clamp(1.75rem, 4vw, 3rem); display: grid; gap: 1.2rem; align-content: center; }
+  .eyebrow { margin: 0; font: 500 .66rem/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--blue); }
+  h1 { margin: 0; font: 800 clamp(1.8rem, 3vw, 2.4rem)/1.05 var(--display); letter-spacing: -.03em; }
+  .sub { margin: 0; color: var(--ink-70); font-size: .95rem; }
+  .field { display: grid; gap: .45rem; }
+  .field label { font-size: .84rem; font-weight: 700; }
+  .control { position: relative; }
+  .control svg { position: absolute; left: .95rem; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); stroke: var(--ink-50); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .control input { width: 100%; height: 50px; padding: 0 2.9rem; border-radius: 12px; border: 1px solid rgba(13, 44, 72, .16); background: var(--paper); font: 500 .95rem var(--body); color: var(--ink); outline: none; transition: border-color .2s, box-shadow .2s; }
+  .control input::placeholder { color: var(--ink-50); }
+  .control input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(10, 106, 176, .15); }
+  .eye { position: absolute; right: .55rem; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: var(--ink-50); cursor: pointer; display: grid; place-items: center; }
+  .eye svg { position: static; transform: none; width: 18px; height: 18px; }
+  .btn { height: 52px; border: 0; border-radius: 999px; background: var(--blue); color: #fff; font: 700 1rem/1 var(--body); display: inline-flex; align-items: center; justify-content: center; gap: .6rem; cursor: pointer; box-shadow: 0 10px 24px rgba(10, 106, 176, .25); transition: transform .25s cubic-bezier(.19,1,.22,1), background .2s; }
+  .btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .btn:hover { background: var(--blue-deep); transform: translateY(-1px); }
+  .btn:focus-visible, .eye:focus-visible { outline: 3px solid var(--leaf); outline-offset: 3px; }
+  .help { margin: 0; text-align: center; font-size: .85rem; color: var(--ink-50); }
+  .help a { color: var(--ink-70); text-decoration: underline; text-underline-offset: 3px; }
+  .mock { margin: 0; text-align: center; font: 500 .6rem/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-50); }
+
+  /* Right: what's behind the sign-in, so the screen isn't an empty form. */
+  .aside { position: relative; background: linear-gradient(160deg, var(--blue-tint), var(--leaf-tint)); padding: clamp(1.75rem, 4vw, 3rem) 0 0 clamp(1.75rem, 4vw, 3rem); display: grid; grid-template-rows: auto 1fr; gap: 1.25rem; overflow: hidden; }
+  .aside h2 { margin: 0; font: 800 clamp(1.25rem, 2vw, 1.6rem)/1.15 var(--display); letter-spacing: -.03em; max-width: 22ch; }
+  .aside h2 .grad { background: linear-gradient(90deg, var(--blue), var(--leaf)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .aside ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .82rem; color: var(--ink-70); }
+  .aside li::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--leaf); margin-right: .45rem; vertical-align: middle; }
+  .aside .frame { align-self: end; border-radius: 12px 0 0 0; border: 1px solid var(--line); border-right: 0; border-bottom: 0; background: var(--paper); box-shadow: 0 20px 60px rgba(13, 44, 72, .14); overflow: hidden; aspect-ratio: 16 / 9; }
+  .aside .frame img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+
+  footer { padding: 1.25rem var(--gutter); text-align: center; font: 500 .68rem/1.6 var(--mono); letter-spacing: .06em; color: var(--ink-50); }
+
+  @media (max-width: 860px) {
+    .panel { grid-template-columns: 1fr; }
+    .aside { display: none; }
+    .brand small { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Sidana Ventures">
+      <img src="data:image/png;base64,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" alt="">
+      <span><b>Sidana Ventures</b><small>Founder portal</small></span>
+    </a>
+    <a class="back" href="index.html">&larr; Back to site</a>
+  </div>
+</header>
+
+<main>
+  <div class="panel">
+    <form class="form" onsubmit="event.preventDefault()" aria-labelledby="title">
+      <p class="eyebrow">Founder portal</p>
+      <h1 id="title">Founder login</h1>
+      <p class="sub">Sign in with your Login ID or the email on file with Sidana.</p>
+      <div class="field">
+        <label for="login-id">Email or Login ID</label>
+        <div class="control">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 1 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+          <input id="login-id" name="loginId" type="text" placeholder="you@startup.com or 42" autocomplete="username">
+        </div>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="control">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password">
+          <button class="eye" type="button" aria-label="Show password"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg></button>
+        </div>
+      </div>
+      <button class="btn" type="submit">Sign in <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <p class="help">Trouble signing in? <a href="mailto:investors@sidanaventures.com">Contact the Sidana team</a>.<br>Your Login ID and password come from the Sidana team.</p>
+      <p class="mock">Design mock-up: the form doesn&rsquo;t sign in</p>
+    </form>
+
+    <aside class="aside" aria-label="What's inside">
+      <div>
+        <h2>We do the Match. <span class="grad">You Get the Fund.</span></h2>
+        <ul><li>Real-time updates</li><li>Exact thesis matching</li><li>Email notifications</li><li>Meeting invites</li><li>Financial track</li></ul>
+      </div>
+      <div class="frame"><img src="screens/dashboard.jpg" alt="" width="2160" height="1350"></div>
+    </aside>
+  </div>
+</main>
+
+<footer>&copy; 2026 Sidana Ventures LLP &middot; investors@sidanaventures.com</footer>
+</body>
+</html>

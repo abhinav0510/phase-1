@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sidana Simple Landing</title>
+<meta name="description" content="Design reference for svdealflow.io: a simple landing page with the headline, real portal screens, Sidana's services and an FAQ.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Manrope:wght@500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Light, plain page in the portal's own colours: navy text, logo blue and green as the accents. */
+    --paper: #ffffff;
+    --canvas: #f4f8fc;
+    --ink: #0d2c48;
+    --ink-70: rgba(13, 44, 72, .72);
+    --ink-50: rgba(13, 44, 72, .52);
+    --line: rgba(13, 44, 72, .10);
+    --blue: #0a6ab0;
+    --blue-deep: #0b568f;
+    --blue-tint: #eef7fd;
+    --leaf: #4fb13b;
+    --leaf-deep: #3c8f2d;
+    --leaf-tint: #f1fbee;
+    --display: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+    --body: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --gutter: clamp(16px, 5vw, 64px);
+    --max: 1180px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; overflow-x: clip; background: var(--paper); color: var(--ink); font-family: var(--body); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+  .eyebrow { margin: 0 0 .9rem; font: 500 .68rem/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--blue); }
+  h1, h2, h3 { font-family: var(--display); letter-spacing: -.03em; text-wrap: balance; margin: 0; overflow-wrap: anywhere; }
+  h2 { font-size: clamp(1.7rem, 3.2vw, 2.6rem); font-weight: 800; line-height: 1.08; }
+  h3 { font-size: 1.1rem; font-weight: 700; }
+  .lead { font-size: clamp(1rem, 1.25vw, 1.15rem); color: var(--ink-70); max-width: 58ch; }
+  .btn { display: inline-flex; align-items: center; gap: .55rem; white-space: nowrap; padding: .85rem 1.4rem; border-radius: 999px; font: 700 .95rem/1 var(--body); text-decoration: none; border: 1.5px solid transparent; transition: transform .25s cubic-bezier(.19,1,.22,1), background .2s, color .2s, border-color .2s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 10px 24px rgba(10, 106, 176, .25); }
+  .btn-primary:hover { background: var(--blue-deep); }
+  .btn-ghost { border-color: var(--line); color: var(--ink); background: var(--paper); }
+  .btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+  .btn:focus-visible { outline: 3px solid var(--leaf); outline-offset: 3px; }
+
+  /* Top bar: logo and the one button. */
+  .top { position: sticky; top: 0; z-index: 10; background: rgba(255, 255, 255, .88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: 68px; }
+  .brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; }
+  .brand img { width: 36px; height: 36px; }
+  .brand b { font: 800 1.1rem/1 var(--display); letter-spacing: -.03em; display: block; }
+  .brand small { display: block; margin-top: .25rem; font: 500 .6rem/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-50); }
+
+  /* Hero */
+  .hero { padding: clamp(3rem, 7vw, 5.5rem) 0 0; overflow-x: clip; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(1.5rem, 4vw, 4rem); align-items: end; }
+  h1 { font-size: clamp(2.6rem, 6.4vw, 5.2rem); font-weight: 800; line-height: 1.02; }
+  h1 .grad { background: linear-gradient(90deg, var(--blue) 0%, var(--leaf) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .lead { margin: 1.4rem 0 0; }
+  .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.75rem; }
+  .hero-note { margin: 1rem 0 0; font-size: .82rem; color: var(--ink-50); }
+  .shot { position: relative; margin-top: clamp(2.5rem, 5vw, 4rem); padding: 0 0 clamp(2rem, 5vw, 4rem); }
+  .shot::before { content: ""; position: absolute; inset: 40% -10vw 0; background: linear-gradient(180deg, var(--blue-tint), var(--leaf-tint)); z-index: -1; }
+  .frame { border-radius: 16px; border: 1px solid var(--line); background: var(--paper); box-shadow: 0 30px 80px rgba(13, 44, 72, .18); overflow: hidden; }
+  .frame .bar { display: flex; align-items: center; gap: .4rem; height: 34px; padding: 0 .9rem; border-bottom: 1px solid var(--line); background: #fbfcfe; }
+  .frame .bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .frame .bar span { margin-left: .6rem; font: 500 .68rem/1 var(--mono); color: var(--ink-50); }
+
+  /* Stats, outlined like the reference */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: -1rem; }
+  .stat { position: relative; padding: 1.6rem 1.5rem; border: 1px dashed rgba(10, 106, 176, .35); background: var(--paper); }
+  .stat::before, .stat::after { content: ""; position: absolute; width: 7px; height: 7px; background: var(--leaf); }
+  .stat::before { left: -4px; top: -4px; } .stat::after { right: -4px; bottom: -4px; }
+  .stat b { display: block; font: 800 clamp(1.6rem, 2.8vw, 2.4rem)/1 var(--display); letter-spacing: -.03em; color: var(--blue); }
+  .stat span { display: block; margin-top: .5rem; color: var(--ink-70); font-size: .92rem; }
+
+  /* Sections */
+  section { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .section-head { max-width: 46rem; margin-bottom: clamp(2rem, 4vw, 3rem); }
+  .section-head p { margin: .9rem 0 0; color: var(--ink-70); }
+  .screens { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .screen { margin: 0; }
+  .screen .frame { aspect-ratio: 16 / 10; }
+  .screen .frame img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+  .screen figcaption { margin-top: .9rem; font-size: .9rem; color: var(--ink-70); }
+  .screen figcaption b { display: block; margin-bottom: .25rem; font: 700 1rem/1.3 var(--display); letter-spacing: -.02em; color: var(--ink); }
+  @media (max-width: 900px) { .screens { grid-template-columns: 1fr; } }
+
+  /* Key features strip */
+  .key { padding-top: 0; }
+  .key-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+  .key-card { border: 1px solid var(--line); border-radius: 16px; padding: 1.3rem 1.2rem 1.4rem; background: var(--paper); }
+  .key-card .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--leaf-tint); color: var(--leaf-deep); margin-bottom: .9rem; }
+  .key-card .ic svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .key-card h3 { font-size: 1rem; }
+  .key-card p { margin: .45rem 0 0; font-size: .88rem; color: var(--ink-70); }
+  @media (max-width: 1100px) { .key-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px) { .key-grid { grid-template-columns: 1fr; } }
+
+  .services { background: var(--canvas); }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem 1.4rem 1.5rem; }
+  .card .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--blue-tint); color: var(--blue); margin-bottom: 1rem; }
+  .card .ic svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .card p { margin: .5rem 0 0; font-size: .92rem; color: var(--ink-70); }
+
+  .promise { background: var(--ink); color: #fff; }
+  .promise .eyebrow { color: var(--leaf); }
+  .promise h2 { color: #fff; }
+  .lines { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem 2rem; margin-top: 2rem; }
+  .lines div { padding: 1.1rem 1.25rem; border-left: 2px solid var(--leaf); background: rgba(255, 255, 255, .05); border-radius: 0 12px 12px 0; }
+  .lines small { display: block; color: rgba(255, 255, 255, .62); font-size: .92rem; }
+  .lines b { display: block; margin-top: .25rem; font: 700 1.15rem/1.3 var(--display); letter-spacing: -.02em; }
+  .promise .sign { margin: 2rem 0 0; color: rgba(255, 255, 255, .62); }
+
+  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .quote { border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem; display: grid; gap: 1rem; align-content: space-between; }
+  .quote p { margin: 0; font-size: 1rem; color: var(--ink); }
+  .quote footer { font-size: .85rem; color: var(--ink-50); }
+  .quote footer b { color: var(--ink); font-weight: 700; display: block; }
+
+  .faq { background: var(--canvas); }
+  .faq-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+  .faq-grid .lead { margin-top: .9rem; }
+  .faq-grid .actions { margin-top: 1.25rem; }
+  details { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 0 1.25rem; }
+  details + details { margin-top: .6rem; }
+  summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.05rem 0; font-weight: 700; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; font: 700 1.2rem/1 var(--display); color: var(--blue); transition: transform .2s; flex: none; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { margin: 0 0 1.1rem; color: var(--ink-70); }
+
+  footer.site { border-top: 1px solid var(--line); padding: 2.5rem 0 2rem; }
+  footer.site .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; align-items: flex-start; }
+  footer.site p { margin: .6rem 0 0; max-width: 34ch; color: var(--ink-70); font-size: .92rem; }
+  footer.site nav { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; font-size: .9rem; }
+  footer.site nav a { color: var(--ink-70); text-decoration: none; }
+  footer.site nav a:hover { color: var(--blue); }
+  footer.site .fine { margin-top: 2rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; font: 500 .68rem/1.6 var(--mono); letter-spacing: .06em; color: var(--ink-50); }
+
+  @media (max-width: 900px) {
+    .hero-grid, .faq-grid { grid-template-columns: 1fr; }
+    .stats, .cards, .quotes, .lines { grid-template-columns: 1fr; }
+    .stats { margin-top: 0; }
+    .brand small { display: none; }
+    .brand b { font-size: 1rem; white-space: nowrap; }
+    .top .btn { padding: .7rem 1rem; font-size: .88rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn { transition: none; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Sidana Ventures">
+      <img src="data:image/png;base64,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" alt="">
+      <span><b>Sidana Ventures</b><small>Founder portal</small></span>
+    </a>
+    <a class="btn btn-primary" href="login.html">Founder login <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Fundraising advisory &middot; Investor relations &middot; Family office</p>
+          <h1>We do the Match.<br><span class="grad">You Get the Fund.</span></h1>
+        </div>
+        <div>
+          <p class="lead">We help founders scale and raise funds from our network of family offices, angel groups and VCs. We are boundary-less and sector-agnostic, and bring any kind of capital, grant, debt or equity, to support founders.</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="login.html">Founder login <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <p class="hero-note">Founders get their Login ID and password from the Sidana team.</p>
+        </div>
+      </div>
+      <div class="shot">
+        <div class="frame">
+          <div class="bar" aria-hidden="true"><i></i><i></i><i></i><span>svdealflow.io/dashboard</span></div>
+          <img src="screens/dashboard.jpg" alt="The founder dashboard: current ask, allocation left, investor matches, meetings and the outreach pipeline." width="2160" height="1350">
+        </div>
+      </div>
+      <div class="stats" aria-label="How Sidana works with founders">
+        <div class="stat"><b>24 months</b><span>Our standard agreement, through multiple rounds of funding</span></div>
+        <div class="stat"><b>4&ndash;6 weeks</b><span>From onboarding to your first investor connects</span></div>
+        <div class="stat"><b>India &middot; USA &middot; Europe &middot; Japan</b><span>Family offices, angel groups and VCs in our network</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="key" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Key features</p>
+        <h2>What you get with Sidana.</h2>
+      </div>
+      <div class="key-grid">
+        <div class="key-card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 6v6l4 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"/></svg></div><h3>Real-time updates</h3><p>Every match, outreach and investor reply shows on your dashboard as Sidana's desk logs it. No waiting for a report.</p></div>
+        <div class="key-card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div><h3>Exact thesis matching</h3><p>Investors matched on sector, stage, cheque size, geography and their own mandate, so every introduction fits.</p></div>
+        <div class="key-card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 7l9 6 9-6"/></svg></div><h3>Email notifications</h3><p>Updates and announcements from the Sidana team reach your inbox, and stay in the portal to read any time.</p></div>
+        <div class="key-card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 5h16v15H4zM4 9h16M8 3v4M16 3v4M9 14l2 2 4-4"/></svg></div><h3>Meeting invites</h3><p>Investor meetings Sidana sets up land on your calendar, with the join link and the investor's details in the portal.</p></div>
+        <div class="key-card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 19h16M6 16l4-5 4 3 5-7"/></svg></div><h3>Financial track for investors</h3><p>Upload your figures once. Revenue, MRR and expenses are charted and ready to show, in rupees.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="portal">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Inside the founder portal</p>
+        <h2>Real screens from the portal every founder signs in to.</h2>
+      </div>
+      <div class="screens">
+        <figure class="screen">
+          <div class="frame"><img src="screens/investors.jpg" alt="Investors and matches" width="2160" height="1350"></div>
+          <figcaption><b>Exact thesis matching</b>Every investor matched to you, with their cheque size, geography, sectors and stages, where they stand, and the reason when one passes.</figcaption>
+        </figure>
+        <figure class="screen">
+          <div class="frame"><img src="screens/financials.jpg" alt="Financials page with charts" width="2160" height="1350"></div>
+          <figcaption><b>Financial track for investors</b>Annual and monthly revenue, revenue against expenses and revenue by year, charted from the figures you upload.</figcaption>
+        </figure>
+        <figure class="screen">
+          <div class="frame"><img src="screens/meetings.jpg" alt="Meetings page" width="2160" height="1350"></div>
+          <figcaption><b>Meeting invites</b>Past and upcoming investor meetings Sidana has arranged, with the details and the join link for each one.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="services" id="services">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Our services</p>
+        <h2>Raising every kind of capital, and supporting you to scale.</h2>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M14 7h7v7"/></svg></div><h3>Equity funding</h3><p>We connect startups with family office angels, venture capital firms and global investors from the USA and Europe, backing unique and futuristic ideas that drive innovation.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8h7a3 3 0 0 1 0 6H8a3 3 0 0 0 0 6h9"/></svg></div><h3>Debt funding</h3><p>Fast, flexible debt funding through alliances with NBFCs, lenders and syndicates, so founders access capital quickly for growth, working capital or bridge rounds without equity dilution.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20h16M6 16V9M12 16V5M18 16v-3"/></svg></div><h3>Pre-IPO investments</h3><p>End-to-end Pre-IPO investment solutions, from compliance readiness to funding support, helping companies increase profitability and achieve stronger valuations before going public.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 9h8M8 13h5"/></svg></div><h3>Preparation for funding</h3><p>Raising funds is one of the most critical milestones for any startup. We prepare founders to convince investors that their vision, team and business model can create lasting value.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></div><h3>Financial and compliance</h3><p>End-to-end financial and compliance support through our team of expert CAs and CSs, keeping startups investor-ready, compliant and strategically aligned for growth.</p></div>
+        <div class="card"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7l7-4 7 4M3 12h6l-3-5zM15 12h6l-3-5z"/></svg></div><h3>Legal support</h3><p>Dedicated legal support through expert lawyers on our panel, helping startups navigate challenges, compliance and contracts in today's competitive environment.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="promise">
+    <div class="wrap">
+      <p class="eyebrow">Why founders choose Sidana</p>
+      <h2>&ldquo;We believe in founders, not just in ideas.&rdquo;</h2>
+      <div class="lines">
+        <div><small>If you are not getting the lead investor</small><b>We are the lead.</b></div>
+        <div><small>If your business is going into a toss, for any reason</small><b>We will pick up your call.</b></div>
+        <div><small>If your equity round is not closed from the last 6 months</small><b>We will do the bridge round.</b></div>
+        <div><small>We are not just a bunch of investors</small><b>We are supporters of every founder.</b></div>
+      </div>
+      <p class="sign">Sidana Ventures is founded by the family of Rakesh Sidana. A family office of investment advisory and financial consulting, working closely with founders.</p>
+    </div>
+  </section>
+
+  <section id="partners">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Our partners</p>
+        <h2>We do not make clients, we make partners.</h2>
+      </div>
+      <div class="quotes">
+        <blockquote class="quote"><p>&ldquo;It's long time working with the team. VC network really helped us to close bridge rounds in equity and debt.&rdquo;</p><footer><b>Yashwant</b>Founder, HOORA</footer></blockquote>
+        <blockquote class="quote"><p>&ldquo;Getting an investor from Switzerland is a great achievement for us using Sidana Ventures' global investors network.&rdquo;</p><footer><b>Tushar</b>Founder, VAANI.ai</footer></blockquote>
+        <blockquote class="quote"><p>&ldquo;Pre-IPO investments and consulting services are a great offering by the team.&rdquo;</p><footer><b>Ankit</b>Paper Arizona</footer></blockquote>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq" id="faq">
+    <div class="wrap faq-grid">
+      <div>
+        <p class="eyebrow">FAQ</p>
+        <h2>Frequently asked questions</h2>
+        <p class="lead">Still have questions? Write to the team at investors@sidanaventures.com.</p>
+      </div>
+      <div>
+        <details open><summary>After signing an agreement, how long does Sidana Ventures work with startups?</summary><p>Our standard agreement is for 24 months (2 years), during which we actively support founders in securing multiple rounds of funding as per their business needs.</p></details>
+        <details><summary>How does Sidana Ventures bring the right investors for startups?</summary><p>We have a strong network of global investors, family offices, venture capitalists and angel groups across diverse sectors. By understanding each founder's requirements, we connect them with investors who specialise in their industry, ensuring the right strategic fit and funding support.</p></details>
+        <details><summary>After onboarding, how much time does Sidana Ventures take to connect startups with investors?</summary><p>Once a startup is onboarded, our team typically takes 4 to 6 weeks to prepare founders with pitch readiness, compliance and financial structuring before connecting them with suitable investors.</p></details>
+        <details><summary>How many companies has Sidana Ventures successfully funded?</summary><p>Sidana Ventures has facilitated funding for numerous startups. See the portfolio on our <a href="https://sidanaventures.com/family/portfolio.php">Startups page</a>.</p></details>
+        <details><summary>Why should startups choose Sidana Ventures?</summary><p>Sidana Ventures offers startups access to a global network of investors, angel groups and venture capitalists. We believe fundraising is not an endpoint but a step towards long-term success. Our team works closely with founders at every stage, providing guidance, mentorship and strategic support to build their growth path and achieve their business goals.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <a class="brand" href="#top" aria-label="Sidana Ventures"><img src="data:image/png;base64,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" alt=""><span><b>Sidana Ventures</b></span></a>
+        <p>A family office of investment advisory and financial consulting. We help founders raise funds and advise them on scaling the business.</p>
+      </div>
+      <nav aria-label="Sidana Ventures">
+        <a href="https://sidanaventures.com/family/aboutus.php">About us</a>
+        <a href="https://sidanaventures.com/family/portfolio.php">Startups</a>
+        <a href="https://sidanaventures.com/family/blogs.php">SV Sharks</a>
+        <a href="https://sidanaventures.com/family/services.php">Services</a>
+        <a href="https://www.linkedin.com/company/sidanaventures/">LinkedIn</a>
+        <a href="mailto:investors@sidanaventures.com">investors@sidanaventures.com</a>
+      </nav>
+    </div>
+    <div class="fine">
+      <span>&copy; 2026 Sidana Ventures LLP</span>
+      <span><a href="https://sidanaventures.com/family/privacy-policiy.php">Privacy policy</a> &middot; <a href="https://sidanaventures.com/family/terms-condition.php">Terms &amp; conditions</a></span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

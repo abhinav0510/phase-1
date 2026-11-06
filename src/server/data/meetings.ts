@@ -87,3 +87,16 @@ export function toFounderMeetings(
   }
   return [...byMeeting.values()];
 }
+
+/**
+ * A meeting still on the calendar (cancelled ones were dropped above) counts as
+ * held once its time has passed. Applied per request, outside the cache, so a
+ * meeting turns Held as soon as it is over rather than when the cache expires.
+ */
+export function withPastMeetingsHeld(meetings: Meeting[], now: number): Meeting[] {
+  return meetings.map((m) => {
+    if (m.held) return m;
+    const at = m.scheduled_at ? Date.parse(m.scheduled_at) : NaN;
+    return Number.isFinite(at) && at < now ? { ...m, held: true } : m;
+  });
+}

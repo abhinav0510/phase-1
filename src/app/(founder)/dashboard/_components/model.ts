@@ -189,3 +189,29 @@ export function initialsOf(name: string | null | undefined): string {
     .map((w) => w[0]?.toUpperCase() ?? "")
     .join("");
 }
+
+const investorKey = (name: string | null | undefined) => (name ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/**
+ * How many different investors the founder has had at least one meeting with, scheduled
+ * or past. `meetings` is the founder's cleaned list (internal, rehearsal and cancelled
+ * meetings already dropped, duplicates merged). An investor counts once by name, ignoring
+ * case and punctuation. The investor id is only a fallback for a meeting with no name:
+ * calendar rows are sometimes linked to the wrong investor, so the title-derived name wins.
+ */
+export function interestedInvestorCount(meetings: Pick<Meeting, "investor_id" | "investor_name">[]): number {
+  return interestedInvestorNames(meetings).length;
+}
+
+export function interestedInvestorNames(meetings: Pick<Meeting, "investor_id" | "investor_name">[]): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const m of meetings) {
+    const key = investorKey(m.investor_name);
+    const dedup = key ? `n:${key}` : m.investor_id != null ? `i:${m.investor_id}` : null;
+    if (!dedup || seen.has(dedup)) continue;
+    seen.add(dedup);
+    names.push(m.investor_name ?? `Investor #${m.investor_id}`);
+  }
+  return names;
+}

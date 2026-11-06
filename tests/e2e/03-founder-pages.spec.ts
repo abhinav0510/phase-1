@@ -6,6 +6,11 @@ test.describe("dashboard", () => {
   test("greets the founder, then shows their investors and matches", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1, name: /Welcome back/ })).toBeVisible();
     await expect(page.getByText("Investors Outreached")).toBeVisible();
+    // Different investors with at least one meeting: Demo Capital, Twice Saved, Left Side,
+    // Not Listed, Queue Ventures and Held Ventures. Internal, Sharks, cancelled and Sidana
+    // meetings don't count, and a wrong investor link on a row doesn't merge investors.
+    const interested = page.locator("div", { hasText: /^Interested investors/ }).filter({ hasText: "meeting with" }).last();
+    await expect(interested).toContainText("6");
     await expect(page.getByText("Matched investors")).toHaveCount(0);
     // No separate "Reached out" card; the filter tab of that name stays.
     await expect(page.locator("main").getByText("Introduced by Sidana")).toHaveCount(0);
@@ -43,11 +48,11 @@ test.describe("current round", () => {
     await expect(page.getByTitle("Add your company logo")).toHaveCount(0);
   });
   test("counts real meetings only: no duplicates, internal or cancelled", async ({ page }) => {
-    // 1 upcoming, Twice Saved, Left Side, Not Listed, list-named, Held.
+    // 1 upcoming, Twice Saved, Left Side, Not Listed, list-named, Held. Past ones count as held.
     const card = page.locator("div", { hasText: /^Meetings/ }).filter({ has: page.getByText("upcoming") }).first();
     await expect(card).toContainText("6");
     await expect(card).toContainText("1 upcoming");
-    await expect(card).toContainText("1 held");
+    await expect(card).toContainText("5 held");
   });
   test("the pipeline has no reached-out stage and no per-stage stats", async ({ page }) => {
     const pipeline = page.locator("section, div").filter({ has: page.getByText("Outreach pipeline", { exact: true }) }).last();

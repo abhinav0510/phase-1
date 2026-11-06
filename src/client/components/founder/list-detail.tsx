@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/shared/lib/utils";
-import { Avatar, CHIP_DOT, TintPanel, type ChipTone } from "./ui";
+import { Avatar, CHIP_DOT, TintPanel, type ChipTone } from "@/client/components/founder/ui";
 import { PillTabs, type PillTab } from "./pill-tabs";
 
 export interface ListItem {
