@@ -1,4 +1,7 @@
-import { asFounder, asTeam, expect, failTable, ID, state, test } from "./helpers";
+import { asFounder, asTeam, expect, failTable, ID, MOCK, state, test } from "./helpers";
+import { USER } from "../mock/seed.mjs";
+
+const USER_GAMMA = USER.gamma;
 
 const profile = async (id: number) => (await state("startup_profiles")).find((p) => p.startup_id === id);
 
@@ -72,5 +75,118 @@ test.describe("submissions stay visible to the team", () => {
     await page.getByRole("link", { name: /Founder profile/ }).click();
     await expect(page).toHaveURL(new RegExp(`/admin/profiles/${ID.epsilon}$`));
     await expect(page.locator("main")).toContainText("Demo fintech one-liner");
+  });
+});
+
+// Clicking a startup's name shows the team everything the founder has filled in.
+test.describe("founder profile on the startup page", () => {
+  test("shows every profile answer beside the record, and the founder's sign-in status", async ({ page, browser }) => {
+    // The founder signs in once, so their last sign-in is known.
+    const founder = await browser.newPage();
+    await asFounder(founder, ID.epsilon);
+    await founder.close();
+
+    await asTeam(page);
+    await page.goto("/admin/startups");
+    await settle(page);
+    await expect(page.getByRole("link", { name: "Demo Epsilon Fintech" }).first()).toHaveAttribute("href", `/admin/startups/${ID.epsilon}`);
+    await page.goto(`/admin/startups/${ID.epsilon}`);
+
+    const section = page.locator("#founder-profile");
+    await expect(section).toContainText("Founder profile");
+    await expect(section).toContainText(/\d+ of \d+ details complete/);
+    for (const title of ["company", "team", "financials", "round"]) {
+      await expect(section.locator(`[data-profile-section="${title}"]`)).toBeVisible();
+    }
+    await expect(section.locator('[data-field="one_liner"]')).toContainText("Demo fintech one-liner");
+    await expect(section).toContainText("Login ID");
+    await expect(section).toContainText("Changed by the founder");
+    await expect(section).not.toContainText("Never signed in");
+    await expect(section.getByRole("link", { name: /Open review/ })).toHaveAttribute("href", `/admin/profiles/${ID.epsilon}`);
+  });
+
+  test("a founder who hasn't started still shows the questions, their emails and the one-time password", async ({ page }) => {
+    // Earlier tests may have had this founder choose a password; put them back on the one-time one.
+    await fetch(`${MOCK}/auth/v1/admin/users/${USER_GAMMA}`, {
+      method: "PUT",
+      headers: { apikey: "test-service-role-key", Authorization: "Bearer test-service-role-key", "Content-Type": "application/json" },
+      body: JSON.stringify({ app_metadata: { must_reset: true } }),
+    });
+    await asTeam(page);
+    await page.goto(`/admin/startups/${ID.gamma}`);
+    await settle(page);
+    const section = page.locator("#founder-profile");
+    await expect(section).toContainText("hasn't started their profile yet");
+    await expect(section.locator("[data-field]").first()).toBeVisible();
+    await expect(section).toContainText("Still on the one-time password");
+
+    await page.goto(`/admin/startups/${ID.alpha}`);
+    await expect(page.locator("#founder-profile")).toContainText("alpha.founder@demo.test");
+  });
+});
+
+test.describe("deals shared on the startup page", () => {
+  test("lists every investor the deal went to, with their reply and meeting", async ({ page }) => {
+    await asTeam(page);
+    await page.goto(`/admin/startups/${ID.alpha}`);
+    await settle(page);
+    const deals = page.locator("#deal-shares");
+    await expect(deals).toContainText("Deals shared with investors");
+    await expect(deals).toContainText(/Shared with 3 investors · 2 replied/);
+    const totals = deals.locator("[data-deal-totals]");
+    await expect(totals).toContainText("Deals shared3");
+    await expect(totals).toContainText("Investors interested1");
+    await expect(totals).toContainText("Passed1");
+    await expect(deals.locator(".recharts-wrapper")).toHaveCount(1);
+    const row = (name: RegExp) => deals.locator("tr", { hasText: name });
+    await expect(row(/Demo Capital/)).toContainText("Asked to meet");
+    await expect(row(/Demo Capital/)).toContainText("Scheduled");
+    await expect(row(/Demo Capital/)).toContainText("Happy to meet");
+    await expect(deals).toContainText("Passed");
+    await expect(deals).toContainText("Too early for our fund right now");
+    await expect(deals).toContainText("No reply yet");
+    // The donut's legend filters the table to one reply type, and back.
+    await deals.getByRole("button", { name: /^Passed/ }).click();
+    await expect(deals.locator("tbody tr")).toHaveCount(1);
+    await expect(deals.locator("tbody")).toContainText("Too early for our fund right now");
+    await deals.getByRole("button", { name: "Show all" }).click();
+    await expect(deals.locator("tbody tr")).toHaveCount(3);
+    // Another startup's emails never show here.
+    await expect(deals).not.toContainText("BETA-SECRET-MARKER");
+  });
+
+  test("a startup with no emails says so", async ({ page }) => {
+    await asTeam(page);
+    await page.goto(`/admin/startups/${ID.gamma}`);
+    await expect(page.locator("#deal-shares")).toContainText("hasn't been shared with any investor yet");
+  });
+});
+
+test.describe("meetings on the startup page", () => {
+  test("are split into Scheduled and Past, without internal or cancelled ones", async ({ page }) => {
+    await asTeam(page);
+    await page.goto(`/admin/startups/${ID.alpha}`);
+    await settle(page);
+    const meetings = page.locator("#meetings");
+    await expect(meetings.getByRole("tab", { name: /Scheduled 1/ })).toHaveAttribute("aria-selected", "true");
+    await expect(meetings.locator("tbody tr")).toHaveCount(1);
+    await expect(meetings.locator("tbody")).toContainText("Demo Capital");
+    await expect(meetings.getByRole("link", { name: "Join" })).toBeVisible();
+
+    await meetings.getByRole("tab", { name: /Past/ }).click();
+    await expect(meetings.getByRole("tab", { name: /Past/ })).toHaveAttribute("aria-selected", "true");
+    await expect(meetings.locator("tbody")).toContainText("Held");
+    await expect(meetings.locator("tbody")).not.toContainText(/Internal|Sharks|Cancelled/i);
+    await expect(meetings.getByRole("link", { name: "Join" })).toHaveCount(0);
+  });
+});
+
+test.describe("pitch deck on the startup page", () => {
+  test("shows the deck link investors receive", async ({ page }) => {
+    await asTeam(page);
+    await page.goto(`/admin/startups/${ID.alpha}`);
+    await expect(page.locator("[data-deck]")).toContainText("https://bit.ly/demo-alpha");
+    await page.goto(`/admin/startups/${ID.gamma}`);
+    await expect(page.locator("[data-deck]")).toContainText("No deck link in the sheet");
   });
 });

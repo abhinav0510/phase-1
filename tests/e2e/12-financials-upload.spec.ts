@@ -97,6 +97,18 @@ test.describe("financials template", () => {
     await page.goto(`/admin/startups/${ID.zeta}`);
     await expect(page.getByText("Figures from the founder's template")).toBeVisible();
     await expect(page.getByRole("cell", { name: "₹2.70 Cr" })).toBeVisible();
+    // The same graphs the founder sees on their Financials page.
+    const graphs = page.locator("#founder-graphs");
+    await expect(graphs).toContainText("Founder's financial graphs");
+    await expect(graphs).toContainText("latest MRR");
+    await expect(graphs.locator(".recharts-wrapper").first()).toBeVisible();
+  });
+
+  test("a startup with no uploaded figures says so instead of empty graphs", async ({ page }) => {
+    await asTeam(page);
+    await page.goto(`/admin/startups/${ID.gamma}`);
+    await expect(page.locator("#founder-graphs")).toContainText("hasn't uploaded their figures yet");
+    await expect(page.locator("#founder-graphs .recharts-wrapper")).toHaveCount(0);
   });
 
   test("another founder never sees them", async ({ page }) => {

@@ -23,3 +23,5 @@ export {
   getProfileForReview,
   countProfilesAwaitingReview,
 } from "./profiles";
+export { type FounderLogin, type FounderAccounts, getFounderAccounts } from "./accounts";
+export { getDealMails, getStartupDeck } from "./deals";
