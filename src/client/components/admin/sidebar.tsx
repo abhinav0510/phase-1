@@ -21,8 +21,7 @@ import {
   Mail,
   Megaphone,
   Loader2,
-  type LucideIcon,
-} from "lucide-react";
+  type LucideIcon, Send } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import type { NavItem, NavIcon } from "@/client/components/layout/nav";
 import { SignOutButton } from "@/client/components/layout/signout-button";
@@ -32,6 +31,7 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   startup: Building2,
   financials: Wallet,
   round: Target,
+  shares: Send,
   investors: Users,
   funding: HandCoins,
   meetings: CalendarClock,

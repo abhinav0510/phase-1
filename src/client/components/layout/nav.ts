@@ -4,6 +4,7 @@
 // the client component (see sidebar.tsx).
 
 export type NavIcon =
+  | "shares"
   | "dashboard"
   | "startup"
   | "financials"
@@ -44,6 +45,7 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Matches", href: "/admin/matches", icon: "matches" },
   { label: "Profile Reviews", href: "/admin/profiles", icon: "users" },
   { label: "Meetings", href: "/admin/meetings", icon: "meetings" },
+  { label: "Deal Sharing", href: "/admin/deal-sharing", icon: "shares" },
   { label: "Documents", href: "/admin/documents", icon: "documents" },
   { label: "Users & Access", href: "/admin/users", icon: "users" },
   { label: "Email Startups", href: "/admin/notifications", icon: "mail" },

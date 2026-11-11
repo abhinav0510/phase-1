@@ -17,6 +17,15 @@ const iso = (daysFromNow, hour = 10) => {
 };
 const date = (daysFromNow) => iso(daysFromNow).slice(0, 10);
 const NOW = "2026-10-01T10:00:00Z";
+/** An IST calendar day relative to today, as the PIPELINE sheet writes it. */
+const istDay = (daysFromToday) => new Date(Date.now() + 5.5 * 3600e3 + daysFromToday * 86400000).toISOString().slice(0, 10);
+const pipe = (n, startup, investor, deal_shared, date_shared, extra = {}) => ({
+  deal_id: `D${String(n).padStart(5, "0")}`, row_no: n + 1, startup, owner: "Aditya", investor, investor_domains: [],
+  match_type: "Exact match", deal_shared, date_shared, channel: "Email", thread_id: null, fu1_date: null, fu2_date: null, fu3_date: null,
+  last_contact: null, next_action: null, investor_response: null, pass_reason: null, meeting_scheduled: null, meeting_date: null,
+  meetings_held: null, meeting_outcome: null, deal_status: null, pause: null, current_stage: null, synced_at: new Date(Date.now() - 5 * 60000).toISOString(),
+  ...extra,
+});
 
 const uid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 export const USER = {
@@ -177,6 +186,25 @@ export function buildSeed() {
         report(3, STARTUP.alpha, "2026-10-26", "weekly-dashboard-only", null, { reached: 999 }),
         report(4, STARTUP.alpha, "2026-09-28", "backfill-dashboard-only", null, { reached: 998 }),
         report(5, STARTUP.beta, "2026-10-19", "weekly", "beta@demo.test", { reached: 777, feedback_list: [BETA_SECRET] }),
+      ],
+      // The Pilot sheet's PIPELINE tab, as n8n SYNC-PIPELINE mirrors it.
+      pipeline_deals: [
+        pipe(1, "Demo Alpha Foods", "Demo Capital - Partner A", "Yes", istDay(0), { investor_response: "Interested / Reviewing" }),
+        pipe(2, "Demo Alpha Foods", "Passed Partners", "Yes", istDay(0), { investor_response: "Pass", pass_reason: "Too early" }),
+        pipe(3, "Demo Beta Labs", "Queue Ventures", "Yes", istDay(0)),
+        // The same firm again today: still one deal shared.
+        pipe(4, "Demo Alpha Foods", "Demo Capital - Partner B", "Yes", istDay(0)),
+        pipe(5, "Demo Gamma Robotics", "Lok Capital", "Yes", istDay(-1), { investor_response: "Meeting requested" }),
+        pipe(6, "Demo Delta Retail", "Peak XV", "Yes", "2026-09-14", { investor_response: "Passed - not in thesis" }),
+        pipe(7, "Demo Delta Retail", "12 Flags VC", "Yes", "2026-09-14"),
+        // Not shared: never counted.
+        pipe(8, "Demo Delta Retail", "Inflection Point", "No", istDay(0)),
+        // First shared in September and sent again today: counts on 2 September, not today.
+        pipe(9, "Demo Beta Labs", "Peak XV", "Yes", "2026-09-02", { investor_response: "Questions" }),
+        pipe(10, "Demo Beta Labs", "Peak XV", "Yes", istDay(0)),
+      ],
+      pipeline_sync_runs: [
+        { id: 1, started_at: new Date(Date.now() - 5 * 60000).toISOString(), finished_at: new Date(Date.now() - 4 * 60000).toISOString(), rows_read: 10, rows_written: 10, rows_removed: 0, ok: true, error: null },
       ],
       startup_decks: [
         { id: 1, startup_id: STARTUP.alpha, sheet_name: "Demo Alpha Foods", deck_link: "https://bit.ly/demo-alpha", resolved_url: "https://drive.google.com/file/d/DEMOFILEID12345/view", drive_file_id: "DEMOFILEID12345", link_kind: "google", synced_at: NOW, created_at: NOW },

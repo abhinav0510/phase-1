@@ -25,3 +25,4 @@ export {
 } from "./profiles";
 export { type FounderLogin, type FounderAccounts, getFounderAccounts } from "./accounts";
 export { getDealMails, getStartupDeck } from "./deals";
+export { type DealSharingData, type PipelineSync, getDealSharingData } from "./deal-sharing";
