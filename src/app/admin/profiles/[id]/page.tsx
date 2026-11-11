@@ -1,22 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
 import { Badge } from "@/client/components/ui/badge";
 import { requireAdmin } from "@/server/auth/session";
 import { getProfileForReview } from "@/server/data/admin";
 import { listMisFiles } from "@/server/data/mis";
 import { MisFiles } from "@/client/components/admin/mis-files";
-import { toRupees } from "@/shared/lib/currency";
-import {
-  PROFILE_FIELDS,
-  SECTIONS,
-  displayValue,
-  isFilled,
-  profileProgress,
-  recordValue,
-} from "@/shared/lib/profile-fields";
-import { cn, formatDateTime } from "@/shared/lib/utils";
+import { ProfileAnswers } from "@/client/components/admin/profile-answers";
+import { profileProgress } from "@/shared/lib/profile-fields";
+import { formatDateTime } from "@/shared/lib/utils";
 import { PROFILE_STATUS_META } from "../status";
 import { ReviewActions } from "./review-actions";
 
@@ -76,51 +69,7 @@ export default async function AdminProfileReview({
         </CardBody>
       </Card>
 
-      {SECTIONS.map((s) => (
-        <Card key={s.key}>
-          <CardHeader title={s.title} />
-          <CardBody className="p-0">
-            <div className="divide-y divide-navy-50">
-              <div className="hidden grid-cols-[220px_1fr_1fr] gap-4 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-navy-400 md:grid">
-                <span>Field</span>
-                <span>Founder&apos;s answer</span>
-                <span>On record</span>
-              </div>
-              {PROFILE_FIELDS.filter((f) => f.section === s.key).map((f) => {
-                const answer = toRupees(displayValue(profile.answers[f.key]));
-                const rec = recordValue(f, startup) ?? "";
-                const changed = isFilled(answer) && isFilled(rec) && answer !== rec;
-                const added = isFilled(answer) && !isFilled(rec);
-                return (
-                  <div
-                    key={f.key}
-                    className="grid grid-cols-1 gap-1 px-5 py-3 text-sm md:grid-cols-[220px_1fr_1fr] md:gap-4"
-                  >
-                    <span className="flex items-center gap-1.5 font-medium text-navy-700">
-                      {f.label}
-                      {f.matching ? (
-                        <Sparkles className="h-3 w-3 text-[#9a6f2a]" aria-label="Used for matching" />
-                      ) : null}
-                    </span>
-                    <span
-                      className={cn(
-                        "whitespace-pre-wrap break-words",
-                        answer ? "text-navy-900" : "text-navy-300",
-                        (changed || added) && "font-medium",
-                      )}
-                    >
-                      {answer || "—"}
-                      {changed ? <Badge tone="amber" className="ml-2">changed</Badge> : null}
-                      {added ? <Badge tone="blue" className="ml-2">new</Badge> : null}
-                    </span>
-                    <span className="whitespace-pre-wrap break-words text-navy-500">{rec || "—"}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </CardBody>
-        </Card>
-      ))}
+      <ProfileAnswers startup={startup} answers={profile.answers} />
 
       <Card>
         <CardHeader title="MIS from the founder" subtitle="Uploaded from Complete Profile. These don't wait for review." />

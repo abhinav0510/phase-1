@@ -13,14 +13,20 @@ import {
   EmptyState,
 } from "@/client/components/admin/ui/table";
 import { requireAdmin } from "@/server/auth/session";
-import { getProfileStatus, getStartupDetail } from "@/server/data/admin";
+import { getDealMails, getStartupDeck, getFounderAccounts, getProfileForReview, getStartupDetail } from "@/server/data/admin";
+import { toFounderMeetings, withPastMeetingsHeld } from "@/server/data/meetings";
+import { MeetingsTabs } from "./_components/meetings-tabs";
+import { dealShareCounts, summarizeDealShares } from "@/shared/lib/deal-shares";
+import { DealSharesPanel } from "./_components/deal-shares-panel";
+import { RevenueExpensesChart, YearlyRevenueChart } from "@/app/(founder)/financials/_components/financial-charts";
+import { ProfileAnswers } from "@/client/components/admin/profile-answers";
+import { profileProgress } from "@/shared/lib/profile-fields";
 import { PROFILE_STATUS_META } from "../../profiles/status";
 import { listMisFiles } from "@/server/data/mis";
 import { getFinancials } from "@/server/data/financials";
-import { fyLabel, monthLabel } from "@/app/(founder)/financials/_components/financials-model";
+import { fyLabel, latestMrr, monthLabel, monthlySeries, yearRows, yearSeries } from "@/app/(founder)/financials/_components/financials-model";
 import { MisFiles } from "@/client/components/admin/mis-files";
 import { allocationDisplay, askDisplay, fundingDisplay, toRupees } from "@/shared/lib/currency";
-import { JoinLink } from "@/client/components/ui/join-link";
 import { formatLakh, formatDate, formatDateTime } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -35,13 +41,30 @@ export default async function StartupDetailPage({
   const startupId = Number(id);
   if (!Number.isInteger(startupId)) notFound();
 
-  const [{ startup, matches, meetings, funding, docs }, mis, profileStatus, fin] = await Promise.all([
+  const [{ startup, matches, meetings, funding, docs }, mis, { profile }, fin, accounts, deals, deck] = await Promise.all([
     getStartupDetail(startupId),
     listMisFiles(startupId),
-    getProfileStatus(startupId),
+    getProfileForReview(startupId),
     getFinancials(startupId),
+    getFounderAccounts(startupId),
+    getDealMails(startupId),
+    getStartupDeck(startupId),
   ]);
   if (!startup) notFound();
+  // Only real investor meetings count: internal, rehearsal and cancelled ones are dropped,
+  // and a meeting still on the calendar counts as held once its time has passed.
+  const nowMs = Date.now();
+  const investorMeetings = withPastMeetingsHeld(toFounderMeetings(meetings, startup.name, new Map()), nowMs);
+  const at = (m: { scheduled_at: string | null }) => (m.scheduled_at ? Date.parse(m.scheduled_at) : NaN);
+  const upcomingMeetings = investorMeetings.filter((m) => at(m) >= nowMs).sort((a, b) => at(a) - at(b));
+  const pastMeetings = investorMeetings.filter((m) => !(at(m) >= nowMs)).sort((a, b) => (at(b) || 0) - (at(a) || 0));
+  const shares = summarizeDealShares(deals.mails, investorMeetings);
+  const shareCounts = dealShareCounts(shares);
+  const monthPoints = fin.ready ? monthlySeries(fin.months) : [];
+  const yearPoints = fin.ready ? yearSeries(yearRows(fin.years, null)) : [];
+  const mrr = fin.ready ? latestMrr(fin.months) : null;
+  const profileStatus = profile?.status ?? null;
+  const progress = profileProgress(startup, profile?.answers ?? null);
 
   return (
     <div className="space-y-6">
@@ -74,6 +97,45 @@ export default async function StartupDetailPage({
           <StatusBadge value={startup.status} kind="startup" />
         </div>
       </div>
+
+      <section id="founder-profile" className="space-y-4">
+        <Card>
+          <CardHeader
+            title="Founder profile"
+            subtitle={
+              profile
+                ? `${progress.done} of ${progress.total} details complete · last updated ${formatDateTime(profile.updated_at)}`
+                : "The founder hasn't started their profile yet. What is on record is shown below."
+            }
+            action={
+              profileStatus ? (
+                <a href={`/admin/profiles/${startup.id}`} className="inline-flex items-center gap-1.5 text-xs font-semibold text-navy-700 hover:underline">
+                  Open review
+                  <Badge tone={PROFILE_STATUS_META[profileStatus].tone}>{PROFILE_STATUS_META[profileStatus].label}</Badge>
+                </a>
+              ) : null
+            }
+          />
+          <CardBody className="grid grid-cols-1 gap-x-8 gap-y-2 text-sm md:grid-cols-2">
+            <Row label="Login ID" value={String(startup.id)} />
+            <Row label="Sign-in emails on file" value={accounts.emails.join(", ") || null} />
+            {accounts.logins.length ? (
+              accounts.logins.map((l, i) => (
+                <div key={i} className="contents">
+                  <Row label="Last sign-in" value={l.lastSignInAt ? formatDateTime(l.lastSignInAt) : "Never signed in"} />
+                  <Row
+                    label="Password"
+                    value={!l.active ? "Login deactivated" : l.mustReset ? "Still on the one-time password" : "Changed by the founder"}
+                  />
+                </div>
+              ))
+            ) : (
+              <Row label="Founder login" value="None yet" />
+            )}
+          </CardBody>
+        </Card>
+        <ProfileAnswers startup={startup} answers={profile?.answers ?? null} />
+      </section>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card>
@@ -120,6 +182,55 @@ export default async function StartupDetailPage({
           </CardBody>
         </Card>
       </div>
+
+      <section id="deal-shares">
+        <Card>
+          <CardHeader
+            title="Deals shared with investors"
+            subtitle={
+              deals.failed
+                ? "Couldn't load the emails right now. Reload to try again."
+                : `Shared with ${shareCounts.shared} investor${shareCounts.shared === 1 ? "" : "s"} · ${shareCounts.replied} replied · ${shareCounts.positive} interested or asked to meet · ${shareCounts.passed} passed · ${shareCounts.meetings} with a meeting`
+            }
+          />
+          <CardBody className="p-0">
+            <DealSharesPanel shares={shares} failed={deals.failed} />
+          </CardBody>
+        </Card>
+      </section>
+
+      <section id="founder-graphs">
+        <Card>
+          <CardHeader
+            title="Founder's financial graphs"
+            subtitle={
+              monthPoints.length || yearPoints.length
+                ? `From the figures the founder uploaded${mrr ? ` · latest MRR ${formatLakh(mrr.value)} (${monthLabel(mrr.month)})` : ""}`
+                : "The founder hasn't uploaded their figures yet."
+            }
+          />
+          {monthPoints.length >= 2 || yearPoints.length >= 2 ? (
+            <CardBody className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">Monthly revenue vs expenses</p>
+                {monthPoints.length >= 2 ? (
+                  <RevenueExpensesChart data={monthPoints} />
+                ) : (
+                  <p className="text-sm text-navy-400">Needs at least two months of figures.</p>
+                )}
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">Revenue by year</p>
+                {yearPoints.length >= 2 ? (
+                  <YearlyRevenueChart data={yearPoints} />
+                ) : (
+                  <p className="text-sm text-navy-400">Needs at least two years of figures.</p>
+                )}
+              </div>
+            </CardBody>
+          ) : null}
+        </Card>
+      </section>
 
       <Card>
         <CardHeader
@@ -170,44 +281,14 @@ export default async function StartupDetailPage({
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader title="Meetings" subtitle={`${meetings.length} total`} />
-          <CardBody className="p-0">
-            {meetings.length === 0 ? (
-              <div className="p-5">
-                <EmptyState title="No meetings" />
-              </div>
-            ) : (
-              <Table>
-                <THead>
-                  <tr>
-                    <TH>Investor</TH>
-                    <TH>When</TH>
-                    <TH>Held</TH>
-                    <TH>Join</TH>
-                  </tr>
-                </THead>
-                <TBody>
-                  {meetings.slice(0, 20).map((m) => (
-                    <TR key={m.id}>
-                      <TD className="text-navy-700">{m.investor_name ?? "—"}</TD>
-                      <TD className="text-navy-500">
-                        {formatDateTime(m.scheduled_at)}
-                      </TD>
-                      <TD>
-                        {m.held ? (
-                          <Badge tone="green">held</Badge>
-                        ) : (
-                          <Badge tone="amber">scheduled</Badge>
-                        )}
-                      </TD>
-                      <TD>
-                        <JoinLink href={m.meet_link} />
-                      </TD>
-                    </TR>
-                  ))}
-                </TBody>
-              </Table>
-            )}
+          <CardHeader
+            title="Meetings"
+            subtitle={`${investorMeetings.length} investor meeting${investorMeetings.length === 1 ? "" : "s"} · internal, rehearsal and cancelled ones are left out`}
+          />
+          <CardBody className="p-0 pt-2">
+            <section id="meetings">
+              <MeetingsTabs upcoming={upcomingMeetings} past={pastMeetings} />
+            </section>
           </CardBody>
         </Card>
 
@@ -240,19 +321,40 @@ export default async function StartupDetailPage({
             </div>
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">
-                Documents
+                Pitch deck
+              </p>
+              <div className="flex items-center justify-between gap-3 text-sm" data-deck>
+                <span className="text-navy-700">Link investors receive</span>
+                {deck?.deck_link && /^https?:\/\//i.test(deck.deck_link) ? (
+                  <a href={deck.deck_link} target="_blank" rel="noopener noreferrer" className="truncate font-medium text-navy-800 hover:underline">
+                    {deck.deck_link}
+                  </a>
+                ) : (
+                  <span className="text-navy-400">No deck link in the sheet</span>
+                )}
+              </div>
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">
+                Documents requested from the founder
               </p>
               {docs.length === 0 ? (
-                <p className="text-sm text-navy-400">
-                  No documents recorded.
-                </p>
+                <p className="text-sm text-navy-400">No documents requested yet.</p>
               ) : (
-                <ul className="space-y-1 text-sm">
+                <ul className="divide-y divide-navy-50 text-sm" data-docs>
                   {docs.map((d: any) => (
-                    <li key={d.id} className="flex justify-between">
-                      <span className="text-navy-700">{d.doc_type ?? "Doc"}</span>
-                      <span className="text-navy-500">
-                        {d.classification ?? "—"}
+                    <li key={d.id} className="flex items-start justify-between gap-3 py-1.5">
+                      <span className="text-navy-700">{d.doc_type ?? "Document"}</span>
+                      <span className="text-right text-xs text-navy-500">
+                        {d.received_at ? (
+                          <Badge tone="green">Received {formatDate(d.received_at)}</Badge>
+                        ) : d.requested_at ? (
+                          <Badge tone="amber">Requested {formatDate(d.requested_at)}</Badge>
+                        ) : (
+                          <Badge tone="gray">Not requested</Badge>
+                        )}
+                        {d.classification ? <span className="mt-0.5 block">{d.classification}</span> : null}
+                        {d.chaser_count ? <span className="block">{d.chaser_count} reminder{d.chaser_count === 1 ? "" : "s"}</span> : null}
                       </span>
                     </li>
                   ))}

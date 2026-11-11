@@ -47,6 +47,7 @@ function publicUser(u) {
     app_metadata: u.app_metadata ?? {},
     user_metadata: u.user_metadata ?? {},
     created_at: "2026-01-01T00:00:00Z",
+    last_sign_in_at: u.last_sign_in_at ?? null,
   };
 }
 
@@ -288,6 +289,7 @@ function auth(req, url, body, res) {
     if (grant === "password") {
       const user = users.find((u) => u.email === String(body.email).toLowerCase() && u.password === body.password);
       if (!user) return send(res, 400, { code: 400, error_code: "invalid_credentials", msg: "Invalid login credentials" });
+      user.last_sign_in_at = new Date().toISOString();
       return send(res, 200, sessionFor(user));
     }
     if (grant === "refresh_token") {

@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   KeyRound,
   ChevronRight,
+  Send,
 } from "lucide-react";
 import { StatCard, Card, CardHeader, CardBody } from "@/client/components/admin/ui/card";
 import { SimpleBarChart } from "@/client/components/admin/ui/bar-chart";
@@ -32,14 +33,16 @@ import {
   getRecentStartups,
   getUpcomingMeetings,
   countProfilesAwaitingReview,
+  getDealSharingData,
 } from "@/server/data/admin";
+import { buildPairs, resolvePeriod, totalsFor } from "@/shared/lib/deal-sharing";
 import { formatDate, formatDateTime } from "@/shared/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   await requireAdmin();
-  const [kpis, statusDist, bucketDist, recent, upcoming, profilesWaiting] =
+  const [kpis, statusDist, bucketDist, recent, upcoming, profilesWaiting, dealData] =
     await Promise.all([
       getAdminKpis(),
       getStartupStatusDistribution(),
@@ -47,7 +50,18 @@ export default async function AdminDashboard() {
       getRecentStartups(6),
       getUpcomingMeetings(6),
       countProfilesAwaitingReview(),
+      getDealSharingData(),
     ]);
+  // Counted exactly like the Deal sharing page (and the daily report): pairs first shared in the period.
+  const deals =
+    dealData.state === "ready"
+      ? (() => {
+          const now = Date.now();
+          const pairs = buildPairs(dealData.rows);
+          const count = (period?: string) => totalsFor(pairs, dealData.rows, resolvePeriod({ period }, now)).shares;
+          return { today: count(), week: count("week"), month: count("month") };
+        })()
+      : null;
 
   const attention = [
     {
@@ -82,7 +96,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         <StatCard
           tone="blue"
           label="Startups"
@@ -111,6 +125,20 @@ export default async function AdminDashboard() {
           hint={`${kpis.meetingsUpcoming} upcoming`}
           icon={<CalendarClock className="h-4 w-4" />}
         />
+        <Link
+          href="/admin/deal-sharing"
+          data-deals-today
+          aria-label="Deals shared today: open deal sharing"
+          className="col-span-2 flex rounded-2xl transition hover:-translate-y-0.5 hover:shadow-md md:col-span-1 [&>div]:w-full"
+        >
+          <StatCard
+            tone="dark"
+            label="Deals shared today"
+            value={deals ? deals.today : "—"}
+            hint={deals ? `${deals.week} this week · ${deals.month} this month` : "PIPELINE sync not set up"}
+            icon={<Send className="h-4 w-4" />}
+          />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

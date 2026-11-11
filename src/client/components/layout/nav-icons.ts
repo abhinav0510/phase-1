@@ -15,8 +15,7 @@ import {
   FileBarChart,
   Mail,
   Megaphone,
-  type LucideIcon,
-} from "lucide-react";
+  type LucideIcon, Send } from "lucide-react";
 import type { NavIcon } from "./nav";
 
 export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
@@ -24,6 +23,7 @@ export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   startup: Building2,
   financials: Wallet,
   round: Target,
+  shares: Send,
   investors: Users,
   funding: HandCoins,
   meetings: CalendarClock,
