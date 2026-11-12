@@ -112,7 +112,7 @@ To see which version is live, read `version` in the `/api/health` response.
 | Error tracking | None | Errors are only in logs, which rotate |
 | VPS and container metrics | Only by hand, and possibly Hostinger's panel | No warning before the disk or memory fills |
 | Certificate expiry alert | Let's Encrypt renewal only, with no alert on failure | HTTPS could lapse |
-| Backup monitoring | Backups aren't running | See the [VPS document](09-HOSTINGER-VPS-INFRASTRUCTURE.md#backups) |
+| Backup monitoring | Built: a heartbeat alert, plus `backups/last-status.json`. It goes live once backups are switched on | See [BACKUPS.md](../BACKUPS.md) |
 | n8n failure alerts | Not verified | Data could silently stop syncing |
 | Failed admin reads | Show as blanks, with no log | Team could misread missing data |
 

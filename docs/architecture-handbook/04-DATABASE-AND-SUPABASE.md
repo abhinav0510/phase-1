@@ -158,7 +158,7 @@ RLS is a set of database rules that decides which rows a logged-in user can read
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Project address |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes, public by design | Public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Never** | Full-access key |
-| `SUPABASE_DB_URL` | Never | Used only by the backup script, in `backup.env` |
+| `SUPABASE_DB_URL` | Never | Used only by the nightly backup, in `backup.env` ([BACKUPS.md](../BACKUPS.md)) |
 
 ## Rules for developers
 

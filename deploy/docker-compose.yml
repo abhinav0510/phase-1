@@ -70,6 +70,27 @@ services:
       - acme:/var/www/certbot
     logging: *logging
 
+  # The nightly backup job (docs/BACKUPS.md). It never runs on its own: scripts/backup.sh
+  # starts it from cron and it exits when done. It only reads from Supabase, n8n and Google.
+  backup:
+    build: ./backup
+    image: sidana-backup:local
+    profiles: ["backup"]
+    env_file:
+      - path: backup.env
+        required: false
+    volumes:
+      - ./backups:/backups
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+      # Covers the Postgres image's data volume, so no stray volume is left behind.
+      - /var/lib/postgresql/data:size=1m
+      - /var/run/postgresql:size=1m
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
 volumes:
   certs:
   acme:

@@ -98,7 +98,7 @@ No portal data is on it. What's lost is the settings files and the certificate.
 
 | Option | State |
 |---|---|
-| VPS backup script | **Not running** |
+| Nightly backup | Built, **not switched on yet**. See [BACKUPS.md](../BACKUPS.md) |
 | Supabase backups | Depends on the plan: **needs admin** |
 
 **This is the biggest recovery gap.** Sort it out before founders depend on the system.

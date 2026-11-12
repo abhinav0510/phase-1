@@ -47,7 +47,7 @@ Live address: `https://svdealflow.io`.
 Details are in the [authentication and security](12-AUTHENTICATION-AND-SECURITY.md) and [monitoring](13-HEALTH-LOGGING-AND-MONITORING.md) documents.
 
 1. **Founder access through Supabase directly is unverified.** A signed-in founder holds a Supabase token, so database rules matter. The rules on the live database haven't been confirmed.
-2. **No database backups are running.** The script exists, but there's no schedule, no settings file and no saved backups on the server.
+2. **No backups are running yet.** The nightly encrypted, off-site backup is built ([BACKUPS.md](../BACKUPS.md)). It needs its settings file and the cron line on the server.
 3. **No alerts.** Nothing notifies anyone if the site goes down, as far as could be found.
 4. **`main` has no branch protection.** A direct push is possible, although production still needs a passing CI run and an approval.
 5. **One server.** If the VPS dies, the portal is down until it's rebuilt.

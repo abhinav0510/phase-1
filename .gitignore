@@ -23,6 +23,7 @@
 /deploy/.env
 /deploy/app.env
 /deploy/backup.env
+/deploy/backups/
 
 # misc
 .DS_Store
