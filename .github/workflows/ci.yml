@@ -81,7 +81,9 @@ jobs:
           docker run --rm -v "$PWD:/src:ro" -w /src sidana-backup:ci sh -c \
             'apk add -q --no-cache python3 && su-exec postgres sh tests/backup/run.sh'
       - name: The compose file is valid with the backup service
-        run: APP_IMAGE=x APP_TAG=y DOMAIN=localhost docker compose -f deploy/docker-compose.yml --profile backup config -q
+        run: |
+          touch deploy/app.env
+          APP_IMAGE=x APP_TAG=y DOMAIN=localhost docker compose -f deploy/docker-compose.yml --profile backup config -q
 
   production-stack:
     name: Production image behind nginx
