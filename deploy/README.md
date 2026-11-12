@@ -56,7 +56,7 @@ In `/srv/sidana`, create these from the `.example` files in this folder, then ru
 |---|---|
 | `.env` | Domain, email for certificate notices, image name |
 | `app.env` | Supabase keys and n8n settings. **Secret.** |
-| `backup.env` | Database connection for backups. **Secret.** Optional. |
+| `backup.env` | Settings for the nightly backup, see [`docs/BACKUPS.md`](../docs/BACKUPS.md). **Secret.** |
 
 ### 5. Add the settings on GitHub
 
@@ -99,13 +99,7 @@ Then run the **Deploy** workflow again. All checks should now pass.
 ### 9. Turn on the rest
 
 - **Uptime alerts**: point a free monitor such as UptimeRobot at `https://your-domain/api/health?deep=1`.
-- **Nightly backups**: fill in `backup.env`, run the script once by hand, then add it to the `deploy` user's crontab. This runs at 02:00 IST if the server clock is on UTC:
-
-```
-30 20 * * * /srv/sidana/scripts/backup-db.sh >> /srv/sidana/backups/backup.log 2>&1
-```
-
-Test a restore before relying on the backups. They don't include Supabase Storage, so founder logos aren't covered. `postgres:17-alpine` must be at least as new as the Supabase database, so check the version under Supabase → Database.
+- **Nightly backups**: follow the one-time setup in [`docs/BACKUPS.md`](../docs/BACKUPS.md). It covers the encryption key, the off-site bucket, the heartbeat alert, the first run, a restore test and the cron line.
 
 - **Password login**: once key login works, turn off SSH password login on the VPS. It's left on by `bootstrap-vps.sh` so it can't lock you out.
 
@@ -120,6 +114,8 @@ Run these from `/srv/sidana` on the VPS.
 | Follow nginx's logs | `./scripts/dc.sh logs -f nginx` |
 | Restart the app | `./scripts/dc.sh restart app` |
 | Check the live site | `./scripts/smoke-test.sh https://your-domain` |
+| Did last night's backup work? | `cat backups/last-status.json` |
+| Back up now | `./scripts/backup.sh` |
 
 **To roll back**, run the **Deploy** workflow from the Actions tab and enter the full commit SHA of the release to go back to.
 

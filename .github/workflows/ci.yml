@@ -68,6 +68,21 @@ jobs:
           path: test-results
           retention-days: 7
 
+  backups:
+    name: Backup and restore round trip
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the backup image
+        run: docker build -t sidana-backup:ci deploy/backup
+      - name: Back up a test database, then restore it, inside the real image
+        run: |
+          docker run --rm -v "$PWD:/src:ro" -w /src sidana-backup:ci sh -c \
+            'apk add -q --no-cache python3 && su-exec postgres sh tests/backup/run.sh'
+      - name: The compose file is valid with the backup service
+        run: APP_IMAGE=x APP_TAG=y DOMAIN=localhost docker compose -f deploy/docker-compose.yml --profile backup config -q
+
   production-stack:
     name: Production image behind nginx
     runs-on: ubuntu-24.04

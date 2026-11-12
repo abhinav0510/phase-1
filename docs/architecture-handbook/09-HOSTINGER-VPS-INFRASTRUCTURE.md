@@ -117,10 +117,10 @@ Owned by `deploy`.
 | Item | State |
 |---|---|
 | Hostinger snapshots and backups | The panel showed 2 entries. Dates and schedule: **needs admin** |
-| Database backup script | [`backup-db.sh`](../../deploy/scripts/backup-db.sh) exists, but **isn't running**: no `backup.env`, no `backups` folder contents, no crontab for `deploy` |
+| Nightly backup | [`backup.sh`](../../deploy/scripts/backup.sh) backs up the database (`public` and `auth`), Storage files, n8n workflows and the Pilot sheet. Snapshots are encrypted and copied off-site, and a heartbeat alerts if a night fails. **Not switched on yet:** needs `backup.env` and the crontab line. See [BACKUPS.md](../BACKUPS.md) |
 | Supabase's own backups | Depends on the plan: **needs admin** |
-| Founder logos (Supabase Storage) | Not covered by the script |
-| Restore test | Never done |
+| Founder files (Supabase Storage) | Covered by the nightly backup |
+| Restore test | [`restore-test.sh`](../../deploy/scripts/restore-test.sh) exists, and CI runs it against a fake database. Not yet run against production |
 
 ## How the server was set up
 
