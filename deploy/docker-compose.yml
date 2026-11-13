@@ -84,8 +84,9 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=64m
-      # Covers the Postgres image's data volume, so no stray volume is left behind.
-      - /var/lib/postgresql/data:size=1m
+      # Covers the Postgres image's data volume, so no stray volume is left behind. The
+      # restore test puts its throwaway database here (uid 70 is the image's postgres user).
+      - /var/lib/postgresql/data:size=2g,uid=70,gid=70,mode=0700
       - /var/run/postgresql:size=1m
     security_opt:
       - no-new-privileges:true
