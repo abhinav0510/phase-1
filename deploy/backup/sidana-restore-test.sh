@@ -26,9 +26,10 @@ T="$(mktemp -d "$OUT/.restore-test.XXXXXX")"
 KEY="$(mktemp /tmp/identity.XXXXXX)"
 SOCK="$(mktemp -d /tmp/pgsock.XXXXXX)"   # short path: socket paths are limited to ~100 characters
 PGRUN=""
+PGD=""
 cleanup() {
-  [ -n "$PGRUN" ] && $PGRUN pg_ctl -D "$T/pg" -m immediate stop > /dev/null 2>&1 || true
-  rm -rf "$T" "$KEY" "$SOCK"
+  [ -n "${PGD:-}" ] && $PGRUN pg_ctl -D "$PGD" -m immediate stop > /dev/null 2>&1 || true
+  rm -rf "$T" "$KEY" "$SOCK" "${PGD:-}"
 }
 trap cleanup EXIT
 trap 'exit 1' INT TERM
@@ -60,14 +61,17 @@ rm -f "$T/snap.tar"
 say "        taken $(jq -r .started_at "$T/x/manifest.json")"
 
 # ---- database: restore into a throwaway Postgres
-mkdir "$T/pg"
+# As root (on the VPS), Postgres runs as its own user, which can't enter the private
+# /backups folder, so its data goes on the container's scratch disk instead.
 if [ "$(id -u)" = 0 ]; then
-  chown postgres:postgres "$T" "$T/pg" "$SOCK"
-  chown -R postgres:postgres "$T/x"
+  PGD="/var/lib/postgresql/data/restore-test"
+  chown postgres:postgres "$SOCK"
   PGRUN="su-exec postgres"
+else
+  PGD="$T/pg"
 fi
-$PGRUN initdb -D "$T/pg" -U postgres --auth=trust > "$T/initdb.log" 2>&1 || die "initdb failed: $(tail -n 5 "$T/initdb.log")"
-$PGRUN pg_ctl -D "$T/pg" -w -l "$T/pg.log" \
+$PGRUN initdb -D "$PGD" -U postgres --auth=trust > "$T/initdb.log" 2>&1 || die "initdb failed: $(tail -n 5 "$T/initdb.log")"
+$PGRUN pg_ctl -D "$PGD" -w -l "$PGD/server.log" \
   -o "-c listen_addresses='' -k $SOCK -c fsync=off" start > /dev/null || die "couldn't start Postgres"
 export PGHOST="$SOCK" PGUSER=postgres PGDATABASE=postgres
 # What Supabase provides around the dumped schemas.
@@ -78,7 +82,7 @@ create schema if not exists extensions;
 create extension if not exists pgcrypto schema extensions;
 create extension if not exists "uuid-ossp" schema extensions;
 SQL
-$PGRUN pg_restore --no-owner --no-privileges -d postgres "$T/x/db.dump" > "$T/restore.log" 2>&1 || true
+pg_restore --no-owner --no-privileges -d postgres "$T/x/db.dump" > "$T/restore.log" 2>&1 || true
 # The throwaway database already has a public schema; that one error is expected.
 grep 'error:' "$T/restore.log" | grep -v 'schema "public" already exists' > "$T/errors.log" || true
 errs="$(wc -l < "$T/errors.log" | tr -d ' ')"

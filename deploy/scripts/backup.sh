@@ -18,8 +18,6 @@ fi
 
 {
   echo "=== $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-  # Builds the image the first time, and is quick after that. If it fails, the image from
-  # the last good build is used.
-  $DC --profile backup build -q backup || echo "warning: couldn't rebuild the backup image"
+  ./scripts/backup-image.sh "$DC"
   $DC --profile backup run --rm -T --user "$(id -u):$(id -g)" backup sidana-backup
 } 2>&1 | tee -a backups/backup.log
