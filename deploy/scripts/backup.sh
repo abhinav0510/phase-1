@@ -18,6 +18,6 @@ fi
 
 {
   echo "=== $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-  ./scripts/backup-image.sh "$DC"
+  ./scripts/backup-image.sh
   $DC --profile backup run --rm -T --user "$(id -u):$(id -g)" backup sidana-backup
 } 2>&1 | tee -a backups/backup.log
