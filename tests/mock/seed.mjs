@@ -202,6 +202,8 @@ export function buildSeed() {
         // First shared in September and sent again today: counts on 2 September, not today.
         pipe(9, "Demo Beta Labs", "Peak XV", "Yes", "2026-09-02", { investor_response: "Questions" }),
         pipe(10, "Demo Beta Labs", "Peak XV", "Yes", istDay(0)),
+        pipe(11, "Demo Beta Labs", "Beta Only Ventures", "Yes", "2026-09-20", { investor_response: "Pass" }),
+        pipe(12, "Demo Zeta Mobility", "Demo Dollar Fund", "Yes", "2026-09-25"),
       ],
       pipeline_sync_runs: [
         { id: 1, started_at: new Date(Date.now() - 5 * 60000).toISOString(), finished_at: new Date(Date.now() - 4 * 60000).toISOString(), rows_read: 10, rows_written: 10, rows_removed: 0, ok: true, error: null },

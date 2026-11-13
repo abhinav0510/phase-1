@@ -20,7 +20,7 @@ import { JoinLink } from "@/client/components/ui/join-link";
 import {
   getFounderOverview,
   getOwnMeetings,
-  getOwnMatches,
+  getOwnOutreach,
   getOwnProfile,
 } from "@/server/data/founder";
 import { allocationDisplay, askDisplay } from "@/shared/lib/currency";
@@ -32,7 +32,7 @@ import { Gauge, IconDisc, MeterRow, Ring } from "../dashboard/_components/visual
 import {
   activityFeed,
   investorMix,
-  matchStateSlices,
+  responseSlices,
   pipelineStages,
   relativeTime,
   type ActivityKind,
@@ -58,10 +58,10 @@ const STAGE_BLURB: Record<string, string> = {
 
 export default async function Overview() {
   const { startupId } = await requireFounder();
-  const [overview, meetings, matches, profile] = await Promise.all([
+  const [overview, meetings, outreach, profile] = await Promise.all([
     getFounderOverview(startupId),
     getOwnMeetings(startupId),
-    getOwnMatches(startupId),
+    getOwnOutreach(startupId),
     getOwnProfile(startupId),
   ]);
   const s = overview.startup;
@@ -72,13 +72,15 @@ export default async function Overview() {
     .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
     .slice(0, 5);
 
+  // Every investor the deal was shared with, live from the PIPELINE tab (as on the dashboard).
+  const matches = outreach.rows;
   const stages = pipelineStages(matches, meetings);
-  const slices = matchStateSlices(matches);
+  const slices = responseSlices(matches);
   const mix = investorMix(matches);
   const mixMax = Math.max(1, ...mix.map((m) => m.value));
   const feed = activityFeed(matches, meetings, [], 5, now);
-  const reachedPct =
-    overview.matchCount > 0 ? Math.round((overview.matchSent / overview.matchCount) * 100) : 0;
+  const replied = slices.filter((x) => x.key !== "waiting").reduce((a, x) => a + x.value, 0);
+  const reachedPct = matches.length > 0 ? Math.round((replied / matches.length) * 100) : 0;
 
   const askValue = askDisplay(s);
   const allocValue = allocationDisplay(s);
@@ -98,7 +100,7 @@ export default async function Overview() {
         heading: st.label,
         aside: { label: st.count === 1 ? "Investor" : "Investors", value: String(st.count) },
         lists: [{ title: "Investors", items: st.names.slice(0, 12), empty: "No investors at this stage yet." }],
-        action: { label: st.key === "meetings" || st.key === "held" ? "See meetings" : "See all matches", href: st.key === "meetings" || st.key === "held" ? "/meetings" : "/dashboard" },
+        action: { label: st.key === "meetings" || st.key === "held" ? "See meetings" : "See all investors", href: st.key === "meetings" || st.key === "held" ? "/meetings" : "/dashboard" },
       } satisfies DetailSpec,
     ]),
   );
@@ -108,7 +110,7 @@ export default async function Overview() {
       <PageHeader
         eyebrow="Your raise"
         title="Overview"
-        subtitle="Your ask, matches, meetings and outreach for the round Sidana is running."
+        subtitle="Your ask, outreach and meetings for the round Sidana is running."
         actions={s?.status ? <Chip tone={STARTUP_STATUS_TONE[s.status] ?? "neutral"}>{label(s.status)}</Chip> : undefined}
       />
 
@@ -131,10 +133,10 @@ export default async function Overview() {
         </Item>
         <Item>
           <KpiCard
-            label="Investor matches"
-            value={overview.matchCount}
+            label="Investors outreached"
+            value={outreach.state === "ready" ? matches.length : "—"}
             icon={<Handshake className="h-4 w-4" />}
-            hint="Fit by sector, stage and cheque"
+            hint={`${replied} replied (${reachedPct}%)`}
             visual={
               <div className="flex items-center gap-3">
                 <Ring pct={reachedPct} color={SERIES.navy} size={44} />
@@ -184,13 +186,13 @@ export default async function Overview() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Reveal>
           <Card className="h-full">
-            <CardHeader title="Matches by state" action={<ViewAll href="/dashboard" />} />
+            <CardHeader title="How investors responded" action={<ViewAll href="/dashboard" />} />
             <CardBody>
               {matches.length === 0 ? (
-                <EmptyState title="No matches yet" message="As Sidana's match engine finds fits, they'll appear here." />
+                <EmptyState title="No investors outreached yet" message="As soon as Sidana shares your deal with an investor, they appear here." />
               ) : (
                 <div className="flex flex-col items-center gap-4">
-                  <Donut slices={slices} total={matches.length} centerLabel="matches" />
+                  <Donut slices={slices} total={matches.length} centerLabel="outreached" />
                   <ul className="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
                     {slices.map((sl) => (
                       <li key={sl.key} className="flex items-center gap-2 text-sm">
@@ -297,7 +299,7 @@ export default async function Overview() {
               <div className="mt-5 border-t border-navy-50 pt-4">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-navy-400">Investor mix</p>
                 {mix.length === 0 ? (
-                  <p className="text-sm text-navy-400">No matches yet.</p>
+                  <p className="text-sm text-navy-400">No investors outreached yet.</p>
                 ) : (
                   <div className="space-y-2.5">
                     {mix.map((m) => (

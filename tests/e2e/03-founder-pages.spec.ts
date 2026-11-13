@@ -5,7 +5,7 @@ test.describe("dashboard", () => {
 
   test("greets the founder, then shows their investors and matches", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1, name: /Welcome back/ })).toBeVisible();
-    await expect(page.getByText("Investors Outreached")).toBeVisible();
+    await expect(page.getByText("Investors Outreached", { exact: true })).toBeVisible();
     // Different investors with at least one meeting: Demo Capital, Twice Saved, Left Side,
     // Not Listed, Queue Ventures and Held Ventures. Internal, Sharks, cancelled and Sidana
     // meetings don't count, and a wrong investor link on a row doesn't merge investors.
@@ -14,7 +14,7 @@ test.describe("dashboard", () => {
     await expect(page.getByText("Matched investors")).toHaveCount(0);
     // No separate "Reached out" card; the filter tab of that name stays.
     await expect(page.locator("main").getByText("Introduced by Sidana")).toHaveCount(0);
-    await expect(page.getByText("Investor matches")).toBeVisible();
+    await expect(page.getByText("Investors outreached", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /Demo Capital/ }).first()).toBeVisible();
     // Financials have their own tab, the raise is on Overview, and the header holds the only profile prompt.
     await expect(page.locator("#financials-upload")).toHaveCount(0);
@@ -41,8 +41,8 @@ test.describe("current round", () => {
   test("shows the raise, matches and meetings, without the welcome or profile nudge", async ({ page }) => {
     await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
     await expect(page.getByText("INR 5 Cr").first()).toBeVisible();
-    // Sent + queued; the paused match is left out.
-    await expect(page.getByText("Investor matches")).toBeVisible();
+    // Deals shared, from the PIPELINE tab.
+    await expect(page.getByText("Investors outreached", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Outreach pipeline")).toBeVisible();
     await expect(page.getByText(/Welcome back/)).toHaveCount(0);
     await expect(page.getByTitle("Add your company logo")).toHaveCount(0);
@@ -179,12 +179,14 @@ test.describe("investors and matches", () => {
     await expect(page.locator('nav[aria-label="Portal sections"] a[href="/funding"]')).toHaveCount(0);
     await page.goto("/funding");
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByText("Investor matches")).toBeVisible();
+    await expect(page.getByText("Investors outreached", { exact: true })).toBeVisible();
   });
 
-  test("lists matched investors without paused ones", async ({ page }) => {
-    await expect(page.getByRole("button", { name: /Demo Capital/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Queue Ventures/ })).toBeVisible();
+  test("lists every investor the deal was shared with, and no paused matches", async ({ page }) => {
+    await expect(page.getByRole("button", { name: /Demo Capital/ }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Passed Partners/ }).first()).toBeVisible();
+    // Queue Ventures is Beta's deal, not Alpha's.
+    await expect(page.getByRole("button", { name: /Queue Ventures/ })).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText("Paused Fund");
   });
   test("shows what an investor said, with contact details hidden", async ({ page }) => {
@@ -212,18 +214,19 @@ test.describe("investors and matches", () => {
     await expect(dialog).toBeHidden();
   });
   test("the tabs filter the list", async ({ page }) => {
-    // Only All and Reached out: no "Not contacted yet" tab.
-    await expect(page.getByRole("tab")).toHaveCount(2);
+    // All, Replied and Awaiting reply: no "Not contacted yet" tab.
+    await expect(page.getByRole("tab")).toHaveCount(3);
     await expect(page.getByRole("tab", { name: /Not contacted yet/ })).toHaveCount(0);
-    await page.getByRole("tab", { name: /Reached out/ }).click();
+    await page.getByRole("tab", { name: /^Replied/ }).click();
     await expect(page.getByRole("button", { name: /^DC Demo Capital/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Queue Ventures/ })).toHaveCount(0);
+    await page.getByRole("tab", { name: /Awaiting reply/ }).click();
+    await expect(page.getByRole("button", { name: /^DC Demo Capital/ })).toHaveCount(0);
   });
   test("nothing about Sidana's outreach queue is shown", async ({ page }) => {
     const main = page.locator("main");
-    await expect(main.getByText("Investor matches")).toBeVisible();
+    await expect(main.getByText("Investors outreached", { exact: true })).toBeVisible();
     await expect(main).not.toContainText(/In queue|Lined up for outreach|Waiting for the next wave|Priority/);
-    await page.getByRole("button", { name: /Queue Ventures/ }).click();
+    await page.getByRole("button", { name: /Passed Partners/ }).first().click();
     await expect(main).not.toContainText(/In queue|Priority/);
     await page.goto("/overview");
     await expect(page.getByText("Outreach pipeline")).toBeVisible();

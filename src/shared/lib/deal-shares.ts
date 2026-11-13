@@ -33,7 +33,7 @@ export interface DealShare {
 }
 
 export const DEAL_STATUS_LABEL: Record<DealStatus, string> = {
-  invite: "Asked to meet",
+  invite: "Meeting",
   interested: "Interested",
   pass: "Passed",
   no_reply: "No reply yet",
@@ -88,4 +88,41 @@ export function dealShareCounts(shares: DealShare[]) {
     passed: by("pass"),
     meetings: shares.filter((s) => s.meetingAt).length,
   };
+}
+
+/**
+ * The same one-row-per-investor view, built from PIPELINE pairs (src/shared/lib/deal-sharing.ts)
+ * instead of emails, so the admin startup page counts exactly what the founder dashboard and
+ * the admin Deal sharing page count. "Meeting" covers a meeting held, booked or requested.
+ */
+export function sharesFromPairs(
+  pairs: { investor: string; date: string; last: string; rows: number; category: string; response: string; status: string; investorId?: number | null }[],
+  meetings: { investor_name: string | null; notes?: string | null; scheduled_at: string | null }[],
+  now = Date.now(),
+): DealShare[] {
+  const key = (x: unknown) => String(x ?? "").toLowerCase().replace(/[’']/g, "").replace(/\(.*?\)/g, "").replace(/[^a-z0-9]/g, "");
+  const STATUS: Record<string, DealStatus> = { meeting: "invite", tobook: "invite", interested: "interested", referred: "interested", other: "interested", passed: "pass", none: "no_reply", bounced: "no_reply" };
+  return pairs.map((p) => {
+    const firm = p.investor.split(/\s+-\s+/)[0].trim();
+    const fk = key(firm);
+    const times = fk.length < 4 ? [] : meetings
+      .filter((m) => key(`${m.notes ?? ""} ${m.investor_name ?? ""}`).includes(fk) && m.scheduled_at)
+      .map((m) => t(m.scheduled_at))
+      .filter(Number.isFinite);
+    const next = times.filter((x) => x >= now).sort((a, b) => a - b)[0];
+    const last = times.filter((x) => x < now).sort((a, b) => b - a)[0];
+    const meeting = next ?? last;
+    return {
+      investorId: p.investorId ?? null,
+      investorName: firm,
+      firstSentAt: p.date || null,
+      lastSentAt: p.last || p.date || null,
+      emails: p.rows,
+      status: STATUS[p.category] ?? "no_reply",
+      gist: [p.response, p.status].filter(Boolean).join(" · ") || null,
+      repliedAt: null,
+      meetingAt: meeting != null ? new Date(meeting).toISOString() : null,
+      meetingPast: meeting != null && meeting < now,
+    };
+  }).sort((a, b) => ((a.firstSentAt ?? "") < (b.firstSentAt ?? "") ? 1 : -1));
 }

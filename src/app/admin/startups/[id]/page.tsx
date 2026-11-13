@@ -13,10 +13,12 @@ import {
   EmptyState,
 } from "@/client/components/admin/ui/table";
 import { requireAdmin } from "@/server/auth/session";
-import { getDealMails, getStartupDeck, getFounderAccounts, getProfileForReview, getStartupDetail } from "@/server/data/admin";
+import { getStartupDeck, getFounderAccounts, getProfileForReview, getStartupDetail } from "@/server/data/admin";
 import { toFounderMeetings, withPastMeetingsHeld } from "@/server/data/meetings";
 import { MeetingsTabs } from "./_components/meetings-tabs";
-import { dealShareCounts, summarizeDealShares } from "@/shared/lib/deal-shares";
+import { dealShareCounts, sharesFromPairs } from "@/shared/lib/deal-shares";
+import { getStartupDeals } from "@/server/data/pipeline";
+import { categorizedPairs } from "@/shared/lib/deal-sharing";
 import { DealSharesPanel } from "./_components/deal-shares-panel";
 import { RevenueExpensesChart, YearlyRevenueChart } from "@/app/(founder)/financials/_components/financial-charts";
 import { ProfileAnswers } from "@/client/components/admin/profile-answers";
@@ -41,13 +43,12 @@ export default async function StartupDetailPage({
   const startupId = Number(id);
   if (!Number.isInteger(startupId)) notFound();
 
-  const [{ startup, matches, meetings, funding, docs }, mis, { profile }, fin, accounts, deals, deck] = await Promise.all([
+  const [{ startup, matches, meetings, funding, docs }, mis, { profile }, fin, accounts, deck] = await Promise.all([
     getStartupDetail(startupId),
     listMisFiles(startupId),
     getProfileForReview(startupId),
     getFinancials(startupId),
     getFounderAccounts(startupId),
-    getDealMails(startupId),
     getStartupDeck(startupId),
   ]);
   if (!startup) notFound();
@@ -58,7 +59,15 @@ export default async function StartupDetailPage({
   const at = (m: { scheduled_at: string | null }) => (m.scheduled_at ? Date.parse(m.scheduled_at) : NaN);
   const upcomingMeetings = investorMeetings.filter((m) => at(m) >= nowMs).sort((a, b) => at(a) - at(b));
   const pastMeetings = investorMeetings.filter((m) => !(at(m) >= nowMs)).sort((a, b) => (at(b) || 0) - (at(a) || 0));
-  const shares = summarizeDealShares(deals.mails, investorMeetings);
+  // Deals shared, from the PIPELINE tab: the same rows and rules as the founder's dashboard
+  // and the admin Deal sharing page, so all three agree.
+  const deals = await getStartupDeals(startup.name);
+  const pairs = categorizedPairs(
+    deals.rows,
+    investorMeetings.map((m) => ({ startup_name: startup.name, investor_name: [m.notes, m.investor_name].filter(Boolean).join(" "), scheduled_at: m.scheduled_at })),
+  );
+  const shares = sharesFromPairs(pairs, investorMeetings, nowMs);
+  const dealsFailed = deals.state !== "ready";
   const shareCounts = dealShareCounts(shares);
   const monthPoints = fin.ready ? monthlySeries(fin.months) : [];
   const yearPoints = fin.ready ? yearSeries(yearRows(fin.years, null)) : [];
@@ -188,13 +197,13 @@ export default async function StartupDetailPage({
           <CardHeader
             title="Deals shared with investors"
             subtitle={
-              deals.failed
-                ? "Couldn't load the emails right now. Reload to try again."
-                : `Shared with ${shareCounts.shared} investor${shareCounts.shared === 1 ? "" : "s"} · ${shareCounts.replied} replied · ${shareCounts.positive} interested or asked to meet · ${shareCounts.passed} passed · ${shareCounts.meetings} with a meeting`
+              dealsFailed
+                ? "Couldn't load the PIPELINE deals right now. Reload to try again."
+                : `Shared with ${shareCounts.shared} investor${shareCounts.shared === 1 ? "" : "s"} · ${shareCounts.replied} replied · ${shareCounts.positive} interested or meeting · ${shareCounts.passed} passed · ${shareCounts.meetings} with a meeting`
             }
           />
           <CardBody className="p-0">
-            <DealSharesPanel shares={shares} failed={deals.failed} />
+            <DealSharesPanel shares={shares} failed={dealsFailed} />
           </CardBody>
         </Card>
       </section>

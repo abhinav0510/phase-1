@@ -57,7 +57,7 @@ test.describe("trend arrows appear only for good news", () => {
     // No "% of matches contacted" tag on any account, even when it would be good news.
     for (const path of ["/dashboard", "/overview"]) {
       await page.goto(path);
-      await expect(page.locator("main").getByText("Reached out").first()).toBeVisible();
+      await expect(page.locator("main").getByText(/Investors outreached/i).first()).toBeVisible();
       await expect(page.locator("main")).not.toContainText(/% (of matches )?contacted|\d+ reached out/);
       await noFalls(page);
     }
@@ -67,7 +67,8 @@ test.describe("trend arrows appear only for good news", () => {
   });
 
   test("a startup with nothing yet sees no zero trends", async ({ page }) => {
-    await asFounder(page, ID.delta);
+    // Eta has no deals shared, meetings or figures.
+    await asFounder(page, ID.eta);
     for (const path of ["/dashboard", "/overview", "/financials", "/meetings"]) {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();

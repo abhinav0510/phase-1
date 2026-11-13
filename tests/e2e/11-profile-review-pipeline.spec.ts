@@ -132,32 +132,33 @@ test.describe("deals shared on the startup page", () => {
     await settle(page);
     const deals = page.locator("#deal-shares");
     await expect(deals).toContainText("Deals shared with investors");
-    await expect(deals).toContainText(/Shared with 3 investors · 2 replied/);
+    // From the PIPELINE tab, like the founder's dashboard: Demo Capital (two rows, one firm,
+    // met on the calendar) and Passed Partners.
+    await expect(deals).toContainText(/Shared with 2 investors · 2 replied/);
     const totals = deals.locator("[data-deal-totals]");
-    await expect(totals).toContainText("Deals shared3");
+    await expect(totals).toContainText("Deals shared2");
     await expect(totals).toContainText("Investors interested1");
     await expect(totals).toContainText("Passed1");
     await expect(deals.locator(".recharts-wrapper")).toHaveCount(1);
     const row = (name: RegExp) => deals.locator("tr", { hasText: name });
-    await expect(row(/Demo Capital/)).toContainText("Asked to meet");
+    await expect(row(/Demo Capital/)).toContainText("Meeting");
     await expect(row(/Demo Capital/)).toContainText("Scheduled");
-    await expect(row(/Demo Capital/)).toContainText("Happy to meet");
-    await expect(deals).toContainText("Passed");
-    await expect(deals).toContainText("Too early for our fund right now");
-    await expect(deals).toContainText("No reply yet");
+    await expect(row(/Demo Capital/)).toContainText("Shared 2 times");
+    await expect(row(/Demo Capital/)).toContainText("Interested / Reviewing");
+    await expect(row(/Passed Partners/)).toContainText("Passed");
     // The donut's legend filters the table to one reply type, and back.
     await deals.getByRole("button", { name: /^Passed/ }).click();
     await expect(deals.locator("tbody tr")).toHaveCount(1);
-    await expect(deals.locator("tbody")).toContainText("Too early for our fund right now");
+    await expect(deals.locator("tbody")).toContainText("Passed Partners");
     await deals.getByRole("button", { name: "Show all" }).click();
-    await expect(deals.locator("tbody tr")).toHaveCount(3);
+    await expect(deals.locator("tbody tr")).toHaveCount(2);
     // Another startup's emails never show here.
     await expect(deals).not.toContainText("BETA-SECRET-MARKER");
   });
 
-  test("a startup with no emails says so", async ({ page }) => {
+  test("a startup with no deals shared says so", async ({ page }) => {
     await asTeam(page);
-    await page.goto(`/admin/startups/${ID.gamma}`);
+    await page.goto(`/admin/startups/${ID.epsilon}`);
     await expect(page.locator("#deal-shares")).toContainText("hasn't been shared with any investor yet");
   });
 });
