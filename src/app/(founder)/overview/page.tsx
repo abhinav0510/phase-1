@@ -136,7 +136,7 @@ export default async function Overview() {
             label="Investors outreached"
             value={outreach.state === "ready" ? matches.length : "—"}
             icon={<Handshake className="h-4 w-4" />}
-            hint={`${replied} replied (${reachedPct}%)`}
+            hint={matches.length ? `${replied} replied (${reachedPct}%)` : "None shared yet"}
             visual={
               <div className="flex items-center gap-3">
                 <Ring pct={reachedPct} color={SERIES.navy} size={44} />
