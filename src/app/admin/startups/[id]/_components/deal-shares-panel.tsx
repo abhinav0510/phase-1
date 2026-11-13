@@ -37,7 +37,7 @@ export function DealSharesPanel({ shares, failed }: { shares: DealShare[]; faile
   if (shares.length === 0) {
     return (
       <div className="p-5">
-        <EmptyState title={failed ? "Couldn't load the deal emails" : "This deal hasn't been shared with any investor yet"} />
+        <EmptyState title={failed ? "Couldn't load the PIPELINE deals" : "This deal hasn't been shared with any investor yet"} />
       </div>
     );
   }
@@ -93,7 +93,7 @@ export function DealSharesPanel({ shares, failed }: { shares: DealShare[]; faile
             <TH>Investor</TH>
             <TH>Shared</TH>
             <TH>Status</TH>
-            <TH>What they said</TH>
+            <TH>What the sheet says</TH>
             <TH>Meeting</TH>
           </tr>
         </THead>
@@ -103,7 +103,7 @@ export function DealSharesPanel({ shares, failed }: { shares: DealShare[]; faile
               <TD className="font-medium text-navy-800">{d.investorName}</TD>
               <TD className="whitespace-nowrap text-navy-500">
                 {formatDate(d.firstSentAt)}
-                {d.emails > 1 ? <span className="block text-xs text-navy-400">{d.emails} emails, last {formatDate(d.lastSentAt)}</span> : null}
+                {d.emails > 1 ? <span className="block text-xs text-navy-400">Shared {d.emails} times, last {formatDate(d.lastSentAt)}</span> : null}
               </TD>
               <TD>
                 <Badge tone={TONE[d.status]}>{DEAL_STATUS_LABEL[d.status]}</Badge>

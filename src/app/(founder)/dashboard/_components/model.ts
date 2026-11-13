@@ -215,3 +215,14 @@ export function interestedInvestorNames(meetings: Pick<Meeting, "investor_id" | 
   }
   return names;
 }
+
+/** How investors responded to the deal, for the Overview donut (founder-safe groups). */
+export function responseSlices(rows: { category: string }[]): DonutSlice[] {
+  const groups: { key: string; label: string; color: string; of: string[] }[] = [
+    { key: "meeting", label: "Meeting", color: SERIES.leaf, of: ["meeting", "tobook"] },
+    { key: "interested", label: "Interested", color: SERIES.navy, of: ["interested", "referred", "other"] },
+    { key: "passed", label: "Passed", color: SERIES.coral, of: ["passed"] },
+    { key: "waiting", label: "Awaiting reply", color: "#c3cad8", of: ["none", "bounced"] },
+  ];
+  return groups.map((g) => ({ key: g.key, label: g.label, color: g.color, value: rows.filter((r) => g.of.includes(r.category)).length }));
+}

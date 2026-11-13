@@ -30,7 +30,7 @@ const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 const LINKEDIN_RE = /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/\S*/gi;
 const PHONE_RE = /(?<![\w@])(?:\+\d{1,3}[\s-]?)?(?:\(?\d\)?[\s.-]?){9,13}\d(?!\w)/g;
 
-function redactContacts(text: string | null): string | null {
+export function redactContacts(text: string | null): string | null {
   if (!text) return text;
   return text
     .replace(EMAIL_RE, "[email hidden]")

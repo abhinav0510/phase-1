@@ -5,3 +5,4 @@ export { type InvestorProfile, getOwnMatches, type MailReply, getOwnReplies } fr
 export { getOwnMeetings } from "./meetings";
 export { getOwnProfile, getOwnPrefill, getOwnDeck, getOwnWeeklyReports } from "./profile";
 export { type FounderOverview, computeProfileCompletion, getFounderOverview } from "./overview";
+export { type Outreach, type OutreachRow, FOUNDER_STATUS, getOwnOutreach } from "./outreach";

@@ -4,7 +4,8 @@ import { asFounder, asTeam, expect, failTable, ID, MOCK, test } from "./helpers"
 // today: Alpha × Demo Capital (two rows, one firm; met on the calendar), Alpha × Passed Partners, Beta × Queue Ventures
 //        = 3 deals shared from 5 shared rows (Beta × Peak XV was first shared on 2 Sep; D00008 isn't shared).
 // 14 Sep 2026: Delta × Peak XV (passed) and Delta × 12 Flags VC (no reply).
-// September 2026: those two plus Beta × Peak XV on 2 Sep = 3.
+// September 2026: those two, Beta × Peak XV on 2 Sep, Beta × Beta Only Ventures on 20 Sep and
+// Zeta × Demo Dollar Fund on 25 Sep = 5.
 
 async function settle(page: any) {
   await page.waitForLoadState("networkidle");
@@ -100,9 +101,9 @@ test.describe("deal sharing", () => {
     await page.getByRole("button", { name: "Show month" }).click();
     await expect(page).toHaveURL(/period=pickmonth&month=2026-09/);
     await expect(page.locator("[data-totals]")).toContainText("September 2026");
-    await expect(tile(page, "Deals shared")).toContainText(/^3Deals shared/);
+    await expect(tile(page, "Deals shared")).toContainText(/^5Deals shared/);
     await expect(page.locator("[data-daily-chart] .recharts-wrapper")).toBeVisible();
-    await expect(page.locator("[data-shares-table] tbody tr")).toHaveCount(3);
+    await expect(page.locator("[data-shares-table] tbody tr")).toHaveCount(5);
     // Each day of the chart links to that day.
     const day = page.locator('[data-daily-chart] a[href="/admin/deal-sharing?period=day&date=2026-09-14"]');
     await expect(day).toHaveText("14 Sep: 2");

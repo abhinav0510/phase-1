@@ -99,9 +99,9 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         <StatCard
           tone="blue"
-          label="Startups"
-          value={kpis.startupsTotal}
-          hint={`${kpis.startupsLive} live · ${kpis.startupsTermSheet} term sheet`}
+          label="Live startups"
+          value={kpis.startupsLive}
+          hint={`Total: ${kpis.startupsTotal}`}
           icon={<Building2 className="h-4 w-4" />}
         />
         <StatCard
