@@ -14,6 +14,6 @@ case "$TARGET" in
   *) TARGET="/backups/snapshots/$(basename "$TARGET")" ;;
 esac
 [ -t 0 ] && { echo "Send the age private key on stdin: restore-test.sh < key.txt" >&2; exit 1; }
-./scripts/backup-image.sh "$DC" >&2
+./scripts/backup-image.sh >&2
 # Runs as root inside the container only to hand the throwaway database to its own user.
 exec $DC --profile backup run --rm -T --user 0 backup sidana-restore-test "$TARGET"
