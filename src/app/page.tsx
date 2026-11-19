@@ -3,17 +3,19 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  BarChart3,
-  Briefcase,
-  CalendarCheck,
-  Clock3,
-  FileText,
-  Landmark,
-  Mail,
-  Scale,
-  ShieldCheck,
-  Sparkles,
-  TrendingUp,
+  Building2,
+  CalendarDays,
+  Car,
+  CircleCheck,
+  Coins,
+  Cpu,
+  ExternalLink,
+  Layers,
+  Leaf,
+  Rocket,
+  ShoppingCart,
+  UserRound,
+  Users,
 } from "lucide-react";
 import { brandFontVars } from "@/client/lib/fonts";
 import { SITE } from "@/client/components/site/site-config";
@@ -25,41 +27,59 @@ export const metadata: Metadata = {
     "Sidana Ventures helps founders scale and raise funds from a network of family offices, angel groups and VCs. Founders follow their raise in the Sidana founder portal.",
 };
 
-// Copy comes from sidanaventures.com (/family and /vc) and its FAQ page.
-const FEATURES = [
-  { Icon: Clock3, title: "Real-time updates", text: "Every match, outreach and investor reply shows on your dashboard as Sidana's desk logs it. No waiting for a report." },
-  { Icon: Sparkles, title: "Exact thesis matching", text: "Investors matched on sector, stage, cheque size, geography and their own mandate, so every introduction fits." },
-  { Icon: Mail, title: "Email notifications", text: "Updates and announcements from the Sidana team reach your inbox, and stay in the portal to read any time." },
-  { Icon: CalendarCheck, title: "Meeting invites", text: "Investor meetings Sidana sets up land on your calendar, with the join link and the investor's details in the portal." },
-  { Icon: BarChart3, title: "Financial track for investors", text: "Upload your figures once. Revenue, MRR and expenses are charted and ready to show, in rupees." },
+// Headline figures. Keep these current: they are the first thing a visitor reads.
+const HERO_STATS = [
+  { Icon: Coins, value: "$130M USD", label: "Active fundraise" },
+  { Icon: Users, value: "326", label: "Active investors" },
+  { Icon: Building2, value: "126", label: "Active mandates" },
 ];
 
-const SCREENS = [
-  { src: "/images/portal/investors.jpg", alt: "The Investors & Matches page", title: "Exact thesis matching", text: "Every investor matched to you, with their cheque size, geography, sectors and stages, where they stand, and the reason when one passes." },
-  { src: "/images/portal/financials.jpg", alt: "The Financials page with charts", title: "Financial track for investors", text: "Annual and monthly revenue, revenue against expenses and revenue by year, charted from the figures you upload." },
-  { src: "/images/portal/meetings.jpg", alt: "The Meetings page", title: "Meeting invites", text: "Past and upcoming investor meetings Sidana has arranged, with the details and the join link for each one." },
+const TRACK = [
+  { Icon: Rocket, value: "160+", label: "Startups supported" },
+  { Icon: CalendarDays, value: "50–60", label: "Investor meetings / month" },
+  { Icon: Layers, value: "3–5", label: "Rounds closed / month" },
 ];
 
-const SERVICES = [
-  { Icon: TrendingUp, title: "Equity funding", text: "We connect startups with family office angels, venture capital firms and global investors from the USA and Europe, backing unique and futuristic ideas that drive innovation." },
-  { Icon: Landmark, title: "Debt funding", text: "Fast, flexible debt funding through alliances with NBFCs, lenders and syndicates, so founders access capital quickly for growth, working capital or bridge rounds without equity dilution." },
-  { Icon: Briefcase, title: "Pre-IPO investments", text: "End-to-end Pre-IPO investment solutions, from compliance readiness to funding support, helping companies increase profitability and achieve stronger valuations before going public." },
-  { Icon: FileText, title: "Preparation for funding", text: "Raising funds is one of the most critical milestones for any startup. We prepare founders to convince investors that their vision, team and business model can create lasting value." },
-  { Icon: ShieldCheck, title: "Financial and compliance", text: "End-to-end financial and compliance support through our team of expert CAs and CSs, keeping startups investor-ready, compliant and strategically aligned for growth." },
-  { Icon: Scale, title: "Legal support", text: "Dedicated legal support through expert lawyers on our panel, helping startups navigate challenges, compliance and contracts in today's competitive environment." },
+const SECTORS = [
+  { Icon: Rocket, label: "SpaceTech & Aerospace" },
+  { Icon: Car, label: "Automotive & EV" },
+  { Icon: Cpu, label: "AI & Deep Tech" },
+  { Icon: Leaf, label: "Renewable Energy & Climate" },
+  { Icon: ShoppingCart, label: "Consumer Tech & D2C" },
+  { Icon: Layers, label: "B2B SaaS & Enterprise" },
 ];
 
-const PROMISES = [
-  ["If you are not getting the lead investor", "We are the lead."],
-  ["If your business is going into a toss, for any reason", "We will pick up your call."],
-  ["If your equity round is not closed from the last 6 months", "We will do the bridge round."],
-  ["We are not just a bunch of investors", "We are supporters of every founder."],
+const FUNDS = [
+  "Peak XV Partners",
+  "Accel",
+  "Insight Partners",
+  "Premji Invest",
+  "WestBridge Capital",
+  "Bessemer Venture Partners",
+  "Elevation Capital",
+  "Nexus Venture Partners",
+  "Z47",
+  "A91 Partners",
+  "British International Investment",
+  "Jungle Ventures",
+  "Flipkart Ventures",
+  "Blume Ventures",
+  "Info Edge Ventures",
 ];
 
-const QUOTES = [
-  { text: "It's long time working with the team. VC network really helped us to close bridge rounds in equity and debt.", name: "Yashwant", role: "Founder, HOORA" },
-  { text: "Getting an investor from Switzerland is a great achievement for us using Sidana Ventures' global investors network.", name: "Tushar", role: "Founder, VAANI.ai" },
-  { text: "Pre-IPO investments and consulting services are a great offering by the team.", name: "Ankit", role: "Paper Arizona" },
+const STEPS = [
+  "We learn your sectors, stage preference and typical cheque size.",
+  "We match our active book against your thesis and send only what fits.",
+  "If your thesis shifts, one line to us and we re-match everything.",
+  "For each deal: deck, founder intro, and a call if you want to look closer.",
+];
+
+const FOUNDER_POINTS = [
+  "Family Office · DeepTech Venture Studio · Pre-IPO Investments",
+  "Founded, invested in and advised numerous startups; former founder of MeriCAR (automotive repair platform)",
+  "Published author of three books; featured in The Economic Times and Times of India",
+  "Guest lecturer at IIM, IIT and NIT; active with NASSCOM, Startup India and TiE",
+  "Recognised by IIM Ahmedabad; formative career at IndiaMart and Panalinks",
 ];
 
 const FAQS: Array<{ q: string; a: React.ReactNode }> = [
@@ -79,14 +99,7 @@ const FAQS: Array<{ q: string; a: React.ReactNode }> = [
 ];
 
 const SIDANA = "https://sidanaventures.com/family";
-
-function LoginButton({ className }: { className?: string }) {
-  return (
-    <Link href={SITE.loginPath} className={`btn btn-primary ${className ?? ""}`}>
-      Founder login <ArrowRight aria-hidden="true" />
-    </Link>
-  );
-}
+const LINKEDIN = "https://www.linkedin.com/company/sidanaventures/";
 
 // Public landing page. The portal lives behind /login (founders) and the unlisted
 // /teamonly (Sidana team). Nothing here links to the team sign-in.
@@ -102,149 +115,163 @@ export default function HomePage() {
               <small>Founder portal</small>
             </span>
           </Link>
-          <LoginButton />
+          <Link href={SITE.loginPath} className="btn btn-primary btn-small">
+            Members only
+          </Link>
         </div>
       </header>
 
       <main>
         <section className="hero">
-          <div className="wrap">
-            <div className="hero-grid">
-              <div>
-                <p className="eyebrow">Fundraising advisory · Investor relations · Family office</p>
-                <h1>
-                  We do the Match.
-                  <br />
-                  <span className="grad">You Get the Fund.</span>
-                </h1>
+          <div className="wrap hero-grid">
+            <div className="hero-copy">
+              <p className="eyebrow">Fundraising advisory · Investor relations · Family office</p>
+              <h1>
+                We do
+                <br />
+                the Match.
+                <br />
+                <span className="grad">You Get the Fund.</span>
+              </h1>
+            </div>
+            <div className="hero-side">
+              <ul className="hero-stats" aria-label="Sidana Ventures today">
+                {HERO_STATS.map(({ Icon, value, label }) => (
+                  <li key={label}>
+                    <span className="ic" aria-hidden="true"><Icon /></span>
+                    <b>{value}</b>
+                    <small>{label}</small>
+                  </li>
+                ))}
+              </ul>
+              <p className="lead">
+                We help founders scale and raise funds from our network of family offices, angel groups and VCs. We are
+                boundary-less and sector-agnostic, and bring any kind of capital, grant, debt or equity, to support founders.
+              </p>
+              <div className="actions">
+                <Link href={SITE.loginPath} className="btn btn-primary">
+                  Founder login <ArrowRight aria-hidden="true" />
+                </Link>
+                {/* Phase 2 (25 Nov): add the Investor login button here, linking to SITE.investorLoginPath. */}
               </div>
-              <div>
-                <p className="lead">
-                  We help founders scale and raise funds from our network of family offices, angel groups and VCs. We are
-                  boundary-less and sector-agnostic, and bring any kind of capital, grant, debt or equity, to support founders.
-                </p>
-                <div className="actions">
-                  <LoginButton />
-                </div>
-                <p className="hero-note">Founders get their Login ID and password from the Sidana team.</p>
-              </div>
-            </div>
-            <div className="shot">
-              <div className="frame">
-                <div className="bar" aria-hidden="true">
-                  <i /><i /><i />
-                  <span>svdealflow.io/dashboard</span>
-                </div>
-                <Image
-                  src="/images/portal/dashboard.jpg"
-                  alt="The founder dashboard: current ask, allocation left, investor matches, meetings and the outreach pipeline."
-                  width={2160}
-                  height={1350}
-                  priority
-                />
-              </div>
-            </div>
-            <div className="stats" aria-label="How Sidana works with founders">
-              <div className="stat"><b>24 months</b><span>Our standard agreement, through multiple rounds of funding</span></div>
-              <div className="stat"><b>4–6 weeks</b><span>From onboarding to your first investor connects</span></div>
-              <div className="stat"><b>India · USA · Europe · Japan</b><span>Family offices, angel groups and VCs in our network</span></div>
+              <p className="hero-note">Founders get their Login ID and password from the Sidana team.</p>
             </div>
           </div>
         </section>
 
-        <section className="key" id="features">
-          <div className="wrap">
-            <div className="section-head">
-              <p className="eyebrow">Key features</p>
-              <h2>What you get with Sidana.</h2>
-            </div>
-            <div className="key-grid">
-              {FEATURES.map(({ Icon, title, text }) => (
-                <div className="key-card" key={title}>
-                  <div className="ic"><Icon aria-hidden="true" /></div>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="portal">
-          <div className="wrap">
-            <div className="section-head">
-              <p className="eyebrow">Inside the founder portal</p>
-              <h2>Real screens from the portal every founder signs in to.</h2>
-            </div>
-            <div className="screens">
-              {SCREENS.map((s) => (
-                <figure className="screen" key={s.src}>
-                  <div className="frame">
-                    <Image src={s.src} alt={s.alt} width={2160} height={1350} />
-                  </div>
-                  <figcaption>
-                    <b>{s.title}</b>
-                    {s.text}
-                  </figcaption>
-                </figure>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="services" id="services">
-          <div className="wrap">
-            <div className="section-head">
-              <p className="eyebrow">Our services</p>
-              <h2>Raising every kind of capital, and supporting you to scale.</h2>
-            </div>
-            <div className="cards">
-              {SERVICES.map(({ Icon, title, text }) => (
-                <div className="card" key={title}>
-                  <div className="ic"><Icon aria-hidden="true" /></div>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="promise">
-          <div className="wrap">
-            <p className="eyebrow">Why founders choose Sidana</p>
-            <h2>“We believe in founders, not just in ideas.”</h2>
-            <div className="lines">
-              {PROMISES.map(([when, then]) => (
-                <div key={then}>
-                  <small>{when}</small>
-                  <b>{then}</b>
-                </div>
-              ))}
-            </div>
-            <p className="sign">
-              Sidana Ventures is founded by the family of Rakesh Sidana. A family office of investment advisory and
-              financial consulting, working closely with founders.
+        <section className="band about" id="about">
+          <div className="wrap band-grid">
+            <h2 className="underlined">About Sidana Ventures</h2>
+            <p>
+              Sidana Ventures is a family-run investment and consulting firm with a global footprint. Our network spans LPs,
+              HNIs and family offices worldwide, and we work closely with Indian AIFs, VCFs and global VC funds to connect
+              high-potential startups with strategic capital.
             </p>
           </div>
         </section>
 
-        <section id="partners">
-          <div className="wrap">
-            <div className="section-head">
-              <p className="eyebrow">Our partners</p>
-              <h2>We do not make clients, we make partners.</h2>
+        <section className="band fund" id="fund">
+          <div className="wrap band-grid">
+            <div className="fund-head">
+              <span className="ic big" aria-hidden="true"><Coins /></span>
+              <h2>
+                <span className="grad">$20M</span> Fund
+              </h2>
             </div>
-            <div className="quotes">
-              {QUOTES.map((q) => (
-                <blockquote className="quote" key={q.name}>
-                  <p>“{q.text}”</p>
-                  <footer>
-                    <b>{q.name}</b>
-                    {q.role}
-                  </footer>
-                </blockquote>
+            <p>
+              Launching in 2027 to invest in innovation. We invest ourselves in the second round, after supporting founders
+              through their first.
+            </p>
+          </div>
+        </section>
+
+        <section className="track">
+          <ul className="wrap track-grid" aria-label="Our track record">
+            {TRACK.map(({ Icon, value, label }) => (
+              <li key={label}>
+                <span className="ic tile" aria-hidden="true"><Icon /></span>
+                <span>
+                  <b>{value}</b>
+                  <small>{label}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="banking">
+          <div className="wrap">
+            <h2 className="underlined">Investment Banking</h2>
+            <p className="intro">
+              Through our investment banking arm we support 160+ startups raising from early stage to Series A, across sectors:
+            </p>
+            <ul className="sectors">
+              {SECTORS.map(({ Icon, label }) => (
+                <li key={label}>
+                  <span className="ic" aria-hidden="true"><Icon /></span>
+                  <b>{label}</b>
+                </li>
               ))}
+            </ul>
+            <p className="after">
+              The banking arm is sector agnostic. We work closely with founders through their first round, and invest
+              ourselves in the second.
+            </p>
+          </div>
+        </section>
+
+        <section id="network">
+          <div className="wrap">
+            <h2 className="underlined">Investor Network</h2>
+            <p className="intro">We share thesis-matched deals with leading funds across India and globally:</p>
+            <ul className="funds">
+              {FUNDS.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section id="how">
+          <div className="wrap">
+            <h2 className="underlined">How We Work With Investors</h2>
+            <ol className="steps">
+              {STEPS.map((text, i) => (
+                <li key={text}>
+                  <span className="num" aria-hidden="true">{i + 1}</span>
+                  <p>{text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section id="founder">
+          <div className="wrap founder-grid">
+            <div className="founder-card">
+              <span className="ic tile" aria-hidden="true"><UserRound /></span>
+              <h2>Rakesh Sidana</h2>
+              <p className="role">
+                Founder ·{" "}
+                <a href={LINKEDIN} target="_blank" rel="noopener noreferrer">
+                  LinkedIn <ExternalLink aria-hidden="true" />
+                </a>
+              </p>
+            </div>
+            <div className="founder-bio">
+              <p>
+                Three decades of experience spanning technology, business building and investing. Has experienced every
+                major technology wave from the rise of the internet (1995) to the emergence of AI and deep tech,
+                consistently helping build and scale innovative ventures.
+              </p>
+              <ul className="checks">
+                {FOUNDER_POINTS.map((p) => (
+                  <li key={p}>
+                    <CircleCheck aria-hidden="true" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
@@ -252,13 +279,14 @@ export default function HomePage() {
         <section className="faq" id="faq">
           <div className="wrap faq-grid">
             <div>
-              <p className="eyebrow">FAQ</p>
-              <h2>Frequently asked questions</h2>
-              <p className="lead">Still have questions? Write to the team at {SITE.contactEmail}.</p>
+              <h2>Still have questions?</h2>
+              <p className="lead">
+                Write to the team at <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
+              </p>
             </div>
             <div>
-              {FAQS.map((f, i) => (
-                <details key={f.q} open={i === 0}>
+              {FAQS.map((f) => (
+                <details key={f.q}>
                   <summary>{f.q}</summary>
                   <p>{f.a}</p>
                 </details>
@@ -283,7 +311,7 @@ export default function HomePage() {
               <a href={`${SIDANA}/portfolio.php`}>Startups</a>
               <a href={`${SIDANA}/blogs.php`}>SV Sharks</a>
               <a href={`${SIDANA}/services.php`}>Services</a>
-              <a href="https://www.linkedin.com/company/sidanaventures/">LinkedIn</a>
+              <a href={LINKEDIN}>LinkedIn</a>
               <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
             </nav>
           </div>

@@ -7,18 +7,26 @@ test.describe("public pages", () => {
     await expect(page.locator('a[href="/login"]').first()).toBeAttached();
   });
 
-  test("homepage shows the headline, key features, real screens and the FAQ, with no menu", async ({ page }) => {
+  test("homepage shows the headline, the firm's figures, its sections and the FAQ, with no menu", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("We do the Match.");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("You Get the Fund.");
-    for (const feature of ["Real-time updates", "Exact thesis matching", "Email notifications", "Meeting invites", "Financial track for investors"]) {
-      await expect(page.getByRole("heading", { name: feature }).first()).toBeVisible();
+    const h1 = page.getByRole("heading", { level: 1 });
+    await expect(h1).toContainText("We do");
+    await expect(h1).toContainText("the Match.");
+    await expect(h1).toContainText("You Get the Fund.");
+    for (const figure of ["Active fundraise", "Active investors", "Active mandates", "Startups supported", "Investor meetings / month", "Rounds closed / month"]) {
+      await expect(page.getByText(figure, { exact: true })).toBeVisible();
     }
-    await expect(page.locator('main img[src*="/images/portal/"]')).toHaveCount(4);
+    for (const section of ["About Sidana Ventures", "Investment Banking", "Investor Network", "How We Work With Investors", "Rakesh Sidana", "Still have questions?"]) {
+      await expect(page.getByRole("heading", { name: section })).toBeVisible();
+    }
+    await expect(page.locator(".sectors li")).toHaveCount(6);
+    await expect(page.locator(".steps li")).toHaveCount(4);
     await expect(page.locator("details")).toHaveCount(5);
+    await page.locator("details summary").first().click();
     await expect(page.getByText("Our standard agreement is for 24 months")).toBeVisible();
     await expect(page.getByRole("button", { name: /menu/i })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: /Founder login/ })).toHaveCount(2);
+    await expect(page.getByRole("link", { name: /Founder login/ })).toHaveCount(1);
+    await expect(page.getByRole("link", { name: "Members only" })).toHaveAttribute("href", "/login");
   });
 
   test("the sign-in page shows the form beside the product panel", async ({ page }) => {
