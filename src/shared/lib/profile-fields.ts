@@ -1,6 +1,7 @@
 import { formatRupees, toRupees } from "@/shared/lib/currency";
 import { formatLakh } from "@/shared/lib/utils";
 import type { Startup } from "@/shared/types/db";
+import { SECTOR_GROUPS, SECTORS as SECTOR_CODES, STAGES } from "@/shared/lib/sector-taxonomy";
 
 // The founder profile Sidana uses for investor matchmaking. One list drives the
 // founder form (on /profile), the completion score on the dashboard and
@@ -21,10 +22,14 @@ export interface ProfileField {
   type: FieldType;
   section: SectionKey;
   options?: readonly string[];
+  /** For a select: the options shown in labelled groups (every option is also in `options`). */
+  groups?: { label: string; options: string[] }[];
   placeholder?: string;
   help?: string;
   /** Used directly by the match engine (sector, stage, cheque size, geography…). */
   matching?: boolean;
+  /** Left out of the completion score (a nice-to-have, e.g. a second sector). */
+  optional?: boolean;
   /** Must be answered before the profile can be submitted for review. */
   required?: boolean;
   /** Sub-heading shown above this field in the form, starting a new group. */
@@ -70,6 +75,11 @@ const BUSINESS_MODELS = [
   "Offline / retail",
   "Other",
 ] as const;
+
+// The agents' sector and stage codes, by name: the founder's pick drives investor matching.
+const CODE_GROUPS = SECTOR_GROUPS.map((g) => ({ label: g, options: SECTOR_CODES.filter((s) => s.group === g).map((s) => s.label) }));
+const CODE_LABELS = SECTOR_CODES.map((s) => s.label);
+const STAGE_LABELS = STAGES.map((s) => s.label);
 
 const MARKETS = ["India", "United States", "Europe / UK", "Middle East", "South-East Asia", "Global"] as const;
 
@@ -119,6 +129,9 @@ export const PROFILE_FIELDS: ProfileField[] = [
   { key: "website", label: "Website", type: "url", section: "company", placeholder: "https://" },
   { key: "sector", label: "Sector", type: "select", section: "company", options: SECTORS, matching: true, record: (s) => str(s.sector) },
   { key: "subsector", label: "Sub-sector / niche", type: "text", section: "company", placeholder: "e.g. Corporate cafeteria management", record: (s) => str(s.subsector) },
+  { key: "sector_code", label: "Main sector investors filter by", type: "select", section: "company", options: CODE_LABELS, groups: CODE_GROUPS, matching: true, help: "Investors pick sectors from this same list, so this decides which investors see you." },
+  { key: "sector_code_2", label: "Second sector (optional)", type: "select", section: "company", options: CODE_LABELS, groups: CODE_GROUPS, matching: true, optional: true },
+  { key: "stage_code", label: "Stage", type: "select", section: "company", options: STAGE_LABELS, matching: true, help: "Post-seed traction sits between Seed and Pre-Series A." },
   { key: "business_model", label: "Business model", type: "select", section: "company", options: BUSINESS_MODELS, matching: true },
   { key: "markets", label: "Markets you sell in", type: "multi", section: "company", options: MARKETS, matching: true },
   { key: "hq_city", label: "Headquarters city", type: "text", section: "company", placeholder: "e.g. Bengaluru" },
@@ -247,7 +260,8 @@ export function profileProgress(startup: Startup | null, answers: Answers | null
   ) as Record<SectionKey, { done: number; total: number }>;
   const missing: ProfileField[] = [];
   let done = 0;
-  for (const f of PROFILE_FIELDS) {
+  const scored = PROFILE_FIELDS.filter((f) => !f.optional);
+  for (const f of scored) {
     bySection[f.section].total++;
     const ok = isFilled(a[f.key]) || isFilled(recordValue(f, startup));
     if (ok) {
@@ -258,7 +272,7 @@ export function profileProgress(startup: Startup | null, answers: Answers | null
     }
   }
   missing.sort((x, y) => Number(!!y.matching) - Number(!!x.matching));
-  const total = PROFILE_FIELDS.length;
+  const total = scored.length;
   return { pct: Math.round((done / total) * 100), done, total, missing, bySection };
 }
 

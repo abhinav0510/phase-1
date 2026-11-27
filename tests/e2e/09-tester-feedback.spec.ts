@@ -123,12 +123,14 @@ test.describe("dollar amounts show in rupees at 100 rupees to the dollar", () =>
   });
 });
 
-test("complete profile doesn't ask for stage, traction, burn, runway or investor preferences", async ({ page }) => {
+// 26 Nov: founders now pick their own stage (one short list, the same one investors filter by),
+// because founder data is final everywhere. Traction, burn, runway and preferences stay out.
+test("complete profile asks for stage once, and not traction, burn, runway or investor preferences", async ({ page }) => {
   await asFounder(page, ID.delta);
   await page.goto("/profile");
   await expect(page.getByRole("heading", { name: "Financials" }).first()).toBeVisible();
   await expect(page.getByText("Stage & traction")).toHaveCount(0);
-  await expect(page.getByLabel("Stage", { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Stage", { exact: true })).toHaveCount(1);
   await expect(page.getByLabel("Key traction")).toHaveCount(0);
   await expect(page.getByText(/monthly burn/i)).toHaveCount(0);
   await expect(page.getByLabel(/Runway/)).toHaveCount(0);

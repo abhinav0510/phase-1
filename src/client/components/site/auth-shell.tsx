@@ -26,9 +26,24 @@ export const authItem: Variants = {
 
 const FOUNDER_FEATURES = ["Real-time updates", "Exact thesis matching", "Email notifications", "Meeting invites", "Financial track"];
 const TEAM_POINTS = ["Review founder profiles", "Manage announcements and emails", "See every raise, match and meeting"];
+const INVESTOR_POINTS = ["Startups matched to your thesis", "Full startup profiles", "Book a Google Meet", "Chat with founders you've met"];
 
 /* What's behind the sign-in, so the screen isn't an empty form. Hidden on phones. */
-function Aside({ variant }: { variant: "founder" | "team" }) {
+function Aside({ variant }: { variant: "founder" | "team" | "investor" }) {
+  if (variant === "investor") {
+    return (
+      <aside className="auth-aside auth-aside--team" aria-label="What's inside the investor portal">
+        <div>
+          <h2>Deals that fit <span className="grad">your thesis.</span></h2>
+          <ul>
+            {INVESTOR_POINTS.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+    );
+  }
   if (variant === "team") {
     return (
       <aside className="auth-aside auth-aside--team" aria-label="Sidana operations desk">
@@ -71,7 +86,7 @@ export function AuthShell({
   children,
 }: {
   portalLabel: string;
-  variant?: "founder" | "team";
+  variant?: "founder" | "team" | "investor";
   children: ReactNode;
 }) {
   return (
@@ -80,11 +95,8 @@ export function AuthShell({
         <header className="auth-top">
           <div className="auth-top-inner">
             <Link href="/" className="auth-wordmark" aria-label="Sidana Ventures — home">
-              <Image src="/images/logo-icon.png" alt="" width={36} height={36} />
-              <span>
-                <b>Sidana Ventures</b>
-                <span className="auth-portal">{portalLabel}</span>
-              </span>
+              <Image src="/images/svdealflow-logo.png" alt="SV Dealflow by Sidana Ventures" width={720} height={189} priority style={{ width: "auto", height: 48 }} />
+              <span className="auth-portal" style={{ borderLeft: "1px solid rgba(13,44,72,.14)", paddingLeft: 12 }}>{portalLabel}</span>
             </Link>
             <Link href="/" className="auth-back">
               ← Back to site

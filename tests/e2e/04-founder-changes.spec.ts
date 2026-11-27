@@ -1,8 +1,8 @@
 import { asFounder, asTeam, expect, ID, pickFile, state, test } from "./helpers";
 
 const profile = async (id: number) => (await state("startup_profiles")).find((p) => p.startup_id === id);
-const saveDraft = (page: any) => page.getByRole("button", { name: "Save draft" }).click();
-const submit = (page: any) => page.getByRole("button", { name: /Submit for review/ }).click();
+const saveDraft = (page: any) => page.getByRole("button", { name: "Save", exact: true }).click();
+const submit = (page: any) => page.getByRole("button", { name: /Save and send to Sidana/ }).click();
 
 test.describe("complete profile", () => {
   test("the Financials section asks for ARR and last year, with no projections", async ({ page }) => {

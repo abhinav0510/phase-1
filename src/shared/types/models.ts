@@ -265,3 +265,149 @@ export type InvestorProfile = Pick<
   Investor,
   "id" | "name" | "type" | "sectors" | "stage_pref" | "cheque_min_cr" | "cheque_max_cr" | "cheque_as_written" | "geography"
 >;
+
+// ---------------------------------------------------------------- Phase 2: investor portal
+
+export type AccessVia = "documents" | "meeting" | "reply" | "admin" | "backfill";
+
+export interface InvestorPortalAccess {
+  investor_id: number;
+  granted_via: AccessVia;
+  deal_id: string | null;
+  startup_id: number | null;
+  invite_status: "pending" | "sent";
+  invite_sent_at: string | null;
+  login_emails: string[];
+  granted_at: string;
+  granted_by: string | null;
+  first_signin_at: string | null;
+  revoked_at: string | null;
+  revoked_by: string | null;
+}
+
+export interface InvestorThesisRow {
+  investor_id: number;
+  sectors: string[];
+  stages: string[];
+  cheque_min_cr: number | null;
+  cheque_max_cr: number | null;
+  excluded_sectors: string[];
+  excluded_stages: string[];
+  min_revenue_inr_l: number | null;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+export type PassReason = "sector" | "stage" | "cheque" | "traction" | "valuation" | "team" | "market" | "conflict" | "other";
+export type TriggerMetric = "mrr_l" | "arr_cr" | "growth_pct";
+
+export interface InvestorPass {
+  id: number;
+  investor_id: number;
+  startup_id: number;
+  reason_category: PassReason;
+  reason_text: string | null;
+  thesis_changes: Record<string, unknown>;
+  passed_by: string | null;
+  created_at: string;
+}
+
+export interface DealTrigger {
+  id: number;
+  investor_id: number;
+  startup_id: number;
+  metric: TriggerMetric;
+  threshold: number;
+  created_at: string;
+  fired_at: string | null;
+  fired_value: number | null;
+  cancelled_at: string | null;
+}
+
+export interface InvestorNotification {
+  id: number;
+  investor_id: number;
+  startup_id: number | null;
+  kind: string;
+  title: string;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+  emailed_at: string | null;
+}
+
+export interface InvestorInterest {
+  id: number;
+  investor_id: number;
+  startup_id: number;
+  source: "email_reply" | "portal" | "admin";
+  created_at: string;
+}
+
+export interface PortalMeeting {
+  id: number;
+  investor_id: number;
+  startup_id: number;
+  scheduled_at: string;
+  duration_min: number;
+  meet_link: string | null;
+  calendar_event_id: string | null;
+  ical_uid: string | null;
+  status: "scheduled" | "cancelled";
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface ChatThread {
+  id: number;
+  investor_id: number;
+  startup_id: number;
+  created_at: string;
+  last_message_at: string | null;
+  investor_last_read_at: string | null;
+  founder_last_read_at: string | null;
+}
+
+export interface ChatMessage {
+  id: number;
+  thread_id: number;
+  sender_role: "investor" | "founder" | "system";
+  sender_user_id: string | null;
+  body: string;
+  meeting_at: string | null;
+  meet_link: string | null;
+  attachment_path: string | null;
+  attachment_name: string | null;
+  attachment_type: string | null;
+  attachment_size: number | null;
+  created_at: string;
+}
+
+export interface MeetingConclusion {
+  ff_id: string;
+  meeting_id: number | null;
+  meeting_date: string | null;
+  title: string | null;
+  attendees: string | null;
+  startup_guess: string | null;
+  investor_guess: string | null;
+  overview: string | null;
+  action_items: string | null;
+  ff_url: string | null;
+  synced_at: string;
+  linked_by: "auto" | "admin" | null;
+}
+
+export type PortalName = "investor" | "founder" | "admin" | "system";
+
+export interface PortalActivity {
+  id: number;
+  at: string;
+  actor_user_id: string | null;
+  actor_label: string | null;
+  portal: PortalName;
+  action: string;
+  investor_id: number | null;
+  startup_id: number | null;
+  meta: Record<string, unknown>;
+}

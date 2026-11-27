@@ -13,6 +13,6 @@ test("a founder can sign in, read pages and save through nginx", async ({ page, 
   await expect(page.getByRole("heading", { level: 1, name: "Meetings" })).toBeVisible();
 
   await page.goto("/profile");
-  await page.getByRole("button", { name: "Save draft" }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByRole("status")).toBeVisible();
 });

@@ -20,7 +20,9 @@ export type NavIcon =
   | "matches"
   | "weekly"
   | "mail"
-  | "announce";
+  | "announce"
+  | "chat"
+  | "activity";
 
 export interface NavItem {
   label: string;
@@ -33,6 +35,7 @@ export const FOUNDER_NAV: NavItem[] = [
   { label: "Financials", href: "/financials", icon: "financials" },
   { label: "Pitch Deck", href: "/pitch-deck", icon: "documents" },
   { label: "Meetings", href: "/meetings", icon: "meetings" },
+  { label: "Chats", href: "/chats", icon: "chat" },
   { label: "Overview", href: "/overview", icon: "round" },
   { label: "My Profile", href: "/profile", icon: "profile" },
   { label: "Settings", href: "/settings", icon: "settings" },
@@ -46,10 +49,21 @@ export const ADMIN_NAV: NavItem[] = [
   { label: "Profile Reviews", href: "/admin/profiles", icon: "users" },
   { label: "Meetings", href: "/admin/meetings", icon: "meetings" },
   { label: "Deal Sharing", href: "/admin/deal-sharing", icon: "shares" },
+  { label: "Investor Chats", href: "/admin/chats", icon: "chat" },
+  { label: "Portal Activity", href: "/admin/activity", icon: "activity" },
+  { label: "Investor Access", href: "/admin/portal-access", icon: "investors" },
   { label: "Documents", href: "/admin/documents", icon: "documents" },
   { label: "Users & Access", href: "/admin/users", icon: "users" },
   { label: "Email Startups", href: "/admin/notifications", icon: "mail" },
   { label: "Announcements", href: "/admin/announcements", icon: "announce" },
   { label: "Reports", href: "/admin/reports", icon: "reports" },
   { label: "Settings", href: "/admin/settings", icon: "settings" },
+];
+
+export const INVESTOR_NAV: NavItem[] = [
+  { label: "Matches", href: "/investor/matches", icon: "matches" },
+  { label: "Shared Deals", href: "/investor/shared", icon: "mail" },
+  { label: "Chats", href: "/investor/chats", icon: "chat" },
+  { label: "My Meetings", href: "/investor/meetings", icon: "meetings" },
+  { label: "Past Deals", href: "/investor/past-deals", icon: "reports" },
 ];

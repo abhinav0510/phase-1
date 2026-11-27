@@ -23,7 +23,7 @@ test.describe("profile review pipeline", () => {
     await page.goto("/profile");
     await page.getByLabel(/Annual revenue – ARR/).fill("250");
     await page.getByLabel("One-line pitch").fill("Zeta pipeline pitch");
-    await page.getByRole("button", { name: /Submit for review/ }).click();
+    await page.getByRole("button", { name: /Save and send to Sidana/ }).click();
     await expect(page.getByRole("status")).toContainText(/Sent to the Sidana team/);
     expect((await profile(ID.zeta))?.status).toBe("submitted");
 
@@ -45,11 +45,11 @@ test.describe("submissions stay visible to the team", () => {
     await asFounder(page, ID.eta);
     await page.goto("/profile");
     await page.getByLabel(/Annual revenue – ARR/).fill("250");
-    await page.getByRole("button", { name: /Submit for review/ }).click();
+    await page.getByRole("button", { name: /Save and send to Sidana/ }).click();
     await expect(page.getByRole("status")).toContainText(/Sent to the Sidana team/);
 
     await page.getByLabel("One-line pitch").fill("Edited after submitting");
-    await page.getByRole("button", { name: "Save draft" }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByRole("status")).toContainText(/still with the Sidana team/);
     const p = await profile(ID.eta);
     expect(p.status).toBe("submitted");

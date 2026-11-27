@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,7 +16,6 @@ import {
   Leaf,
   Rocket,
   ShoppingCart,
-  UserRound,
   Users,
 } from "lucide-react";
 import { brandFontVars } from "@/client/lib/fonts";
@@ -36,7 +37,7 @@ const HERO_STATS = [
 
 const TRACK = [
   { Icon: Rocket, value: "160+", label: "Startups supported" },
-  { Icon: CalendarDays, value: "50–60", label: "Investor meetings / month" },
+  { Icon: CalendarDays, value: "110+", label: "Deal flow meetings / month" },
   { Icon: Layers, value: "3–5", label: "Rounds closed / month" },
 ];
 
@@ -49,23 +50,32 @@ const SECTORS = [
   { Icon: Layers, label: "B2B SaaS & Enterprise" },
 ];
 
-const FUNDS = [
-  "Peak XV Partners",
-  "Accel",
-  "Insight Partners",
-  "Premji Invest",
-  "WestBridge Capital",
-  "Bessemer Venture Partners",
-  "Elevation Capital",
-  "Nexus Venture Partners",
-  "Z47",
-  "A91 Partners",
-  "British International Investment",
-  "Jungle Ventures",
-  "Flipkart Ventures",
-  "Blume Ventures",
-  "Info Edge Ventures",
+// The funds we share deals with. A logo shows when public/images/funds/<slug>.svg or .png
+// exists; otherwise the name is shown in its place.
+const FUNDS: { name: string; slug: string }[] = [
+  { name: "Peak XV Partners", slug: "peak-xv" },
+  { name: "Accel", slug: "accel" },
+  { name: "Insight Partners", slug: "insight-partners" },
+  { name: "Premji Invest", slug: "premji-invest" },
+  { name: "WestBridge Capital", slug: "westbridge" },
+  { name: "Bessemer Venture Partners", slug: "bessemer" },
+  { name: "Elevation Capital", slug: "elevation" },
+  { name: "Nexus Venture Partners", slug: "nexus" },
+  { name: "Z47", slug: "z47" },
+  { name: "A91 Partners", slug: "a91" },
+  { name: "British International Investment", slug: "bii" },
+  { name: "Jungle Ventures", slug: "jungle" },
+  { name: "Flipkart Ventures", slug: "flipkart-ventures" },
+  { name: "Blume Ventures", slug: "blume" },
+  { name: "Info Edge Ventures", slug: "info-edge-ventures" },
 ];
+
+function fundLogo(slug: string): string | null {
+  for (const ext of ["svg", "png"]) {
+    if (existsSync(path.join(process.cwd(), "public", "images", "funds", `${slug}.${ext}`))) return `/images/funds/${slug}.${ext}`;
+  }
+  return null;
+}
 
 const STEPS = [
   "We learn your sectors, stage preference and typical cheque size.",
@@ -100,6 +110,7 @@ const FAQS: Array<{ q: string; a: React.ReactNode }> = [
 
 const SIDANA = "https://sidanaventures.com/family";
 const LINKEDIN = "https://www.linkedin.com/company/sidanaventures/";
+const FOUNDER_LINKEDIN = "https://www.linkedin.com/in/rakeshsidana/";
 
 // Public landing page. The portal lives behind /login (founders) and the unlisted
 // /teamonly (Sidana team). Nothing here links to the team sign-in.
@@ -108,15 +119,8 @@ export default function HomePage() {
     <div className={`landing ${brandFontVars}`}>
       <header className="top">
         <div className="wrap">
-          <Link href="/" className="brand" aria-label="Sidana Ventures">
-            <Image src="/images/logo-icon.png" alt="" width={36} height={36} />
-            <span>
-              <b>Sidana Ventures</b>
-              <small>Founder portal</small>
-            </span>
-          </Link>
-          <Link href={SITE.loginPath} className="btn btn-primary btn-small">
-            Members only
+          <Link href="/" className="brand brand-logo" aria-label="SV Dealflow by Sidana Ventures">
+            <Image src="/images/svdealflow-logo.png" alt="SV Dealflow by Sidana Ventures" width={720} height={189} priority />
           </Link>
         </div>
       </header>
@@ -152,9 +156,11 @@ export default function HomePage() {
                 <Link href={SITE.loginPath} className="btn btn-primary">
                   Founder login <ArrowRight aria-hidden="true" />
                 </Link>
-                {/* Phase 2 (25 Nov): add the Investor login button here, linking to SITE.investorLoginPath. */}
+                <Link href={SITE.investorLoginPath} className="btn btn-ghost">
+                  Investor login <ArrowRight aria-hidden="true" />
+                </Link>
               </div>
-              <p className="hero-note">Founders get their Login ID and password from the Sidana team.</p>
+              <p className="hero-note">Founders get their Login ID and password from the Sidana team. Investors sign in with Google.</p>
             </div>
           </div>
         </section>
@@ -163,27 +169,13 @@ export default function HomePage() {
           <div className="wrap band-grid">
             <h2 className="underlined">About Sidana Ventures</h2>
             <p>
-              Sidana Ventures is a family-run investment and consulting firm with a global footprint. Our network spans LPs,
+              Sidana Ventures is a family-backed investment and consulting firm with a global footprint. Our network spans LPs,
               HNIs and family offices worldwide, and we work closely with Indian AIFs, VCFs and global VC funds to connect
               high-potential startups with strategic capital.
             </p>
           </div>
         </section>
 
-        <section className="band fund" id="fund">
-          <div className="wrap band-grid">
-            <div className="fund-head">
-              <span className="ic big" aria-hidden="true"><Coins /></span>
-              <h2>
-                <span className="grad">$20M</span> Fund
-              </h2>
-            </div>
-            <p>
-              Launching in 2027 to invest in innovation. We invest ourselves in the second round, after supporting founders
-              through their first.
-            </p>
-          </div>
-        </section>
 
         <section className="track">
           <ul className="wrap track-grid" aria-label="Our track record">
@@ -224,11 +216,26 @@ export default function HomePage() {
           <div className="wrap">
             <h2 className="underlined">Investor Network</h2>
             <p className="intro">We share thesis-matched deals with leading funds across India and globally:</p>
-            <ul className="funds">
-              {FUNDS.map((name) => (
-                <li key={name}>{name}</li>
+            <div className="marquee" aria-label="Funds we share deals with">
+              {/* The list twice, so the strip scrolls without a gap; the copy is hidden from screen readers. */}
+              {[0, 1].map((copy) => (
+                <ul className="marquee-track" key={copy} aria-hidden={copy === 1 ? true : undefined}>
+                  {FUNDS.map(({ name, slug }) => {
+                    const logo = fundLogo(slug);
+                    return (
+                      <li key={slug} title={name}>
+                        {logo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={logo} alt={copy === 1 ? "" : name} loading="lazy" />
+                        ) : (
+                          <span>{name}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
               ))}
-            </ul>
+            </div>
           </div>
         </section>
 
@@ -249,11 +256,11 @@ export default function HomePage() {
         <section id="founder">
           <div className="wrap founder-grid">
             <div className="founder-card">
-              <span className="ic tile" aria-hidden="true"><UserRound /></span>
+              <Image className="founder-photo" src="/images/rakesh-sidana.jpg" alt="Rakesh Sidana" width={240} height={240} />
               <h2>Rakesh Sidana</h2>
               <p className="role">
                 Founder ·{" "}
-                <a href={LINKEDIN} target="_blank" rel="noopener noreferrer">
+                <a href={FOUNDER_LINKEDIN} target="_blank" rel="noopener noreferrer">
                   LinkedIn <ExternalLink aria-hidden="true" />
                 </a>
               </p>
@@ -281,7 +288,8 @@ export default function HomePage() {
             <div>
               <h2>Still have questions?</h2>
               <p className="lead">
-                Write to the team at <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
+                <a href={SITE.pitchDeckFormUrl} target="_blank" rel="noopener noreferrer">Fill in this form</a> to share your
+                pitch deck with the team, or write to us at <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
               </p>
             </div>
             <div>
@@ -300,9 +308,8 @@ export default function HomePage() {
         <div className="wrap">
           <div className="row">
             <div>
-              <Link href="/" className="brand" aria-label="Sidana Ventures">
-                <Image src="/images/logo-icon.png" alt="" width={36} height={36} />
-                <span><b>Sidana Ventures</b></span>
+              <Link href="/" className="brand brand-logo" aria-label="SV Dealflow by Sidana Ventures">
+                <Image src="/images/svdealflow-logo.png" alt="SV Dealflow by Sidana Ventures" width={720} height={189} />
               </Link>
               <p>A family office of investment advisory and financial consulting. We help founders raise funds and advise them on scaling the business.</p>
             </div>

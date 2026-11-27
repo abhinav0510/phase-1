@@ -36,7 +36,8 @@ console.log(`
 `);
 
 const mock = spawn(process.execPath, ["tests/mock/server.mjs"], {
-  env: { ...process.env, MOCK_PORT },
+  // MOCK_DEMO fills the demo accounts (profiles, figures, Northbridge's deals); tests never set it.
+  env: { ...process.env, MOCK_PORT, MOCK_DEMO: "1" },
   stdio: ["ignore", "ignore", "inherit"],
 });
 const app = spawn(process.execPath, [NEXT, "dev", "-p", PORT], { env, stdio: "inherit" });

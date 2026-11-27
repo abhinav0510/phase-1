@@ -10,6 +10,7 @@ const PUBLIC_PREFIXES = [
   "/forgot-password",
   "/reset-password",
   "/auth",
+  "/investor/login",
 ];
 
 /**
@@ -57,6 +58,9 @@ export async function middleware(request: NextRequest) {
   const isPublic =
     pathname === "/" || PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
 
+  if (!user && !isPublic && pathname.startsWith("/investor")) {
+    return redirectTo(request, `/investor/login?next=${encodeURIComponent(pathname)}`);
+  }
   if (!user && !isPublic) {
     return redirectTo(request, `/login?redirect=${encodeURIComponent(pathname)}`);
   }

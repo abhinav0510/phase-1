@@ -1,5 +1,11 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
+import { STARTUPS_TAG, startupTag } from "@/server/config/cache-tags";
+import { logActivity } from "@/server/data/activity";
+import { writeFounderBack } from "@/server/data/founder-writeback";
+import { evaluateTriggers } from "@/server/data/investor/signals";
+
 import { requireFounder } from "@/server/auth/session";
 import { createAdminClient } from "@/server/integrations/supabase/admin";
 import { isMisNotReady } from "@/server/data/mis";
@@ -82,6 +88,13 @@ export async function uploadFinancials(formData: FormData): Promise<FinancialsUp
   }
 
   // No revalidatePath: the upload card reloads the page, and every founder page is dynamic.
+  // Investors' shared startup list shows the new ARR at once; the sheet gets it too.
+  revalidateTag(STARTUPS_TAG);
+  revalidateTag(startupTag(session.startupId));
+  await logActivity({ portal: "founder", action: "figures_uploaded", actorUserId: session.authId, startupId: session.startupId, meta: { months: parsed.months.length, years: parsed.years.length } });
+  writeFounderBack(session.startupId, "figures");
+  // Phase 2: investors' revisit triggers on this startup (never shown to the founder).
+  await evaluateTriggers({ startupId: session.startupId }).catch(() => 0);
   return { ok: true, months: parsed.months.length, years: parsed.years.length };
 }
 
@@ -126,5 +139,6 @@ export async function saveMonthlyFigures(formData: FormData): Promise<MonthlyFig
       .upsert({ ...entry.year, startup_id: session.startupId, updated_at: now }, { onConflict: "startup_id,fy_start,kind" });
     if (error) return saveFailed(error.code, error.message);
   }
+  await evaluateTriggers({ startupId: session.startupId }).catch(() => 0);
   return { ok: true };
 }

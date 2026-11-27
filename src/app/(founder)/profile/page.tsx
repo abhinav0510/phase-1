@@ -163,8 +163,9 @@ export default async function FounderProfile() {
       />
 
       <Note>
-        Your Sidana contact is the team member who manages your relationship. Your logo is only shown inside your own
-        portal, and the Sidana team reviews every profile you submit before it is used for matching.
+        Your Sidana contact is the team member who manages your relationship. What you save here, your logo and your
+        uploaded figures are shown to the investors Sidana works with straight away, and used for your matching. The
+        Sidana team may look them over and get in touch if anything needs fixing.
       </Note>
     </div>
   );
@@ -188,8 +189,8 @@ function StatusStrip({
       <CardBody className="flex items-start gap-3 bg-amber-50 py-3 text-sm text-amber-800">
         <Clock className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
-          Sent for review on {formatDateTime(submittedAt)}. {contact} will check it before it is used for matching.
-          You can still update it.
+          Sent for review on {formatDateTime(submittedAt)}. Investors already see your latest saved details; {contact}{" "}
+          will get in touch if anything needs fixing. You can keep updating it.
         </span>
       </CardBody>
     );
@@ -199,8 +200,8 @@ function StatusStrip({
       <CardBody className="flex items-start gap-3 bg-red-50 py-3 text-sm text-red-700">
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
-          The Sidana team asked for a few changes{note ? `: “${note}”` : "."} Update the details below and submit
-          again.
+          The Sidana team asked for a few changes{note ? `: “${note}”` : "."} Update the details below; each save is
+          live for investors.
         </span>
       </CardBody>
     );
@@ -210,16 +211,15 @@ function StatusStrip({
       <CardBody className="flex items-start gap-3 bg-emerald-50 py-3 text-sm text-emerald-700">
         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
-          Approved on {formatDateTime(reviewedAt)} and in use for your matching. Changes you submit are reviewed again
-          before they replace it.
+          Checked by Sidana on {formatDateTime(reviewedAt)}. Whatever you save is what investors see, straight away.
         </span>
       </CardBody>
     );
   }
   return (
     <CardBody className="py-3 text-sm text-navy-500">
-      Details already on file with Sidana are filled in for you. Check them, fill the gaps, save a draft whenever you
-      like, and submit when you&apos;re done.
+      Details already on file with Sidana are filled in for you. Check them and fill the gaps. Everything you save is
+      shown to investors straight away; send it to Sidana when you&apos;re done.
     </CardBody>
   );
 }

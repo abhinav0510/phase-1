@@ -15,7 +15,11 @@ import {
   FileBarChart,
   Mail,
   Megaphone,
-  type LucideIcon, Send } from "lucide-react";
+  Send,
+  MessageSquare,
+  Activity,
+  type LucideIcon,
+} from "lucide-react";
 import type { NavIcon } from "./nav";
 
 export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
@@ -36,4 +40,6 @@ export const NAV_ICONS: Record<NavIcon, LucideIcon> = {
   weekly: FileBarChart,
   mail: Mail,
   announce: Megaphone,
+  chat: MessageSquare,
+  activity: Activity,
 };

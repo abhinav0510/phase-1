@@ -80,10 +80,10 @@ export function ProfileForm({
         setMsg({
           ok: true,
           text: submit
-            ? "Sent to the Sidana team. We'll review it and use it for your investor matching."
+            ? "Sent to the Sidana team. Investors already see these details, and the team will look them over."
             : !canSubmit
-              ? "Saved. Your submission is still with the Sidana team, now with these changes."
-              : "Draft saved. You can come back and finish any time.",
+              ? "Saved and live for investors. Your submission is still with the Sidana team, now with these changes."
+              : "Saved. Investors and the Sidana team now see these details.",
         });
         router.refresh();
       } else {
@@ -185,7 +185,7 @@ export function ProfileForm({
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => save(false)} disabled={pending} className={buttonClass("ghost", "sm")}>
               <Save className="h-4 w-4" />
-              Save draft
+              Save
             </button>
             <button
               type="button"
@@ -194,7 +194,7 @@ export function ProfileForm({
               className={buttonClass("primary", "sm")}
             >
               <Send className="h-4 w-4" />
-              {pending ? "Saving…" : "Submit for review"}
+              {pending ? "Saving…" : "Save and send to Sidana"}
             </button>
           </div>
           {msg ? (
@@ -271,11 +271,21 @@ function Field({
       ) : f.type === "select" ? (
         <select id={id} value={str} onChange={(e) => onChange(e.target.value)} className={inputClass}>
           <option value="">Select…</option>
-          {(f.options ?? []).map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
+          {f.groups
+            ? f.groups.map((g) => (
+                <optgroup key={g.label} label={g.label}>
+                  {g.options.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </optgroup>
+              ))
+            : (f.options ?? []).map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
         </select>
       ) : f.type === "multi" ? (
         <div id={id} role="group" aria-label={f.label} className="flex flex-wrap gap-2">

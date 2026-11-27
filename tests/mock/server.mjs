@@ -7,7 +7,7 @@
 // Test-only helpers:  GET /__state?table=x   POST /__reset   GET /__webhooks
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
-import { buildSeed } from "./seed.mjs";
+import { buildSeed, GOOGLE } from "./seed.mjs";
 
 const PORT = Number(process.env.MOCK_PORT ?? 4329);
 export const WEBHOOK_SECRET = "test-webhook-secret";
@@ -29,6 +29,7 @@ reset();
 // ---------------------------------------------------------------- tokens
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const sessions = new Map(); // refresh token -> user id
+const oauthCodes = new Map(); // mock Google code -> email
 
 function sessionFor(user) {
   const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -251,10 +252,11 @@ function rest(req, url, body, res) {
     const incoming = Array.isArray(body) ? body : [body];
     const conflict = url.searchParams.get("on_conflict")?.split(",");
     const merge = prefer.includes("resolution=merge-duplicates");
+    const ignore = prefer.includes("resolution=ignore-duplicates");
     const saved = incoming.map((raw) => {
-      if (merge && conflict) {
+      if ((merge || ignore) && conflict) {
         const hit = db[table].find((r) => conflict.every((c) => String(r[c]) === String(raw[c])));
-        if (hit) return Object.assign(hit, raw);
+        if (hit) return ignore ? hit : Object.assign(hit, raw);
       }
       const row = { id: raw.id ?? nextId++, created_at: new Date().toISOString(), ...raw };
       db[table].push(row);
@@ -284,8 +286,56 @@ function auth(req, url, body, res) {
 
   if (path === "/health") return send(res, 200, { name: "GoTrue" });
 
+  // Stand-in for "Continue with Google": a tiny account chooser, then a PKCE code.
+  if (path === "/authorize" && req.method === "GET") {
+    const redirect = url.searchParams.get("redirect_to") ?? "";
+    const hint = url.searchParams.get("login_hint");
+    const accounts = [...new Set([hint, ...Object.values(GOOGLE)].filter(Boolean))];
+    const link = (email) => {
+      const code = randomUUID();
+      oauthCodes.set(code, String(email).toLowerCase());
+      const to = new URL(redirect);
+      to.searchParams.set("code", code);
+      return to.toString();
+    };
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const label = { [GOOGLE.investor]: "Investor with portal access", [GOOGLE.noAccess]: "Investor whose access isn't open yet", [GOOGLE.stranger]: "Not on Sidana's investor list" };
+    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in with Google (test)</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f0f4f9;font-family:Roboto,Arial,sans-serif;color:#1f1f1f;padding:16px}
+  .card{width:100%;max-width:448px;background:#fff;border-radius:28px;padding:36px 32px 28px}
+  .g{display:flex;gap:2px;font-size:22px;font-weight:500;margin-bottom:20px}
+  h1{font-size:28px;font-weight:400;margin:0 0 6px}.sub{margin:0 0 22px;color:#444}
+  ul{list-style:none;margin:0;padding:0;border-top:1px solid #e3e3e3}li a{display:flex;gap:14px;align-items:center;padding:14px 4px;border-bottom:1px solid #e3e3e3;text-decoration:none;color:inherit}
+  li a:hover{background:#f6f9fe}.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:500;flex:none}
+  .em{font-size:14px}.nm{font-size:12px;color:#5f6368;margin-top:2px}
+  .note{margin-top:22px;padding:12px 14px;border-radius:12px;background:#fff8e1;color:#5d4200;font-size:13px;line-height:1.45}
+</style></head><body><main class="card">
+  <div class="g" aria-label="Google"><span style="color:#4285f4">G</span><span style="color:#ea4335">o</span><span style="color:#fbbc05">o</span><span style="color:#4285f4">g</span><span style="color:#34a853">l</span><span style="color:#ea4335">e</span></div>
+  <h1>Choose an account</h1><p class="sub">to continue to Sidana Ventures Investor Portal</p>
+  <ul>${accounts
+    .map((e, i) => `<li><a href="${esc(link(e))}"><span class="av" style="background:${["#1a73e8", "#188038", "#e8710a"][i % 3]}">${esc(e[0].toUpperCase())}</span><span><div class="em">${esc(e)}</div><div class="nm">${esc(label[e] ?? "Test account")}</div></span></a></li>`)
+    .join("")}</ul>
+  <p class="note"><b>Test page.</b> This stands in for Google's account chooser on the local test setup only. In production, investors see Google's real sign-in.</p>
+</main></body></html>`;
+    res.writeHead(200, { "content-type": "text/html" });
+    return res.end(html);
+  }
+
   if (path === "/token" && req.method === "POST") {
     const grant = url.searchParams.get("grant_type");
+    if (grant === "pkce") {
+      const email = oauthCodes.get(body.auth_code);
+      if (!email) return send(res, 400, { code: 400, error_code: "bad_code_verifier", msg: "invalid flow state" });
+      oauthCodes.delete(body.auth_code);
+      let user = users.find((u) => u.email === email);
+      if (!user) {
+        user = { id: randomUUID(), email, password: randomUUID(), app_metadata: { provider: "google" }, user_metadata: { full_name: email.split("@")[0] } };
+        users.push(user);
+      }
+      return send(res, 200, sessionFor(user));
+    }
     if (grant === "password") {
       const user = users.find((u) => u.email === String(body.email).toLowerCase() && u.password === body.password);
       if (!user) return send(res, 400, { code: 400, error_code: "invalid_credentials", msg: "Invalid login credentials" });
@@ -402,6 +452,24 @@ function n8n(url, body, res) {
     });
   }
 
+  if (name === "founder-writeback") {
+    // PORTAL-FOUNDER-WRITEBACK: the e2e test checks what would reach STARTUPS / STARTUP_PROFILE.
+    (db.founder_writebacks ??= []).push({ at: new Date().toISOString(), ...body, secret: undefined });
+    return send(res, 200, { ok: true, cells: 1, changes: ["mock"] });
+  }
+
+  if (name === "thesis-writeback") {
+    // PORTAL-THESIS-WRITEBACK: the e2e test checks what would reach INVESTOR_CRITERIA.
+    (db.thesis_writebacks ??= []).push({ at: new Date().toISOString(), ...body, secret: undefined });
+    return send(res, 200, { ok: true, cells: 1, changes: ["mock"] });
+  }
+
+  if (name === "portal-meet-create") {
+    // What PORTAL-MEET-CREATE returns once Google Calendar has created the event.
+    const id = randomUUID().slice(0, 8);
+    return send(res, 200, { event_id: `evt-${id}`, ical_uid: `evt-${id}@google.com`, meet_link: `https://meet.google.com/mock-${id}`, start: body.start });
+  }
+
   return send(res, 404, { ok: false, error: `no mock webhook ${name}` });
 }
 
@@ -418,6 +486,8 @@ const CORS = {
   "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS",
   "access-control-expose-headers": "content-range",
 };
+
+const requestLog = [];
 
 createServer((req, res) => {
   const chunks = [];
@@ -451,6 +521,15 @@ createServer((req, res) => {
         if (url.searchParams.get("on") === "1") set.add(table ?? name);
         else set.delete(table ?? name);
         return send(res, 200, { failing: [...failing], failingTables: [...failingTables] });
+      }
+      // Test-only call counter: GET /__requests lists every Supabase/n8n call since the last ?reset=1.
+      if (url.pathname === "/__requests") {
+        const out = [...requestLog];
+        if (url.searchParams.get("reset") === "1") requestLog.length = 0;
+        return send(res, 200, out);
+      }
+      if (/^\/(rest|auth|storage)\/v1\/|^\/webhook\//.test(url.pathname)) {
+        requestLog.push(`${req.method} ${url.pathname.replace(/^\/rest\/v1\//, "")}`);
       }
       if (url.pathname === "/__state") return send(res, 200, db[url.searchParams.get("table")] ?? null);
       if (url.pathname === "/__webhooks") return send(res, 200, webhooks);

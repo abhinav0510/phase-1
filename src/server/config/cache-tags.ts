@@ -13,3 +13,11 @@ export const FOUNDER_TTL_SECONDS = 60;
 export function startupTag(startupId: number): string {
   return `startup:${startupId}`;
 }
+
+/** Tag for everything cached under one investor (thesis, matches). */
+export function investorTag(investorId: number): string {
+  return `investor:${investorId}`;
+}
+
+/** Startups list shared by every investor's matching; refreshed on a short TTL. */
+export const STARTUPS_TAG = "startups:open";

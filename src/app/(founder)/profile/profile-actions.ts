@@ -3,8 +3,10 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { requireFounder } from "@/server/auth/session";
 import { createAdminClient } from "@/server/integrations/supabase/admin";
-import { startupTag } from "@/server/config/cache-tags";
-import { PROFILE_FIELDS, isFilled, type Answers } from "@/shared/lib/profile-fields";
+import { STARTUPS_TAG, startupTag } from "@/server/config/cache-tags";
+import { FIELD_BY_KEY, PROFILE_FIELDS, displayValue, isFilled, type Answers } from "@/shared/lib/profile-fields";
+import { logActivity } from "@/server/data/activity";
+import { writeFounderBack } from "@/server/data/founder-writeback";
 
 export type ProfileSaveResult = { ok: true } | { ok: false; error: string };
 
@@ -59,9 +61,11 @@ function clean(raw: unknown, submit: boolean): { answers: Answers } | { error: s
 }
 
 /**
- * Save the founder's answers. `submit` sends them to the Sidana team for review;
- * otherwise they are kept as a draft. The startup comes from the verified
- * session only. public.startups and the Pilot sheet are never written here.
+ * Save the founder's answers. They are final the moment they're saved: investors
+ * and admins see them at once, and the founder-owned values are copied to the
+ * Pilot sheet for the agents (decided 26 Nov). `submit` still asks the Sidana
+ * team to look it over. Every changed field is logged for admins with its old
+ * and new value. The startup comes from the verified session only.
  */
 export async function saveProfile(raw: unknown, submit: boolean): Promise<ProfileSaveResult> {
   const session = await requireFounder();
@@ -74,7 +78,7 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
   // submitted, and the team sees the latest answers.
   const { data: current, error: readErr } = await admin
     .from("startup_profiles")
-    .select("status")
+    .select("status, answers")
     .eq("startup_id", session.startupId)
     .maybeSingle();
   if (readErr && readErr.code !== "PGRST205") return { ok: false, error: "Could not save your profile. Please try again." };
@@ -100,8 +104,31 @@ export async function saveProfile(raw: unknown, submit: boolean): Promise<Profil
           : "Could not save your profile. Please try again.",
     };
   }
-  // Drop this startup's cached reads so the founder sees their own save at once.
+  // Change log for admins: which fields changed, old and new (long text shortened).
+  const before = ((current as { answers?: Record<string, unknown> } | null)?.answers ?? {}) as Record<string, unknown>;
+  const short = (v: unknown) => {
+    const t = displayValue(v).trim();
+    return t.length > 120 ? `${t.slice(0, 117)}…` : t;
+  };
+  const changes = [...new Set([...Object.keys(before), ...Object.keys(parsed.answers)])]
+    .filter((k) => short(before[k]) !== short(parsed.answers[k]))
+    .map((k) => ({ field: k, label: FIELD_BY_KEY[k]?.label ?? k, before: short(before[k]), after: short(parsed.answers[k]) }));
+  if (changes.length) {
+    await logActivity({
+      portal: "founder",
+      action: "profile_updated",
+      actorUserId: session.authId,
+      actorLabel: session.appUser?.full_name ?? null,
+      startupId: session.startupId,
+      meta: { changes },
+    });
+    // The agents use the same values: copy the founder's fields to the Pilot sheet.
+    writeFounderBack(session.startupId, "profile");
+  }
+
+  // Drop this startup's cached reads, and the investors' shared list, so every portal shows the save at once.
   revalidateTag(startupTag(session.startupId));
+  revalidateTag(STARTUPS_TAG);
   revalidatePath("/profile");
   revalidatePath("/dashboard");
   revalidatePath("/overview");

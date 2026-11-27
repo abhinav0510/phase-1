@@ -1,7 +1,8 @@
+import { getStartup } from "@/server/data/startup-facts";
 import Link from "next/link";
 import { ArrowRight, Handshake, ImagePlus, XCircle } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
-import { FOUNDER_STATUS, getOwnBranding, getOwnMeetings, getOwnOutreach, getOwnProfile, getOwnReplies, getOwnStartup, logoUrlFor, type MailReply, type OutreachRow } from "@/server/data/founder";
+import { FOUNDER_STATUS, getOwnBranding, getOwnMeetings, getOwnOutreach, getOwnProfile, getOwnReplies, logoUrlFor, type MailReply, type OutreachRow } from "@/server/data/founder";
 import { isResponse, type DealCategory } from "@/shared/lib/deal-sharing";
 import { profileProgress } from "@/shared/lib/profile-fields";
 import {
@@ -57,7 +58,7 @@ export default async function FounderDashboard() {
   const [outreach, replies, s, branding, profile, meetings] = await Promise.all([
     getOwnOutreach(startupId),
     getOwnReplies(startupId),
-    getOwnStartup(startupId),
+    getStartup(startupId),
     getOwnBranding(startupId),
     getOwnProfile(startupId),
     getOwnMeetings(startupId),

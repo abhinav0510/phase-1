@@ -56,3 +56,19 @@ describe("client, server and shared boundaries", () => {
     expect(existsSync("src/components")).toBe(false);
   });
 });
+
+describe("investor privacy (Phase 2)", () => {
+  // Pass reasons and revisit triggers are for the investor and Sidana's team only.
+  it("no founder page or founder data function reads pass reasons or triggers", () => {
+    const founderCode = [...sourceFiles("src/app/(founder)"), ...sourceFiles("src/server/data/founder")].filter(
+      (f) => !f.endsWith(path.join("financials", "actions.ts")),
+    );
+    const leaks = founderCode.filter((f) => /investor_passes|investor_deal_triggers|investor_notifications|getPasses|getTriggers/.test(readFileSync(f, "utf8")));
+    expect(leaks).toEqual([]);
+  });
+
+  it("the founder upload only runs the check, it never reads the triggers back", () => {
+    const src = readFileSync(path.join("src", "app", "(founder)", "financials", "actions.ts"), "utf8");
+    expect(src).not.toMatch(/investor_deal_triggers|getTriggers|getPasses/);
+  });
+});

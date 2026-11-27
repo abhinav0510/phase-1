@@ -30,11 +30,8 @@ export function FounderShell({
       <header className="sticky top-0 z-40 border-b border-navy-100/60 bg-canvas/85 backdrop-blur-md">
         <div className="mx-auto flex h-[72px] max-w-[1560px] items-center gap-4 px-4 md:px-6">
           <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5">
-            <Image src="/images/logo-icon.png" alt="" width={34} height={34} priority />
-            <span className="hidden leading-tight sm:block">
-              <span className="block text-sm font-bold tracking-tight text-tide">Sidana Ventures</span>
-              <span className="block text-[10px] font-medium text-navy-500">Founder Portal</span>
-            </span>
+            <Image src="/images/svdealflow-logo.png" alt="SV Dealflow by Sidana Ventures" width={720} height={189} priority className="h-9 w-auto" />
+            <span className="hidden border-l border-navy-100 pl-2.5 text-[10px] font-semibold uppercase tracking-wide text-navy-500 xl:block">Founder Portal</span>
           </Link>
 
           <div className="flex min-w-0 flex-1 justify-center">
