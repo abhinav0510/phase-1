@@ -325,7 +325,7 @@ export default function HomePage() {
           <div className="fine">
             <span>© 2026 Sidana Ventures LLP</span>
             <span>
-              <a href={`${SIDANA}/privacy-policiy.php`}>Privacy policy</a> · <a href={`${SIDANA}/terms-condition.php`}>Terms &amp; conditions</a>
+              <Link href="/privacy">Privacy policy</Link> · <a href={`${SIDANA}/terms-condition.php`}>Terms &amp; conditions</a>
             </span>
           </div>
         </div>

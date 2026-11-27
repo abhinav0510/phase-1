@@ -11,6 +11,7 @@ const PUBLIC_PREFIXES = [
   "/reset-password",
   "/auth",
   "/investor/login",
+  "/privacy",
 ];
 
 /**

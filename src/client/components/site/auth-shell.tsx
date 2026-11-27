@@ -121,7 +121,10 @@ export function AuthShell({
         </main>
 
         <footer className="auth-bottom">
-          © 2026 Sidana Ventures LLP · {SITE.contactEmail}
+          © 2026 Sidana Ventures LLP · {SITE.contactEmail} ·{" "}
+          <Link href="/privacy" className="auth-link">
+            Privacy
+          </Link>
         </footer>
       </div>
     </MotionConfig>
