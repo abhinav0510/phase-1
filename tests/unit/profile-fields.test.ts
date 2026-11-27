@@ -83,8 +83,10 @@ describe("profileProgress", () => {
     const p = profileProgress(null, null);
     expect(p.pct).toBe(0);
     expect(p.done).toBe(0);
-    expect(p.total).toBe(PROFILE_FIELDS.length);
-    expect(p.missing).toHaveLength(PROFILE_FIELDS.length);
+    // Optional extras (the second sector) don't count towards the score.
+    const scored = PROFILE_FIELDS.filter((f) => !f.optional).length;
+    expect(p.total).toBe(scored);
+    expect(p.missing).toHaveLength(scored);
   });
   it("counts values on record, including a revenue of 0", () => {
     const p = profileProgress(startup, null);

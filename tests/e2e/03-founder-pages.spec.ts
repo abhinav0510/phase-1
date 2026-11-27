@@ -86,7 +86,7 @@ test.describe("navigation", () => {
     await expect(page).toHaveURL(/\/profile/);
     await expect(page.getByRole("heading", { level: 1, name: "My Profile" })).toBeVisible();
     await expect(page.locator("#complete-profile")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Submit for review/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Save and send to Sidana/ })).toBeVisible();
     await page.goto("/complete-profile");
     await expect(page).toHaveURL(/\/profile/);
   });

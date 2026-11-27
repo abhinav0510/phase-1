@@ -1,6 +1,7 @@
 import { TrendingUp, Repeat, PencilLine, CheckCircle2, CircleAlert } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
-import { getOwnStartup, getOwnFunding, getOwnProfile } from "@/server/data/founder";
+import { getOwnFunding, getOwnProfile } from "@/server/data/founder";
+import { getStartup } from "@/server/data/startup-facts";
 import { getFinancials } from "@/server/data/financials";
 import { fundingDisplay } from "@/shared/lib/currency";
 import { PAST_YEARS, arrDisplay, isFilled, mrrDisplay, type ArrDisplay, type FinancialYear } from "@/shared/lib/profile-fields";
@@ -54,7 +55,7 @@ const ARR_HINT: Partial<Record<ArrDisplay["source"], string>> = {
 export default async function Financials() {
   const { startupId } = await requireFounder();
   const [s, funding, profile, fin] = await Promise.all([
-    getOwnStartup(startupId),
+    getStartup(startupId),
     getOwnFunding(startupId),
     getOwnProfile(startupId),
     getFinancials(startupId),
@@ -63,7 +64,9 @@ export default async function Financials() {
   const arr = arrDisplay(s, answers);
   const filled = (years: FinancialYear[]) => years.filter((y) => isFilled(answers[y.key])).length;
   // With nothing typed or on record, the ARR worked out from the uploaded figures counts.
-  const sheetArr = arr.source === "none" ? sheetAnswers(fin.months, fin.years, PAST_YEARS[0]).revenue_inr_l : undefined;
+  // ARR from the uploaded figures, when that's what every portal now shows (founder-first, 26 Nov).
+  const sheetArr =
+    arr.source === "none" || s?.facts.arr.source === "founder_upload" ? sheetAnswers(fin.months, fin.years, PAST_YEARS[0]).revenue_inr_l : undefined;
   const hasArr = arr.source !== "none" || !!sheetArr;
   const mrr = mrrDisplay(s);
   // Uploaded figures lead; the profile's answer for last year fills in a year they don't cover.
@@ -148,7 +151,13 @@ export default async function Financials() {
               )
             }
             icon={<TrendingUp className="h-4 w-4" />}
-            hint={sheetArr ? `From your uploaded figures: ${sheetArr.from}` : (ARR_HINT[arr.source] ?? arr.note ?? "Latest on record")}
+            hint={
+              sheetArr
+                ? `From your uploaded figures: ${sheetArr.from}`
+                : s?.facts.arr.source === "founder"
+                  ? "As you entered it"
+                  : (ARR_HINT[arr.source] ?? arr.note ?? "Latest on record")
+            }
           />
         </Item>
         <Item>

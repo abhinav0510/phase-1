@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   title: "Sidana Ventures — Capital · Strategy · Venture",
   description:
     "Strategic capital, institutional thinking, and hands-on execution for ambitious companies.",
-  icons: { icon: "/images/favicon.png" },
+  icons: { icon: "/images/favicon.png?v=2", apple: "/images/apple-touch-icon.png" },
 };
 
 export default function RootLayout({

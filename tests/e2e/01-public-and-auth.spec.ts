@@ -13,7 +13,7 @@ test.describe("public pages", () => {
     await expect(h1).toContainText("We do");
     await expect(h1).toContainText("the Match.");
     await expect(h1).toContainText("You Get the Fund.");
-    for (const figure of ["Active fundraise", "Active investors", "Active mandates", "Startups supported", "Investor meetings / month", "Rounds closed / month"]) {
+    for (const figure of ["Active fundraise", "Active investors", "Active mandates", "Startups supported", "Deal flow meetings / month", "Rounds closed / month"]) {
       await expect(page.getByText(figure, { exact: true })).toBeVisible();
     }
     for (const section of ["About Sidana Ventures", "Investment Banking", "Investor Network", "How We Work With Investors", "Rakesh Sidana", "Still have questions?"]) {
@@ -26,7 +26,7 @@ test.describe("public pages", () => {
     await expect(page.getByText("Our standard agreement is for 24 months")).toBeVisible();
     await expect(page.getByRole("button", { name: /menu/i })).toHaveCount(0);
     await expect(page.getByRole("link", { name: /Founder login/ })).toHaveCount(1);
-    await expect(page.getByRole("link", { name: "Members only" })).toHaveAttribute("href", "/login");
+    await expect(page.getByRole("link", { name: "Members only" })).toHaveCount(0);
   });
 
   test("the sign-in page shows the form beside the product panel", async ({ page }) => {

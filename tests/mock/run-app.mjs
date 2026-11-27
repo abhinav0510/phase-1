@@ -25,6 +25,9 @@ const env = {
   N8N_NOTIFY_SECRET: "test-webhook-secret",
   N8N_BROADCAST_WEBHOOK_URL: `${MOCK}/webhook/broadcast`,
   N8N_CONTACTS_SYNC_WEBHOOK_URL: `${MOCK}/webhook/contacts-sync`,
+  N8N_MEET_CREATE_WEBHOOK_URL: `${MOCK}/webhook/portal-meet-create`,
+  N8N_THESIS_WRITEBACK_WEBHOOK_URL: `${MOCK}/webhook/thesis-writeback`,
+  N8N_FOUNDER_WRITEBACK_WEBHOOK_URL: `${MOCK}/webhook/founder-writeback`,
 };
 
 // A stale data cache would hide changes between runs.

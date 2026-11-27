@@ -1,3 +1,4 @@
+import { getStartup } from "@/server/data/startup-facts";
 import { CalendarClock, CheckCircle2, FileBarChart, Handshake, Target, Wallet } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import {
@@ -58,13 +59,15 @@ const STAGE_BLURB: Record<string, string> = {
 
 export default async function Overview() {
   const { startupId } = await requireFounder();
-  const [overview, meetings, outreach, profile] = await Promise.all([
+  const [overview, meetings, outreach, profile, resolved] = await Promise.all([
     getFounderOverview(startupId),
     getOwnMeetings(startupId),
     getOwnOutreach(startupId),
     getOwnProfile(startupId),
+    getStartup(startupId),
   ]);
-  const s = overview.startup;
+  // Your own figures over Sidana's record: the same values investors and the team see.
+  const s = resolved ?? overview.startup;
   const progress = profileProgress(s, profile?.answers ?? null);
   const now = new Date();
   const upcoming = meetings

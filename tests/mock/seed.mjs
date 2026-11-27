@@ -3,7 +3,10 @@
 export const PASSWORD = "demo-password-1";
 
 export const STARTUP = { alpha: 101, beta: 102, gamma: 103, delta: 104, epsilon: 105, zeta: 106, eta: 107, theta: 108 };
-export const INVESTOR = { capital: 201, passed: 202, paused: 203, queued: 204, betaOnly: 205, dollar: 206 };
+export const INVESTOR = { capital: 201, passed: 202, paused: 203, queued: 204, betaOnly: 205, dollar: 206, northbridge: 207 };
+
+// Phase 2 investor portal: Google accounts the mock sign-in offers.
+export const GOOGLE = { investor: "investor@northbridge.test", stranger: "stranger@gmail.test", noAccess: "hidden.partner@demo-capital.test" };
 
 /** Text that belongs only to Demo Beta. Founder Alpha must never see it. */
 export const BETA_SECRET = "BETA-SECRET-MARKER";
@@ -56,7 +59,8 @@ function investor(id, name, extra = {}) {
   return {
     id, name, contact_person: "Hidden Partner", email: "hidden.partner@demo-capital.test", cc_email: null,
     linkedin_url: "https://linkedin.com/in/hidden-partner", type: "vc", status: "active", sectors: ["foodtech", "saas"],
-    stage_pref: ["seed", "pre_series_a"], cheque_min_cr: 2, cheque_max_cr: 10, cheque_as_written: "INR 2-10 Cr", geography: "India",
+    stage_pref: ["seed", "pre_series_a"], sector_mode: "LIST", stage_min: "SEED", stage_max: "PRE_SERIES_A", sectors_excluded: [], models_excluded: [],
+    cheque_min_cr: 2, cheque_max_cr: 10, cheque_as_written: "INR 2-10 Cr", geography: "India",
     do_not_contact: false, suppressed: false, last_contacted_on: null, thesis_call_on: null, source: "demo", notes: "internal desk note",
     created_at: NOW, updated_at: NOW,
     ...extra,
@@ -81,7 +85,117 @@ function report(id, startupId, weekStart, source, sentTo, extra = {}) {
   };
 }
 
+// ---------------------------------------------------------------- demo mode
+// MOCK_DEMO=1 (the preview servers, never the tests) fills every demo startup with a
+// complete, team-approved profile, monthly figures and rounds, so the investor portal
+// can be seen in full. The tests keep the sparse data their checks rely on.
+const DEMO_PROFILES = {
+  101: { revenue: 250, alloc: 2, founders: "Asha Rao (CEO), Vikram Shah (COO)", one: "Cloud kitchens for corporate cafeterias, run on our own ordering software", model: "B2B services", city: "Bengaluru", year: "2021", team: "42", raise: "INR 5 Cr", inst: "CCPS", val: "INR 40 Cr pre-money", committed: "INR 1.5 Cr from existing angels", use: "Open 6 new kitchens in Pune and Hyderabad, and grow the sales team.", prev: "INR 1 Cr pre-seed (2025)", desc: "We run kitchens inside office parks and feed 18,000 employees a day across 40 corporate clients. Our software takes orders, plans menus and cuts food waste by 30%. Contracts are 2–3 years, so revenue is predictable." },
+  103: { revenue: 90, alloc: 3, founders: "Karan Mehta (CEO), Dr. Leela Nair (CTO)", one: "Warehouse picking robots that pay for themselves in 14 months", model: "Hardware / DeepTech", city: "Pune", year: "2022", team: "26", raise: "INR 8 Cr", inst: "Equity", val: "INR 60 Cr pre-money", committed: "INR 2 Cr from a strategic investor", use: "Build 40 robots for three signed pilots and certify the next model.", prev: "INR 2.5 Cr seed (2024)", desc: "Our robots pick and pack mixed orders in existing warehouses without new racking. Three 3PLs run pilots today; two have signed purchase orders for the next batch." },
+  104: { revenue: 410, alloc: 1.5, founders: "Neha Kapoor (CEO)", one: "Ayurvedic skincare sold direct to 300,000 customers", model: "D2C brand", city: "Mumbai", year: "2020", team: "35", raise: "INR 6 Cr", inst: "CCPS", val: "INR 55 Cr pre-money", committed: "INR 1 Cr", use: "Retail expansion into 400 pharmacies and two new product lines.", prev: "INR 3 Cr seed (2023)", desc: "A D2C skincare brand with 38% repeat purchase. 70% of sales come from our own site and app, the rest from marketplaces and 120 pharmacies." },
+  105: { revenue: 520, alloc: 4, founders: "Rohan Gupta (CEO), Sara Thomas (CTO)", one: "Working-capital loans for small retailers, underwritten from their sales data", model: "Lending / financial services", city: "Gurugram", year: "2021", team: "58", raise: "INR 15 Cr", inst: "Equity", val: "INR 120 Cr pre-money", committed: "INR 5 Cr from the lead", use: "Grow the loan book with two bank partners and launch in three new states.", prev: "INR 6 Cr seed (2023)", desc: "We lend to kirana stores and small retailers using their POS and UPI data. Defaults are under 1.8% across 22,000 loans." },
+  106: { revenue: 180, alloc: 0.6, founders: "Aditi Rao (CEO)", one: "Electric three-wheeler fleets leased to last-mile delivery companies", model: "B2B services", city: "Chennai", year: "2022", team: "30", raise: "US$1.5M", inst: "SAFE / iSAFE", val: "Open", committed: "US$500K", use: "Add 300 vehicles and two charging hubs.", prev: "US$2M seed note (2025)", desc: "We lease 600 electric three-wheelers to e-commerce and grocery delivery fleets, with charging and maintenance included." },
+  108: { revenue: 300, alloc: 2.5, founders: "Priya Menon (CEO), Arjun Das (CTO)", one: "Spreadsheet-native FP&A for Indian mid-market finance teams", model: "B2B SaaS", city: "Hyderabad", year: "2022", team: "24", raise: "INR 5 Cr", inst: "CCPS", val: "INR 45 Cr pre-money", committed: "INR 1 Cr", use: "Sales team for the US market and two new integrations (Tally, Zoho).", prev: "INR 1.5 Cr pre-seed (2024)", desc: "Finance teams plan and report inside the spreadsheets they already use; we connect them to their ERP and bank data. 140 paying customers, 128% net revenue retention." },
+};
+
+function applyDemo(tables) {
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(Date.UTC(2025, 10 + i, 1));
+    return d.toISOString().slice(0, 7);
+  });
+  tables.startup_profiles = tables.startup_profiles.filter((p) => !DEMO_PROFILES[p.startup_id]);
+  for (const [id, d] of Object.entries(DEMO_PROFILES)) {
+    const sid = Number(id);
+    const st = tables.startups.find((x) => x.id === sid);
+    st.revenue_inr_l = d.revenue;
+    if (st.ask_currency !== "USD") st.allocation_left_amount = d.alloc;
+    const answers = {
+      one_liner: d.one, description: d.desc, website: `https://${st.name.toLowerCase().replace(/[^a-z]+/g, "")}.example`, sector: st.sector, subsector: st.subsector,
+      business_model: d.model, markets: ["India"], hq_city: d.city, founded_year: d.year, founders: d.founders, women_led: /Asha|Leela|Neha|Sara|Aditi|Priya/.test(d.founders) ? "Yes" : "No",
+      team_size: d.team, revenue_inr_l: String(d.revenue), raise_amount: d.raise, instrument: d.inst, valuation: d.val, committed: d.committed,
+      use_of_funds: d.use, previous_funding: d.prev,
+    };
+    tables.startup_profiles.push({
+      id: 100 + sid, startup_id: sid, status: "approved", answers, approved_answers: answers, submitted_at: iso(-20), reviewed_at: iso(-18),
+      reviewed_by: USER.team, reviewed_by_email: "team@sidana.test", review_note: null, updated_by: null, created_at: NOW, updated_at: NOW,
+    });
+    const base = d.revenue / 12;
+    months.forEach((m, i) => {
+      const rev = Math.round(base * (0.7 + i * 0.05) * 10) / 10;
+      tables.startup_financial_months.push({ id: sid * 100 + i, startup_id: sid, month: m, revenue_inr_l: rev, mrr_inr_l: rev, expenses_inr_l: Math.round(rev * 1.15 * 10) / 10 });
+    });
+  }
+  // Northbridge's past deals: two passes with reasons, one that didn't close, two never answered.
+  tables.startups.push(startup(109, "Demo Iota Health", { sector: "HealthTech", stage: "Seed", status: "closed", revenue_inr_l: 140 }));
+  const NB = INVESTOR.northbridge;
+  tables.mail_log.push(
+    { id: 901, startup_id: 105, investor_id: NB, sent_at: iso(-40), reply_kind: null, subject: "Demo Epsilon Fintech", reply_gist: null },
+    { id: 902, startup_id: 105, investor_id: NB, sent_at: iso(-38), reply_kind: "pass", subject: "Re: Demo Epsilon Fintech", reply_gist: "Lending is outside our mandate this year; we'd look again at Series B." },
+    { id: 903, startup_id: 103, investor_id: NB, sent_at: iso(-30), reply_kind: null, subject: "Demo Gamma Robotics", reply_gist: null },
+    { id: 904, startup_id: 103, investor_id: NB, sent_at: iso(-27), reply_kind: "pass", subject: "Re: Demo Gamma Robotics", reply_gist: "Too early on hardware revenue. Happy to revisit once two pilots convert." },
+    { id: 905, startup_id: 109, investor_id: NB, sent_at: iso(-60), reply_kind: null, subject: "Demo Iota Health", reply_gist: null },
+    { id: 906, startup_id: 109, investor_id: NB, sent_at: iso(-57), reply_kind: "interested", subject: "Re: Demo Iota Health", reply_gist: "Interested. Please share the cohort data and the hospital contracts." },
+    { id: 907, startup_id: 104, investor_id: NB, sent_at: iso(-20), reply_kind: null, subject: "Demo Delta Retail", reply_gist: null },
+    { id: 908, startup_id: 106, investor_id: NB, sent_at: iso(-15), reply_kind: null, subject: "Demo Zeta Mobility", reply_gist: null },
+    // The deal whose reply opened portal access, and a newer one not answered yet.
+    { id: 909, startup_id: 101, investor_id: NB, sent_at: iso(-5), reply_kind: null, subject: "Demo Alpha Foods", reply_gist: null },
+    { id: 910, startup_id: 101, investor_id: NB, sent_at: iso(-2), reply_kind: "invite", subject: "Re: Demo Alpha Foods", reply_gist: "Happy to meet. Please send the deck and the kitchen-level P&L." },
+    { id: 911, startup_id: 108, investor_id: NB, sent_at: iso(-3), reply_kind: null, subject: "Demo Theta Sheets", reply_gist: null },
+    { id: 912, startup_id: 110, investor_id: NB, sent_at: iso(-90), reply_kind: null, subject: "Demo Kappa Logistics", reply_gist: null },
+  );
+  tables.startups.push(startup(110, "Demo Kappa Logistics", { sector: "Logistics", stage: "Seed", status: "mandate_closed" }));
+
+  // More of Northbridge's history: a fuller Past deals tab.
+  {
+    tables.startups.push(
+      startup(111, "Demo Lambda Agritech", { sector: "AgriTech", stage: "Seed", status: "closed", revenue_inr_l: 220 }),
+      startup(112, "Demo Mu Payments", { sector: "FinTech", stage: "Series A", status: "closed", revenue_inr_l: 610 }),
+      startup(113, "Demo Nu Edtech", { sector: "EdTech", stage: "Pre-seed", status: "silent", revenue_inr_l: 35 }),
+      startup(114, "Demo Xi Cleantech", { sector: "CleanTech", stage: "Seed", status: "mandate_closed", revenue_inr_l: 90 }),
+      startup(115, "Demo Omicron SaaS", { sector: "SaaS", stage: "Seed", status: "closed", revenue_inr_l: 180 }),
+      startup(116, "Demo Pi Wellness", { sector: "HealthTech", stage: "Seed", status: "closed", revenue_inr_l: 75 }),
+    );
+    tables.mail_log.push(
+      { id: 951, startup_id: 111, investor_id: NB, sent_at: iso(-120), reply_kind: null, subject: "Demo Lambda Agritech", reply_gist: null },
+      { id: 952, startup_id: 111, investor_id: NB, sent_at: iso(-117), reply_kind: "pass", subject: "Re: Demo Lambda Agritech", reply_gist: "Agri supply chains are outside our current thesis. Strong team though." },
+      { id: 953, startup_id: 112, investor_id: NB, sent_at: iso(-100), reply_kind: null, subject: "Demo Mu Payments", reply_gist: null },
+      { id: 954, startup_id: 112, investor_id: NB, sent_at: iso(-96), reply_kind: "interested", subject: "Re: Demo Mu Payments", reply_gist: "Interested. Can we see the TPV by merchant cohort and the take rate trend?" },
+      { id: 955, startup_id: 113, investor_id: NB, sent_at: iso(-80), reply_kind: null, subject: "Demo Nu Edtech", reply_gist: null },
+      { id: 956, startup_id: 114, investor_id: NB, sent_at: iso(-75), reply_kind: null, subject: "Demo Xi Cleantech", reply_gist: null },
+      { id: 957, startup_id: 114, investor_id: NB, sent_at: iso(-71), reply_kind: "invite", subject: "Re: Demo Xi Cleantech", reply_gist: "Let's set up a call with the founders next week." },
+      { id: 958, startup_id: 115, investor_id: NB, sent_at: iso(-65), reply_kind: null, subject: "Demo Omicron SaaS", reply_gist: null },
+      { id: 959, startup_id: 115, investor_id: NB, sent_at: iso(-62), reply_kind: "pass", subject: "Re: Demo Omicron SaaS", reply_gist: "Valuation is ahead of where we can get to at this ARR." },
+      { id: 960, startup_id: 116, investor_id: NB, sent_at: iso(-50), reply_kind: null, subject: "Demo Pi Wellness", reply_gist: null },
+    );
+  }
+  return tables;
+}
+
+// The agents' STARTUP_PROFILE codes for each demo startup, as SYNC-MATCH-PROFILE copies them.
+const SECTOR_CODE = {
+  FoodTech: "FNB_PACKAGED_FOOD", HealthTech: "HEALTHTECH_DIGITAL", DeepTech: "MANUFACTURING_INDUSTRIAL", D2C: "D2C_HOME_LIFESTYLE",
+  FinTech: "FINTECH_PAYMENTS", Mobility: "EV_CLEAN_MOBILITY", SaaS: "SAAS_ENTERPRISE", Logistics: "LOGISTICS_SUPPLY_CHAIN",
+  AgriTech: "AGRITECH", EdTech: "EDTECH_K12_TESTPREP", CleanTech: "CLIMATE_ENERGY",
+};
+const STAGE_CODE = { "Pre-seed": "PRE_SEED", Seed: "SEED", "Series A": "SERIES_A" };
+
+function matchProfiles(startups) {
+  return startups
+    .filter((st) => SECTOR_CODE[st.sector])
+    .map((st) => ({
+      startup_name: st.name, active: true, confirmed: "AUTO", sector_codes: [SECTOR_CODE[st.sector]], business_model: "B2B_SAAS",
+      stage_code: STAGE_CODE[st.stage] ?? null, raise_cr: st.ask_current_cr, arr_cr: null, geography: "India", synced_at: NOW,
+    }));
+}
+
 export function buildSeed() {
+  const built = buildBaseSeed();
+  if (process.env.MOCK_DEMO === "1") applyDemo(built.tables);
+  built.tables.startup_match_profile = matchProfiles(built.tables.startups);
+  return built;
+}
+
+function buildBaseSeed() {
   const startups = [
     startup(STARTUP.alpha, "Demo Alpha Foods", {
       revenue_inr_l: 250, burn_inr_l: 12, runway_months: 14, revenue_note: "Demo run-rate note; INR 6L MRR",
@@ -135,11 +249,16 @@ export function buildSeed() {
       ],
       investors: [
         investor(INVESTOR.capital, "Demo Capital"),
-        investor(INVESTOR.passed, "Passed Partners", { type: "family_office", sectors: ["d2c"], geography: "Global" }),
+        investor(INVESTOR.passed, "Passed Partners", { type: "family_office", sectors: ["D2C_HOME_LIFESTYLE"], geography: "Global" }),
         investor(INVESTOR.paused, "Paused Fund Internal"),
         investor(INVESTOR.queued, "Queue Ventures"),
         investor(INVESTOR.betaOnly, `Beta Only Ventures`),
         investor(INVESTOR.dollar, "Demo Dollar Fund", { cheque_min_cr: 8.5, cheque_max_cr: 17, cheque_as_written: "US$1-2M (INR 8.5-17 Cr)" }),
+        investor(INVESTOR.northbridge, "Northbridge Demo Fund", {
+          contact_person: "Rhea Investor", email: "investor@northbridge.test", sectors: ["FNB_PACKAGED_FOOD", "SAAS_ENTERPRISE"], stage_pref: ["Seed"],
+          stage_min: "SEED", stage_max: "SEED",
+          cheque_min_cr: 1, cheque_max_cr: 5, cheque_as_written: "INR 1-5 Cr",
+        }),
       ],
       matches: [
         { id: 1, startup_id: STARTUP.alpha, investor_id: INVESTOR.capital, type: "exact", state: "sent", score: 90, stage_fit: true, cheque_fit: true, priority: 1, created_at: NOW },
@@ -237,6 +356,7 @@ export function buildSeed() {
           answers: { one_liner: "Eta team pitch", website: "https://eta.example.test", sector: "Fintech", founders: "Eta Founder (CEO)", business_model: "Not a real model" },
         },
         { startup_id: STARTUP.epsilon, source: "demo.xlsx", imported_at: NOW, answers: { one_liner: "Team pitch for Epsilon", hq_city: "Pune" } },
+        { startup_id: STARTUP.theta, source: "demo.xlsx", imported_at: NOW, answers: { one_liner: "Theta memo one-liner", description: "Theta memo overview from the deal memo.", hq_city: "Chennai" } },
       ],
       startup_mis_files: [],
       startup_financial_months: [],
@@ -263,6 +383,29 @@ export function buildSeed() {
       ),
       email_broadcasts: [],
       email_broadcast_recipients: [],
+
+      // ---------------------------------------------------------------- Phase 2: investor portal
+      // Northbridge replied asking for Alpha's deck, so access is open and interest recorded.
+      investor_portal_access: [
+        { investor_id: INVESTOR.northbridge, granted_via: "documents", deal_id: "D-1", startup_id: STARTUP.alpha, invite_status: "sent", invite_sent_at: iso(-1), login_emails: [], granted_at: iso(-1), granted_by: "system", first_signin_at: null, revoked_at: null, revoked_by: null },
+      ],
+      investor_thesis: [],
+      investor_interest: [{ id: 1, investor_id: INVESTOR.northbridge, startup_id: STARTUP.alpha, source: "email_reply", created_at: iso(-1) }],
+      // A call booked from the portal, not yet picked up by the calendar sync.
+      portal_meetings: [
+        { id: 1, investor_id: INVESTOR.northbridge, startup_id: STARTUP.alpha, scheduled_at: iso(4, 11), duration_min: 30, meet_link: "https://meet.google.com/nb-alpha", calendar_event_id: "evt-1", ical_uid: "evt-1@google.com", status: "scheduled", created_by: null, created_at: iso(-1) },
+      ],
+      chat_threads: [],
+      chat_messages: [],
+      meeting_conclusions: [
+        { ff_id: "ff-twice", meeting_id: 2, meeting_date: iso(-10), title: "Demo Alpha Foods <> Twice Saved Ventures", attendees: null, startup_guess: "Demo Alpha Foods", investor_guess: "Twice Saved Ventures", overview: "Liked the repeat-order numbers; asked for unit economics by city.", action_items: "Send unit economics", ff_url: null, synced_at: iso(-9), linked_by: "auto" },
+        { ff_id: "ff-orphan", meeting_id: null, meeting_date: iso(-30), title: "Unknown call", attendees: null, startup_guess: "Nobody Ltd", investor_guess: null, overview: "An unlinked call summary.", action_items: null, ff_url: null, synced_at: iso(-29), linked_by: null },
+      ],
+      portal_activity: [],
+      investor_passes: [],
+      investor_deal_triggers: [],
+      investor_notifications: [],
+      portal_engaged_unresolved: [{ deal_id: "D-9", thread_id: "t-9", startup_name: "Mystery Startup", investor_name: "Unknown Angels", via: "documents", investor_id: null, startup_id: null }],
     },
   };
 }

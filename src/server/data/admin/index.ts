@@ -26,3 +26,16 @@ export {
 export { type FounderLogin, type FounderAccounts, getFounderAccounts } from "./accounts";
 export { getDealMails, getStartupDeck } from "./deals";
 export { type DealSharingData, type PipelineSync, getDealSharingData } from "./deal-sharing";
+export {
+  type ActivityRow,
+  listPortalActivity,
+  type AdminThread,
+  listChatThreads,
+  getChatTranscript,
+  meetingExtras,
+  type AccessRow,
+  listPortalAccess,
+  type UnresolvedEngagement,
+  listUnresolvedEngagements,
+  listUnlinkedConclusions,
+} from "./portal";

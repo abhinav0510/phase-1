@@ -12,6 +12,7 @@ export function UserMenu({
   settingsHref,
   links,
   avatarSrc,
+  signOutTo,
 }: {
   userName: string | null;
   userEmail: string | null;
@@ -20,6 +21,8 @@ export function UserMenu({
   links?: { href: string; label: string }[];
   /** Optional image (e.g. a founder's company logo) shown instead of initials. */
   avatarSrc?: string | null;
+  /** Where sign-out lands; defaults to the founder sign-in. */
+  signOutTo?: string;
 }) {
   const [open, setOpen] = useState(false);
   const display = userName ?? userEmail ?? "User";
@@ -78,7 +81,7 @@ export function UserMenu({
                 {l.label}
               </Link>
             ))}
-            <SignOutButton variant="menu" />
+            <SignOutButton variant="menu" to={signOutTo} />
           </div>
         </>
       ) : null}

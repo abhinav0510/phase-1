@@ -20,6 +20,8 @@ import {
   FileBarChart,
   Mail,
   Megaphone,
+  MessageSquare,
+  Activity,
   Loader2,
   type LucideIcon, Send } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -44,6 +46,8 @@ const ICONS: Record<NavIcon, LucideIcon> = {
   weekly: FileBarChart,
   mail: Mail,
   announce: Megaphone,
+  chat: MessageSquare,
+  activity: Activity,
 };
 
 export function isNavActive(pathname: string, href: string) {

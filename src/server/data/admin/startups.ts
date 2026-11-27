@@ -1,3 +1,5 @@
+import { resolveStartup } from "@/shared/lib/startup-facts";
+import { getAllFounderFacts } from "@/server/data/startup-facts";
 import "server-only";
 
 import { createAdminClient } from "@/server/integrations/supabase/admin";
@@ -42,7 +44,17 @@ export async function getRecentStartups(limit = 6): Promise<Startup[]> {
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
-  return (data ?? []) as Startup[];
+  return resolveRows((data ?? []) as Startup[]);
+}
+
+/** Admins see startups exactly as founders and investors do: the founder's values over Sidana's record. */
+async function resolveRows(rows: Startup[]): Promise<Startup[]> {
+  if (!rows.length) return rows;
+  const facts = await getAllFounderFacts();
+  return rows.map((r) => {
+    const { facts: _f, ...out } = resolveStartup(r, facts.get(r.id) ?? null);
+    return out as Startup;
+  });
 }
 
 export interface StartupListParams {
@@ -77,7 +89,7 @@ export async function listStartups(params: StartupListParams): Promise<{
   q = q.range(from, to);
 
   const { data, count: c } = await q;
-  return { rows: (data ?? []) as Startup[], total: c ?? 0 };
+  return { rows: await resolveRows((data ?? []) as Startup[]), total: c ?? 0 };
 }
 
 export interface StartupDetail {
@@ -118,7 +130,7 @@ export async function getStartupDetail(id: number): Promise<StartupDetail> {
     ]);
 
   return {
-    startup: (startupRes.data as Startup | null) ?? null,
+    startup: startupRes.data ? (await resolveRows([startupRes.data as Startup]))[0] : null,
     matches: (matchesRes.data ?? []) as any[],
     meetings: ((meetingsRes.data ?? []) as any[]).map(flattenMeetingJoins),
     funding: fundingRes.data ?? [],

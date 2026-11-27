@@ -11,7 +11,7 @@ import {
   EmptyState,
 } from "@/client/components/admin/ui/table";
 import { requireAdmin } from "@/server/auth/session";
-import { listMeetings } from "@/server/data/admin";
+import { listMeetings, meetingExtras } from "@/server/data/admin";
 import { JoinLink } from "@/client/components/ui/join-link";
 import { formatDateTime } from "@/shared/lib/utils";
 
@@ -28,6 +28,8 @@ export default async function AdminMeetings({
   const page = Number(sp.page ?? "1") || 1;
   const pageSize = 25;
   const { rows, total } = await listMeetings({ scope, page, pageSize });
+  // Phase 2 (clause 2.11): Fireflies conclusion and portal bookings.
+  const extras = await meetingExtras(rows);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const tabs: { key: string; label: string }[] = [
@@ -75,6 +77,7 @@ export default async function AdminMeetings({
                   <TH>When</TH>
                   <TH>Status</TH>
                   <TH>Source</TH>
+                  <TH>Fireflies conclusion</TH>
                   <TH>Join</TH>
                 </tr>
               </THead>
@@ -95,7 +98,26 @@ export default async function AdminMeetings({
                         <Badge tone="amber">scheduled</Badge>
                       )}
                     </TD>
-                    <TD className="text-navy-500">{m.source ?? "—"}</TD>
+                    <TD className="text-navy-500">
+                      {m.source ?? "—"}
+                      {extras.portalBooked.has(m.id) ? (
+                        <>
+                          {" "}
+                          <Badge tone="blue">portal</Badge>
+                        </>
+                      ) : null}
+                    </TD>
+                    <TD className="max-w-[320px] text-xs text-navy-600">
+                      {extras.conclusion.get(m.id) ? (
+                        <span className="line-clamp-3" title={extras.conclusion.get(m.id)}>
+                          {extras.conclusion.get(m.id)}
+                        </span>
+                      ) : (
+                        <span className="text-navy-300">
+                          {m.scheduled_at && new Date(m.scheduled_at) > new Date() ? "After the call" : "No record yet"}
+                        </span>
+                      )}
+                    </TD>
                     <TD>
                       <JoinLink href={m.meet_link} />
                     </TD>

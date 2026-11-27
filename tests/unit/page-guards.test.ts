@@ -15,6 +15,7 @@ function pagesUnder(dir: string): string[] {
 describe.each([
   ["src/app/admin", "requireAdmin"],
   ["src/app/(founder)", "requireFounder"],
+  ["src/app/investor/(portal)", "requireInvestor"],
 ])("pages in %s", (dir, guard) => {
   const pages = pagesUnder(dir);
 

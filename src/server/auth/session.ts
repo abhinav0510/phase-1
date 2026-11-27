@@ -77,6 +77,10 @@ export async function requireFounder(): Promise<SessionUser & { startupId: numbe
   if (isAdmin(role)) {
     redirect("/admin");
   }
+  // Investors have their own portal.
+  if (role === "investor") {
+    redirect(INVESTOR_HOME);
+  }
   // Force a password change before any portal access while the one-time
   // activation password is still in effect.
   if (session.mustReset) {
@@ -92,5 +96,40 @@ export async function requireFounder(): Promise<SessionUser & { startupId: numbe
 /** Where to send a user after login, based on their role. */
 export function landingPathFor(role: UserRole | undefined | null): string {
   if (isAdmin(role)) return "/admin";
+  if (role === "investor") return INVESTOR_HOME;
   return "/dashboard";
+}
+
+export const INVESTOR_HOME = "/investor/matches";
+export const INVESTOR_LOGIN = "/investor/login";
+
+/** True while the investor's portal access is granted and not revoked. */
+export const hasPortalAccess = cache(async function hasPortalAccess(investorId: number): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("investor_portal_access")
+    .select("investor_id")
+    .eq("investor_id", investorId)
+    .is("revoked_at", null)
+    .maybeSingle();
+  if (error) throw new Error(`Could not read investor_portal_access: ${error.code || error.message}`);
+  return !!data;
+});
+
+/**
+ * Require a signed-in investor whose access is still open. Founders and admins
+ * are sent to their own portals; anyone else back to the investor sign-in.
+ * Access is re-checked on every request, so a revoke takes effect at once.
+ */
+export async function requireInvestor(): Promise<SessionUser & { investorId: number }> {
+  const session = await getSessionUser();
+  if (!session) redirect(INVESTOR_LOGIN);
+  const role = session.appUser?.role;
+  if (isAdmin(role)) redirect("/admin");
+  if (role === "founder") redirect("/dashboard");
+  if (session.appUser?.active === false) redirect(`${INVESTOR_LOGIN}?error=inactive`);
+  const investorId = role === "investor" ? session.appUser?.investor_id ?? null : null;
+  if (!investorId) redirect(`${INVESTOR_LOGIN}?error=not_on_list`);
+  if (!(await hasPortalAccess(investorId))) redirect(`${INVESTOR_LOGIN}?error=no_access`);
+  return { ...session, investorId };
 }

@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/shared/lib/utils";
-import { Avatar, CHIP_DOT, TintPanel, type ChipTone } from "@/client/components/founder/ui";
+import { Avatar, CHIP_DOT, CompanyLogo, TintPanel, type ChipTone } from "@/client/components/founder/ui";
 import { PillTabs, type PillTab } from "./pill-tabs";
 
 export interface ListItem {
@@ -13,6 +13,8 @@ export interface ListItem {
   title: string;
   subtitle?: string;
   avatar?: string | null;
+  /** A company logo URL; shown instead of the initials when set (investor portal). */
+  logo?: string | null;
   chip?: { label: string; tone: ChipTone };
   value?: string;
   /** Tab key this item belongs to (items without a group show under every tab). */
@@ -139,7 +141,7 @@ export function ListDetail({
                           />
                         ) : null}
                         <span className="relative z-10 flex w-full min-w-0 items-center gap-3">
-                          <Avatar name={item.avatar ?? item.title} size="sm" />
+                          {item.logo ? <CompanyLogo src={item.logo} name={item.title} size="sm" /> : <Avatar name={item.avatar ?? item.title} size="sm" />}
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-semibold">{item.title}</span>
                             {item.subtitle ? (

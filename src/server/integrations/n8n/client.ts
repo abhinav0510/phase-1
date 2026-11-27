@@ -2,11 +2,11 @@ import "server-only";
 
 /**
  * Calls one of the platform's guarded n8n webhooks (ADMIN-BROADCAST,
- * SYNC-CONTACTS). The shared secret is added here, server-side, so it never
+ * SYNC-CONTACTS, PORTAL-MEET-CREATE, PORTAL-THESIS-WRITEBACK, PORTAL-FOUNDER-WRITEBACK). The shared secret is added here, server-side, so it never
  * reaches the browser. Throws with a readable message on any failure.
  */
 export async function callN8nWebhook<T = unknown>(
-  urlEnv: "N8N_BROADCAST_WEBHOOK_URL" | "N8N_CONTACTS_SYNC_WEBHOOK_URL",
+  urlEnv: "N8N_BROADCAST_WEBHOOK_URL" | "N8N_CONTACTS_SYNC_WEBHOOK_URL" | "N8N_MEET_CREATE_WEBHOOK_URL" | "N8N_THESIS_WRITEBACK_WEBHOOK_URL" | "N8N_FOUNDER_WRITEBACK_WEBHOOK_URL",
   payload: Record<string, unknown>,
   timeoutMs = 30000,
 ): Promise<T> {

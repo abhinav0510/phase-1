@@ -1,6 +1,7 @@
 import { CalendarClock, CheckCircle2, Repeat, Video } from "lucide-react";
 import { requireFounder } from "@/server/auth/session";
 import { getOwnMeetings } from "@/server/data/founder";
+import { getConclusionsForMeetings } from "@/server/data/conclusions";
 import { KpiCard, PageHeader, Note, gainIf } from "@/client/components/founder/ui";
 import { Stagger, Item, Reveal } from "@/client/components/founder/motion";
 import { ListDetail, type ListItem, type DetailSpec } from "@/client/components/founder/list-detail";
@@ -15,6 +16,8 @@ function isHttpUrl(v: string | null | undefined): v is string {
 export default async function FounderMeetings() {
   const { startupId } = await requireFounder();
   const meetings = await getOwnMeetings(startupId);
+  // Phase 2 (clause 2.10): the Fireflies conclusion of each past meeting.
+  const conclusions = await getConclusionsForMeetings(meetings);
   const now = new Date();
   const isUpcoming = (m: (typeof meetings)[number]) =>
     !!m.scheduled_at && new Date(m.scheduled_at) >= now && !m.held;
@@ -53,6 +56,7 @@ export default async function FounderMeetings() {
           heading: m.investor_name ?? "Investor",
           chip: { label: m.held ? "Held" : up ? "Scheduled" : "Past", tone: "ocean" },
           aside: { label: "When", value: formatDateTime(m.scheduled_at) },
+          quote: !up && conclusions.get(m.id) ? { label: "Conclusion · from Fireflies", text: conclusions.get(m.id)!.overview } : undefined,
           stats: [
             { label: "Status", value: m.held ? "Held" : up ? "Upcoming" : "Not marked held" },
             { label: "Source", value: m.source ? m.source.replace(/_/g, " ") : "—" },

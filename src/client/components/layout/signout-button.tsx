@@ -14,8 +14,11 @@ const VARIANTS = {
 
 export function SignOutButton({
   variant = "icon",
+  to = "/login",
 }: {
   variant?: keyof typeof VARIANTS;
+  /** Where to land after signing out (investors go back to their own sign-in). */
+  to?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -23,7 +26,7 @@ export function SignOutButton({
   async function signOut() {
     setLoading(true);
     await fetch("/auth/signout", { method: "POST" });
-    router.push("/login");
+    router.push(to);
     router.refresh();
   }
 

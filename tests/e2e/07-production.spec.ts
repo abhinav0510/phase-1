@@ -59,7 +59,7 @@ test.describe("production behaviour", () => {
     await asFounder(page, ID.alpha);
     // Saving clears this startup's cache, so the next visit has to read the database.
     await page.goto("/profile");
-    await page.getByRole("button", { name: "Save draft" }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByRole("status")).toBeVisible();
 
     await failTable("meetings", true);
